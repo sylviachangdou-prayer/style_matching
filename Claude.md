@@ -20,7 +20,7 @@ rather show an honest "low confidence / not much like anyone" than a fake-precis
    - `rhetorical` — speeches & first-hand spoken/written rhetoric from major figures
      (presidents, popes, Nobel lectures, famous TED scripts). PRIMARY corpus: cleanest data,
      strongest style signal, highest public resonance, mostly public domain.
-   - `literary` — prose by public-domain / clearly-licensed authors.
+   - `literary` — prose by manually approved authors, stored only in the author's original language.
 4. **Two matching modes**, surfaced honestly in the UI:
    - `within-language` (default, the headline experience): real style matching. We *do* claim
      "your writing style resembles X."
@@ -147,13 +147,13 @@ can't be evaluated cross-topic.
 
 - `rhetorical`: start 30–50 figures with abundant first-hand originals (presidents, popes, Nobel
   lectures, famous TED scripts). Mostly public domain.
-- `literary`: start 20–30 public-domain / clearly-licensed authors.
-- Store raw text + metadata (author, language, date, topic-tag, source, license) so cross-topic
+- `literary`: start 20–30 manually approved authors.
+- Store raw text + metadata (author, original language, date, topic-tag, source, original-text flag) so cross-topic
   and cross-time splits are constructible.
 - Per-language buckets. A user writing in language L matches authors who wrote in L (within-lang).
 
-License hygiene: only public-domain or clearly-licensed text. Record license per source. Do not
-ingest scraped copyrighted books.
+Source hygiene: ingest only original-language source text. Do not ingest translations, adapted
+transcripts, subtitles, paraphrases, summaries, or LLM-generated imitation text.
 
 ---
 
@@ -223,6 +223,6 @@ once you can see actual matches.
 - Always expose sub-scores + reasons; never ship a lone opaque number.
 - Evaluate cross-topic only; never report random-split accuracy as the headline.
 - Cross-language results are reduced-confidence and must be labeled as such.
-- Public-domain / licensed corpora only; record license per source.
+- Original-language corpora only; do not train on translations or adapted transcripts.
 - LLMs (if used later) are rerankers/explainers, never the sole scorer.
 - Honest "no strong match" beats a fake-precise label.

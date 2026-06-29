@@ -1,31 +1,31 @@
-author,status,source_family,notes
-Jane Austen,approved,Project Gutenberg,public-domain prose; multiple novels
-Charles Dickens,approved,Project Gutenberg,public-domain prose; large corpus
-George Eliot,approved,Project Gutenberg,public-domain prose; large corpus
-Thomas Hardy,approved,Project Gutenberg,public-domain prose; multiple novels
-Mark Twain,approved,Project Gutenberg,public-domain prose; fiction and essays
-Henry James,approved,Project Gutenberg,public-domain prose; large corpus
-Edith Wharton,approved,Project Gutenberg,public-domain early prose; verify each work
-Herman Melville,approved,Project Gutenberg,public-domain prose
-Nathaniel Hawthorne,approved,Project Gutenberg,public-domain prose
-Edgar Allan Poe,approved,Project Gutenberg,public-domain short fiction and essays
-Washington Irving,approved,Project Gutenberg,public-domain sketches and essays
-Louisa May Alcott,approved,Project Gutenberg,public-domain prose
-Kate Chopin,approved,Project Gutenberg,public-domain prose; smaller corpus
-Willa Cather,approved,Project Gutenberg,public-domain early prose; verify each work
-Jack London,approved,Project Gutenberg,public-domain prose
-Stephen Crane,approved,Project Gutenberg,public-domain prose
-Charlotte Bronte,approved,Project Gutenberg,public-domain prose
-Emily Bronte,approved,Project Gutenberg,public-domain prose; smaller corpus
-Anne Bronte,approved,Project Gutenberg,public-domain prose; smaller corpus
-Mary Wollstonecraft Shelley,approved,Project Gutenberg,public-domain prose
-Robert Louis Stevenson,approved,Project Gutenberg,public-domain prose
-Joseph Conrad,approved,Project Gutenberg,public-domain prose
-H. G. Wells,approved,Project Gutenberg,public-domain early prose; verify each work
-Frances Hodgson Burnett,approved,Project Gutenberg,public-domain prose
-L. M. Montgomery,approved,Project Gutenberg,public-domain early prose; verify each work
-Elizabeth Cleghorn Gaskell,approved,Project Gutenberg,public-domain prose
-Anthony Trollope,approved,Project Gutenberg,public-domain prose; large corpus
-Wilkie Collins,approved,Project Gutenberg,public-domain prose
-Arthur Conan Doyle,approved,Project Gutenberg,public-domain prose; verify each work
-George MacDonald,approved,Project Gutenberg,public-domain prose
+author,corpus,original_language,source_family,notes
+Jane Austen,literary,en,Project Gutenberg,original English prose
+Charles Dickens,literary,en,Project Gutenberg,original English prose
+George Eliot,literary,en,Project Gutenberg,original English prose
+Thomas Hardy,literary,en,Project Gutenberg,original English prose
+Mark Twain,literary,en,Project Gutenberg,original English prose
+Henry James,literary,en,Project Gutenberg,original English prose
+Edith Wharton,literary,en,Project Gutenberg,original English prose
+Herman Melville,literary,en,Project Gutenberg,original English prose
+Nathaniel Hawthorne,literary,en,Project Gutenberg,original English prose
+Edgar Allan Poe,literary,en,Project Gutenberg,original English prose
+Washington Irving,literary,en,Project Gutenberg,original English prose
+Louisa May Alcott,literary,en,Project Gutenberg,original English prose
+Kate Chopin,literary,en,Project Gutenberg,original English prose
+Willa Cather,literary,en,Project Gutenberg,original English prose
+Jack London,literary,en,Project Gutenberg,original English prose
+Stephen Crane,literary,en,Project Gutenberg,original English prose
+Charlotte Bronte,literary,en,Project Gutenberg,original English prose
+Emily Bronte,literary,en,Project Gutenberg,original English prose
+Anne Bronte,literary,en,Project Gutenberg,original English prose
+Mary Wollstonecraft Shelley,literary,en,Project Gutenberg,original English prose
+Robert Louis Stevenson,literary,en,Project Gutenberg,original English prose
+Joseph Conrad,literary,en,Project Gutenberg,original English prose
+H. G. Wells,literary,en,Project Gutenberg,original English prose
+Frances Hodgson Burnett,literary,en,Project Gutenberg,original English prose
+L. M. Montgomery,literary,en,Project Gutenberg,original English prose
+Elizabeth Cleghorn Gaskell,literary,en,Project Gutenberg,original English prose
+Anthony Trollope,literary,en,Project Gutenberg,original English prose
+Wilkie Collins,literary,en,Project Gutenberg,original English prose
+Arthur Conan Doyle,literary,en,Project Gutenberg,original English prose
+George MacDonald,literary,en,Project Gutenberg,original English prose

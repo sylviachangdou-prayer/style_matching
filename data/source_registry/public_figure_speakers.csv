@@ -1,0 +1,21 @@
+speaker,corpus,original_language,source_family,notes
+Winston Churchill,rhetorical,en,Churchill archive / official speeches,original English public rhetoric only
+Martin Luther King Jr.,rhetorical,en,speech archive,original English public rhetoric only
+Adolf Hitler,rhetorical,de,German speech archive,German originals only; skip if only English translation is available
+Pope Francis,rhetorical,it,Vatican source texts,Italian originals only unless the original speech was delivered in another source language
+Pope Benedict XVI,rhetorical,de,Vatican source texts,German originals only unless the original speech was delivered in another source language
+Pope John Paul II,rhetorical,pl,Vatican source texts,Polish originals only unless the original speech was delivered in another source language
+Bill Gates,rhetorical,en,official essays / speeches / transcripts,original English texts only
+Elon Musk,rhetorical,en,official speeches / interviews / posts,original English texts only
+Steve Jobs,rhetorical,en,official speeches / keynotes,original English texts only
+Nelson Mandela,rhetorical,en,foundation/archive speeches,original English texts only for v1; non-English originals require source-language handling
+Margaret Thatcher,rhetorical,en,foundation/archive speeches,original English public rhetoric only
+Tony Blair,rhetorical,en,official speeches/archive,original English public rhetoric only
+Boris Johnson,rhetorical,en,official speeches/archive,original English public rhetoric only
+Keir Starmer,rhetorical,en,official speeches/archive,original English public rhetoric only; no campaign material
+Theresa May,rhetorical,en,official speeches/archive,original English public rhetoric only
+David Cameron,rhetorical,en,official speeches/archive,original English public rhetoric only
+Angela Merkel,rhetorical,de,official German speeches,German originals only
+Emmanuel Macron,rhetorical,fr,official French speeches,French originals only
+Greta Thunberg,rhetorical,en,official speeches,original English texts only when originally delivered in English
+Malala Yousafzai,rhetorical,en,official speeches,original English texts only when originally delivered in English
