@@ -9,26 +9,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def chunk_words(text: str, min_words: int = 75, max_words: int = 150) -> list[str]:
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+    words = re.findall(r"\S+", text)
     chunks: list[str] = []
-    buffer: list[str] = []
 
-    for paragraph in paragraphs:
-        words = paragraph.split()
-        if len(words) > max_words * 2:
-            sentences = re.split(r"(?<=[.!?])\s+", paragraph)
-            units = [s for s in sentences if s.strip()]
-        else:
-            units = [paragraph]
-
-        for unit in units:
-            buffer.extend(unit.split())
-            if len(buffer) >= min_words:
-                chunks.append(" ".join(buffer[:max_words]))
-                buffer = buffer[max_words:]
-
-    if len(buffer) >= min_words:
-        chunks.append(" ".join(buffer))
+    for start in range(0, len(words), max_words):
+        chunk = words[start:start + max_words]
+        if len(chunk) >= min_words:
+            chunks.append(" ".join(chunk))
 
     return chunks
 
@@ -76,4 +63,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
