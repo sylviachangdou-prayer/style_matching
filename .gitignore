@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Local env
+.env
+.venv/
+venv/
+
+# Large corpus outputs
+data/*/raw/
+data/*/chunks/
+data/*/clean/
+data/*/processed/
+
+# Large ML artifacts
+models/
+embeddings/
+checkpoints/
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.onnx
+*.faiss
+*.npy
+*.npz
+*.parquet
+
+# OS/editor
+.DS_Store
+.vscode/
