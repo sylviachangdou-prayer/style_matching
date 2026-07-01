@@ -21,9 +21,12 @@ def chunk_words(text: str, min_words: int = 75, max_words: int = 150) -> list[st
     return chunks
 
 
-def chunk_corpus(corpus: str, min_words: int, max_words: int) -> None:
+def chunk_corpus(corpus: str, min_words: int, max_words: int, allow_missing: bool = False) -> None:
     source_path = ROOT / "data" / corpus / "meta" / "sources.csv"
     if not source_path.exists():
+        if allow_missing:
+            print(f"{corpus}: missing {source_path}; skipped")
+            return
         raise FileNotFoundError(source_path)
 
     out_dir = ROOT / "data" / corpus / "chunks"
@@ -74,7 +77,7 @@ def main() -> None:
     args = parse_args()
     corpora = ["literary", "rhetorical"] if args.corpus == "both" else [args.corpus]
     for corpus in corpora:
-        chunk_corpus(corpus, min_words=args.min_words, max_words=args.max_words)
+        chunk_corpus(corpus, min_words=args.min_words, max_words=args.max_words, allow_missing=args.corpus == "both")
 
 
 if __name__ == "__main__":
