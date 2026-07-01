@@ -7,152 +7,241 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_DIR = ROOT / "data" / "source_registry"
 
+FIELDS = [
+    "name",
+    "corpus",
+    "original_language",
+    "era",
+    "batch",
+    "source_family",
+    "source_unit",
+    "min_independent_sources",
+    "modeling_status",
+    "notes",
+]
 
-LITERARY_AUTHORS = [
-    ("Jane Austen", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Charles Dickens", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("George Eliot", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Thomas Hardy", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Mark Twain", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Henry James", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Edith Wharton", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Herman Melville", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Nathaniel Hawthorne", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Edgar Allan Poe", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Washington Irving", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Louisa May Alcott", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Kate Chopin", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Willa Cather", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Jack London", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Stephen Crane", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Charlotte Bronte", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Emily Bronte", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Anne Bronte", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Mary Wollstonecraft Shelley", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Robert Louis Stevenson", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Joseph Conrad", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("H. G. Wells", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Frances Hodgson Burnett", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("L. M. Montgomery", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Elizabeth Cleghorn Gaskell", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Anthony Trollope", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Wilkie Collins", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("Arthur Conan Doyle", "literary", "en", "Project Gutenberg", "original English prose"),
-    ("George MacDonald", "literary", "en", "Project Gutenberg", "original English prose"),
+
+LITERARY_SEED = [
+    ("Jane Austen", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Charles Dickens", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("George Eliot", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Thomas Hardy", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Mark Twain", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Henry James", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Edith Wharton", "en", "20c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Herman Melville", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Nathaniel Hawthorne", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Edgar Allan Poe", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English short fiction and essays"),
+    ("Washington Irving", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English sketches and essays"),
+    ("Louisa May Alcott", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Kate Chopin", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Willa Cather", "en", "20c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Jack London", "en", "20c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Stephen Crane", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Charlotte Bronte", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Emily Bronte", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Anne Bronte", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Mary Wollstonecraft Shelley", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Robert Louis Stevenson", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Joseph Conrad", "en", "20c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("H. G. Wells", "en", "20c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Frances Hodgson Burnett", "en", "20c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("L. M. Montgomery", "en", "20c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Elizabeth Cleghorn Gaskell", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Anthony Trollope", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Wilkie Collins", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("Arthur Conan Doyle", "en", "20c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+    ("George MacDonald", "en", "19c", "seed_literary_en", "Project Gutenberg", "work", 3, "collected", "original English prose"),
+]
+
+
+LITERARY_EXPANSION = [
+    ("Virginia Woolf", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose/essays"),
+    ("James Joyce", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose"),
+    ("D. H. Lawrence", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose"),
+    ("E. M. Forster", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose"),
+    ("Katherine Mansfield", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English short fiction"),
+    ("George Orwell", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose/essays"),
+    ("W. E. B. Du Bois", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English essays/prose"),
+    ("Zora Neale Hurston", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose"),
+    ("F. Scott Fitzgerald", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose"),
+    ("Ernest Hemingway", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose"),
+    ("William Faulkner", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose"),
+    ("John Steinbeck", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose"),
+    ("Ralph Ellison", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose/essays"),
+    ("James Baldwin", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose/essays"),
+    ("Toni Morrison", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose/essays"),
+    ("Joan Didion", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English essays/prose"),
+    ("Ursula K. Le Guin", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose/essays"),
+    ("Kurt Vonnegut", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose/essays"),
+    ("Flannery O'Connor", "en", "20c", "expand_literary_modern_en", "curated original texts", "work", 3, "registry_only", "original English prose"),
+    ("Marcel Proust", "fr", "20c", "expand_literary_multilingual", "curated French originals", "work", 3, "registry_only", "French originals only"),
+    ("Albert Camus", "fr", "20c", "expand_literary_multilingual", "curated French originals", "work", 3, "registry_only", "French originals only"),
+    ("Jean-Paul Sartre", "fr", "20c", "expand_literary_multilingual", "curated French originals", "work", 3, "registry_only", "French originals only"),
+    ("Simone de Beauvoir", "fr", "20c", "expand_literary_multilingual", "curated French originals", "work", 3, "registry_only", "French originals only"),
+    ("Colette", "fr", "20c", "expand_literary_multilingual", "curated French originals", "work", 3, "registry_only", "French originals only"),
+    ("Franz Kafka", "de", "20c", "expand_literary_multilingual", "curated German originals", "work", 3, "registry_only", "German originals only"),
+    ("Thomas Mann", "de", "20c", "expand_literary_multilingual", "curated German originals", "work", 3, "registry_only", "German originals only"),
+    ("Bertolt Brecht", "de", "20c", "expand_literary_multilingual", "curated German originals", "work", 3, "registry_only", "German originals only"),
+    ("Hannah Arendt", "de", "20c", "expand_literary_multilingual", "curated German originals", "work", 3, "registry_only", "German originals only"),
+    ("Hannah Arendt", "en", "20c", "expand_literary_multilingual", "curated English originals", "work", 3, "registry_only", "English originals only"),
+    ("Jorge Luis Borges", "es", "20c", "expand_literary_multilingual", "curated Spanish originals", "work", 3, "registry_only", "Spanish originals only"),
+    ("Gabriel Garcia Marquez", "es", "20c", "expand_literary_multilingual", "curated Spanish originals", "work", 3, "registry_only", "Spanish originals only"),
+    ("Federico Garcia Lorca", "es", "20c", "expand_literary_multilingual", "curated Spanish originals", "work", 3, "registry_only", "Spanish originals only"),
+    ("Italo Calvino", "it", "20c", "expand_literary_multilingual", "curated Italian originals", "work", 3, "registry_only", "Italian originals only"),
+    ("Lu Xun", "zh", "20c", "expand_literary_multilingual", "curated Chinese originals", "work", 3, "registry_only", "Chinese originals only"),
+    ("Lao She", "zh", "20c", "expand_literary_multilingual", "curated Chinese originals", "work", 3, "registry_only", "Chinese originals only"),
+    ("Eileen Chang", "zh", "20c", "expand_literary_multilingual", "curated Chinese originals", "work", 3, "registry_only", "Chinese originals only"),
+    ("Eileen Chang", "en", "20c", "expand_literary_multilingual", "curated English originals", "work", 3, "registry_only", "English originals only"),
+    ("Natsume Soseki", "ja", "20c", "expand_literary_multilingual", "curated Japanese originals", "work", 3, "registry_only", "Japanese originals only"),
+    ("Ryunosuke Akutagawa", "ja", "20c", "expand_literary_multilingual", "curated Japanese originals", "work", 3, "registry_only", "Japanese originals only"),
+    ("Osamu Dazai", "ja", "20c", "expand_literary_multilingual", "curated Japanese originals", "work", 3, "registry_only", "Japanese originals only"),
 ]
 
 
 PRESIDENTIAL_SPEAKERS = [
-    ("George Washington", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("John Adams", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Thomas Jefferson", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("James Madison", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("James Monroe", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("John Quincy Adams", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Andrew Jackson", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Martin Van Buren", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("John Tyler", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("James K. Polk", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Zachary Taylor", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Millard Fillmore", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Franklin Pierce", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("James Buchanan", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Abraham Lincoln", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Andrew Johnson", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Ulysses S. Grant", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Rutherford B. Hayes", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("James A. Garfield", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Chester A. Arthur", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Grover Cleveland", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Benjamin Harrison", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("William McKinley", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Theodore Roosevelt", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("William Howard Taft", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Woodrow Wilson", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Warren G. Harding", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Calvin Coolidge", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Herbert Hoover", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Franklin D. Roosevelt", "rhetorical", "en", "official presidential public documents / APP / Project Gutenberg", "original English public rhetoric; no campaign material"),
-    ("Harry S. Truman", "rhetorical", "en", "official presidential public documents / APP", "original English public rhetoric; no campaign material"),
-    ("Dwight D. Eisenhower", "rhetorical", "en", "official presidential public documents / APP", "original English public rhetoric; no campaign material"),
-    ("John F. Kennedy", "rhetorical", "en", "official presidential public documents / APP / JFK Library", "original English public rhetoric; no campaign material"),
-    ("Lyndon B. Johnson", "rhetorical", "en", "official presidential public documents / APP", "original English public rhetoric; no campaign material"),
-    ("Richard Nixon", "rhetorical", "en", "official presidential public documents / APP", "original English public rhetoric; no campaign material"),
-    ("Gerald Ford", "rhetorical", "en", "official presidential public documents / APP", "original English public rhetoric; no campaign material"),
-    ("Jimmy Carter", "rhetorical", "en", "official presidential public documents / APP", "original English public rhetoric; no campaign material"),
-    ("Ronald Reagan", "rhetorical", "en", "official presidential public documents / APP", "original English public rhetoric; no campaign material"),
-    ("George H. W. Bush", "rhetorical", "en", "official presidential public documents / APP", "original English public rhetoric; no campaign material"),
-    ("Bill Clinton", "rhetorical", "en", "official presidential public documents / APP", "original English public rhetoric; no campaign material"),
-    ("George W. Bush", "rhetorical", "en", "official presidential public documents / APP", "original English public rhetoric; no campaign material"),
-    ("Barack Obama", "rhetorical", "en", "official presidential public documents / APP / White House archives", "original English public rhetoric; no campaign material"),
-    ("Donald Trump", "rhetorical", "en", "official presidential public documents / APP / White House archives", "original English public rhetoric; no campaign material"),
-    ("Joe Biden", "rhetorical", "en", "official presidential public documents / APP / White House archives", "original English public rhetoric; no campaign material"),
+    ("George Washington", "en", "18c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("John Adams", "en", "18c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Thomas Jefferson", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("James Madison", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("James Monroe", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("John Quincy Adams", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Andrew Jackson", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Martin Van Buren", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("John Tyler", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("James K. Polk", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Zachary Taylor", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Millard Fillmore", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Franklin Pierce", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("James Buchanan", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Abraham Lincoln", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Andrew Johnson", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Ulysses S. Grant", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Rutherford B. Hayes", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("James A. Garfield", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Chester A. Arthur", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Grover Cleveland", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Benjamin Harrison", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("William McKinley", "en", "19c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Theodore Roosevelt", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("William Howard Taft", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Woodrow Wilson", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Warren G. Harding", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Calvin Coolidge", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Herbert Hoover", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Franklin D. Roosevelt", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / Project Gutenberg", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Harry S. Truman", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Dwight D. Eisenhower", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("John F. Kennedy", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / JFK Library", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Lyndon B. Johnson", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Richard Nixon", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Gerald Ford", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Jimmy Carter", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Ronald Reagan", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("George H. W. Bush", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Bill Clinton", "en", "20c", "seed_rhetorical_us_presidents", "official presidential public documents / APP", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("George W. Bush", "en", "21c", "seed_rhetorical_us_presidents", "official presidential public documents / APP", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Barack Obama", "en", "21c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / White House archives", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Donald Trump", "en", "21c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / White House archives", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Joe Biden", "en", "21c", "seed_rhetorical_us_presidents", "official presidential public documents / APP / White House archives", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
 ]
 
 
-PUBLIC_FIGURE_SPEAKERS = [
-    ("Winston Churchill", "rhetorical", "en", "Churchill archive / official speeches", "original English public rhetoric only"),
-    ("Martin Luther King Jr.", "rhetorical", "en", "speech archive", "original English public rhetoric only"),
-    ("Adolf Hitler", "rhetorical", "de", "German speech archive", "German originals only; skip if only English translation is available"),
-    ("Pope Francis", "rhetorical", "it", "Vatican source texts", "Italian originals only unless the original speech was delivered in another source language"),
-    ("Pope Benedict XVI", "rhetorical", "de", "Vatican source texts", "German originals only unless the original speech was delivered in another source language"),
-    ("Pope John Paul II", "rhetorical", "pl", "Vatican source texts", "Polish originals only unless the original speech was delivered in another source language"),
-    ("Bill Gates", "rhetorical", "en", "official essays / speeches / transcripts", "original English texts only"),
-    ("Elon Musk", "rhetorical", "en", "official speeches / interviews / posts", "original English texts only"),
-    ("Steve Jobs", "rhetorical", "en", "official speeches / keynotes", "original English texts only"),
-    ("Nelson Mandela", "rhetorical", "en", "foundation/archive speeches", "original English texts only for v1; non-English originals require source-language handling"),
-    ("Margaret Thatcher", "rhetorical", "en", "foundation/archive speeches", "original English public rhetoric only"),
-    ("Tony Blair", "rhetorical", "en", "official speeches/archive", "original English public rhetoric only"),
-    ("Boris Johnson", "rhetorical", "en", "official speeches/archive", "original English public rhetoric only"),
-    ("Keir Starmer", "rhetorical", "en", "official speeches/archive", "original English public rhetoric only; no campaign material"),
-    ("Theresa May", "rhetorical", "en", "official speeches/archive", "original English public rhetoric only"),
-    ("David Cameron", "rhetorical", "en", "official speeches/archive", "original English public rhetoric only"),
-    ("Angela Merkel", "rhetorical", "de", "official German speeches", "German originals only"),
-    ("Emmanuel Macron", "rhetorical", "fr", "official French speeches", "French originals only"),
-    ("Greta Thunberg", "rhetorical", "en", "official speeches", "original English texts only when originally delivered in English"),
-    ("Malala Yousafzai", "rhetorical", "en", "official speeches", "original English texts only when originally delivered in English"),
+RHETORICAL_EXPANSION = [
+    ("Winston Churchill", "en", "20c", "expand_rhetorical_public_figures", "Churchill archive / official speeches", "speech_or_document", 3, "registry_only", "original English public rhetoric only"),
+    ("Martin Luther King Jr.", "en", "20c", "expand_rhetorical_public_figures", "speech archive", "speech_or_document", 3, "registry_only", "original English public rhetoric only"),
+    ("Bill Gates", "en", "20c_21c", "expand_rhetorical_public_figures", "official essays / speeches / transcripts", "speech_or_document", 3, "registry_only", "original English texts only"),
+    ("Elon Musk", "en", "21c", "expand_rhetorical_public_figures", "official speeches / interviews / posts", "speech_or_document", 3, "registry_only", "original English texts only"),
+    ("Steve Jobs", "en", "20c_21c", "expand_rhetorical_public_figures", "official speeches / keynotes", "speech_or_document", 3, "registry_only", "original English texts only"),
+    ("Nelson Mandela", "en", "20c_21c", "expand_rhetorical_public_figures", "foundation/archive speeches", "speech_or_document", 3, "registry_only", "collect English originals only in the English pass"),
+    ("Margaret Thatcher", "en", "20c", "expand_rhetorical_uk", "foundation/archive speeches", "speech_or_document", 3, "registry_only", "original English public rhetoric only"),
+    ("Tony Blair", "en", "20c_21c", "expand_rhetorical_uk", "official speeches/archive", "speech_or_document", 3, "registry_only", "original English public rhetoric only"),
+    ("Boris Johnson", "en", "21c", "expand_rhetorical_uk", "official speeches/archive", "speech_or_document", 3, "registry_only", "original English public rhetoric only"),
+    ("Keir Starmer", "en", "21c", "expand_rhetorical_uk", "official speeches/archive", "speech_or_document", 3, "registry_only", "original English public rhetoric only; no campaign material"),
+    ("Theresa May", "en", "21c", "expand_rhetorical_uk", "official speeches/archive", "speech_or_document", 3, "registry_only", "original English public rhetoric only"),
+    ("David Cameron", "en", "21c", "expand_rhetorical_uk", "official speeches/archive", "speech_or_document", 3, "registry_only", "original English public rhetoric only"),
+    ("Gordon Brown", "en", "21c", "expand_rhetorical_uk", "official speeches/archive", "speech_or_document", 3, "registry_only", "original English public rhetoric only"),
+    ("John Major", "en", "20c", "expand_rhetorical_uk", "official speeches/archive", "speech_or_document", 3, "registry_only", "original English public rhetoric only"),
+    ("Rishi Sunak", "en", "21c", "expand_rhetorical_uk", "official speeches/archive", "speech_or_document", 3, "registry_only", "original English public rhetoric only"),
+    ("Liz Truss", "en", "21c", "expand_rhetorical_uk", "official speeches/archive", "speech_or_document", 3, "registry_only", "original English public rhetoric only"),
+    ("Kamala Harris", "en", "21c", "expand_rhetorical_us_modern", "official speeches / White House / Senate archive", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Hillary Clinton", "en", "20c_21c", "expand_rhetorical_us_modern", "official speeches / State Department / Senate archive", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Bernie Sanders", "en", "20c_21c", "expand_rhetorical_us_modern", "official congressional/senate speeches", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Elizabeth Warren", "en", "21c", "expand_rhetorical_us_modern", "official senate speeches", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Alexandria Ocasio-Cortez", "en", "21c", "expand_rhetorical_us_modern", "official congressional speeches", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Ron DeSantis", "en", "21c", "expand_rhetorical_us_modern", "official governor speeches", "speech_or_document", 3, "registry_only", "original English public rhetoric; no campaign material"),
+    ("Justin Trudeau", "en", "21c", "expand_rhetorical_commonwealth", "official English speeches", "speech_or_document", 3, "registry_only", "English originals only"),
+    ("Justin Trudeau", "fr", "21c", "expand_rhetorical_commonwealth", "official French speeches", "speech_or_document", 3, "registry_only", "French originals only"),
+    ("Jacinda Ardern", "en", "21c", "expand_rhetorical_commonwealth", "official speeches", "speech_or_document", 3, "registry_only", "original English public rhetoric only"),
+    ("Anthony Albanese", "en", "21c", "expand_rhetorical_commonwealth", "official speeches", "speech_or_document", 3, "registry_only", "original English public rhetoric only"),
+    ("Adolf Hitler", "de", "20c", "expand_rhetorical_multilingual", "German speech archive", "speech_or_document", 3, "registry_only", "German originals only"),
+    ("Angela Merkel", "de", "21c", "expand_rhetorical_multilingual", "official German speeches", "speech_or_document", 3, "registry_only", "German originals only"),
+    ("Olaf Scholz", "de", "21c", "expand_rhetorical_multilingual", "official German speeches", "speech_or_document", 3, "registry_only", "German originals only"),
+    ("Emmanuel Macron", "fr", "21c", "expand_rhetorical_multilingual", "official French speeches", "speech_or_document", 3, "registry_only", "French originals only"),
+    ("Charles de Gaulle", "fr", "20c", "expand_rhetorical_multilingual", "French speech archive", "speech_or_document", 3, "registry_only", "French originals only"),
+    ("Francois Mitterrand", "fr", "20c", "expand_rhetorical_multilingual", "French speech archive", "speech_or_document", 3, "registry_only", "French originals only"),
+    ("Pope Francis", "it", "21c", "expand_rhetorical_multilingual", "Vatican source texts", "speech_or_document", 3, "registry_only", "Italian originals unless speech delivered in another source language"),
+    ("Pope Benedict XVI", "de", "21c", "expand_rhetorical_multilingual", "Vatican source texts", "speech_or_document", 3, "registry_only", "German originals unless speech delivered in another source language"),
+    ("Pope John Paul II", "pl", "20c_21c", "expand_rhetorical_multilingual", "Vatican source texts", "speech_or_document", 3, "registry_only", "Polish originals unless speech delivered in another source language"),
+    ("Fidel Castro", "es", "20c_21c", "expand_rhetorical_multilingual", "Spanish speech archive", "speech_or_document", 3, "registry_only", "Spanish originals only"),
+    ("Salvador Allende", "es", "20c", "expand_rhetorical_multilingual", "Spanish speech archive", "speech_or_document", 3, "registry_only", "Spanish originals only"),
+    ("Hugo Chavez", "es", "20c_21c", "expand_rhetorical_multilingual", "Spanish speech archive", "speech_or_document", 3, "registry_only", "Spanish originals only"),
+    ("Greta Thunberg", "en", "21c", "expand_rhetorical_public_figures", "official speeches", "speech_or_document", 3, "registry_only", "collect only speeches originally delivered in English"),
+    ("Malala Yousafzai", "en", "21c", "expand_rhetorical_public_figures", "official speeches", "speech_or_document", 3, "registry_only", "collect only speeches originally delivered in English"),
 ]
 
 
-def write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, str]]) -> None:
+def row(name: str, corpus: str, language: str, era: str, batch: str, source_family: str, source_unit: str, min_sources: int, status: str, notes: str) -> dict[str, str | int]:
+    return {
+        "name": name,
+        "corpus": corpus,
+        "original_language": language,
+        "era": era,
+        "batch": batch,
+        "source_family": source_family,
+        "source_unit": source_unit,
+        "min_independent_sources": min_sources,
+        "modeling_status": status,
+        "notes": notes,
+    }
+
+
+def rows(records: list[tuple[str, str, str, str, str, str, int, str, str]], corpus: str) -> list[dict[str, str | int]]:
+    return [row(name, corpus, *rest) for name, *rest in records]
+
+
+def dedupe(records: list[dict[str, str | int]]) -> list[dict[str, str | int]]:
+    seen = set()
+    output = []
+    for record in records:
+        key = (record["name"], record["corpus"], record["original_language"])
+        if key not in seen:
+            seen.add(key)
+            output.append(record)
+    return output
+
+
+def write_csv(path: Path, records: list[dict[str, str | int]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=FIELDS)
         writer.writeheader()
-        writer.writerows(rows)
-
-
-def rows(records: list[tuple[str, str, str, str, str]], name_field: str) -> list[dict[str, str]]:
-    return [
-        {
-            name_field: name,
-            "corpus": corpus,
-            "original_language": original_language,
-            "source_family": source_family,
-            "notes": notes,
-        }
-        for name, corpus, original_language, source_family, notes in records
-    ]
+        writer.writerows(records)
 
 
 def main() -> None:
-    fields = ["corpus", "original_language", "source_family", "notes"]
-    write_csv(
-        REGISTRY_DIR / "literary_authors.csv",
-        ["author", *fields],
-        rows(LITERARY_AUTHORS, "author"),
-    )
-    write_csv(
-        REGISTRY_DIR / "rhetorical_speakers.csv",
-        ["speaker", *fields],
-        rows(PRESIDENTIAL_SPEAKERS + PUBLIC_FIGURE_SPEAKERS, "speaker"),
-    )
-    write_csv(
-        REGISTRY_DIR / "public_figure_speakers.csv",
-        ["speaker", *fields],
-        rows(PUBLIC_FIGURE_SPEAKERS, "speaker"),
-    )
-    print(f"Wrote registries to {REGISTRY_DIR}")
+    literary = dedupe(rows(LITERARY_SEED + LITERARY_EXPANSION, "literary"))
+    rhetorical = dedupe(rows(PRESIDENTIAL_SPEAKERS + RHETORICAL_EXPANSION, "rhetorical"))
+    all_people = dedupe(literary + rhetorical)
+
+    write_csv(REGISTRY_DIR / "literary_authors.csv", literary)
+    write_csv(REGISTRY_DIR / "rhetorical_speakers.csv", rhetorical)
+    write_csv(REGISTRY_DIR / "all_people.csv", all_people)
+    write_csv(REGISTRY_DIR / "registry_expansion_batch.csv", [r for r in all_people if str(r["modeling_status"]) == "registry_only"])
+
+    print(f"Wrote {len(literary)} literary records")
+    print(f"Wrote {len(rhetorical)} rhetorical records")
+    print(f"Wrote {len(all_people)} total records")
 
 
 if __name__ == "__main__":

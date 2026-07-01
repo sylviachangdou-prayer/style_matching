@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import csv
 import http.client
 import json
@@ -21,13 +22,20 @@ def slug(value: str) -> str:
     return value.strip("_")
 
 
-def read_names(path: Path, column: str) -> list[str]:
+def read_registry_names(path: Path, corpus: str, language: str, batches: set[str] | None, statuses: set[str] | None) -> list[str]:
     with path.open(encoding="utf-8") as handle:
-        rows = []
+        names = []
         for row in csv.DictReader(handle):
-            if row.get("original_language", "en") == "en":
-                rows.append(row[column])
-        return rows
+            if row.get("corpus") != corpus:
+                continue
+            if row.get("original_language") != language:
+                continue
+            if batches and row.get("batch") not in batches:
+                continue
+            if statuses and row.get("modeling_status") not in statuses:
+                continue
+            names.append(row["name"])
+        return names
 
 
 def fetch_json(url: str) -> dict:
@@ -150,6 +158,7 @@ def fetch_for_name(name: str, corpus: str, max_works: int) -> list[dict[str, str
             "corpus": corpus,
             "author_or_speaker": name,
             "title": book.get("title", ""),
+            "source_id": f"gutenberg_{book['id']}",
             "gutenberg_id": str(book["id"]),
             "source_url": url,
             "source_text_rule": "original-language source text only",
@@ -167,25 +176,43 @@ def write_metadata(corpus: str, rows: list[dict[str, str]]) -> None:
     meta_dir = ROOT / "data" / corpus / "meta"
     meta_dir.mkdir(parents=True, exist_ok=True)
     path = meta_dir / "sources.csv"
-    fields = ["corpus", "author_or_speaker", "title", "gutenberg_id", "source_url", "source_text_rule", "language", "raw_text_path"]
+    fields = ["corpus", "author_or_speaker", "title", "source_id", "gutenberg_id", "source_url", "source_text_rule", "language", "raw_text_path"]
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
         writer.writerows(rows)
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--corpus", choices=["literary", "rhetorical", "both"], default="literary")
+    parser.add_argument("--language", default="en")
+    parser.add_argument("--batch", action="append", help="Registry batch to include; may be repeated.")
+    parser.add_argument("--status", action="append", help="Registry modeling_status to include; may be repeated. Defaults to collected.")
+    parser.add_argument("--max-works", type=int, default=1)
+    return parser.parse_args()
+
+
 def main() -> None:
-    literary = read_names(REGISTRY_DIR / "literary_authors.csv", "author")
-    rhetorical = read_names(REGISTRY_DIR / "rhetorical_speakers.csv", "speaker")
+    args = parse_args()
+    batches = set(args.batch) if args.batch else None
+    statuses = set(args.status or ["collected"])
+
+    literary = []
+    rhetorical = []
+    if args.corpus in {"literary", "both"}:
+        literary = read_registry_names(REGISTRY_DIR / "literary_authors.csv", "literary", args.language, batches, statuses)
+    if args.corpus in {"rhetorical", "both"}:
+        rhetorical = read_registry_names(REGISTRY_DIR / "rhetorical_speakers.csv", "rhetorical", args.language, batches, statuses)
 
     literary_rows = []
     for name in literary:
-        literary_rows.extend(fetch_for_name(name, "literary", max_works=1))
+        literary_rows.extend(fetch_for_name(name, "literary", max_works=args.max_works))
         print(f"literary: {name}: {len([r for r in literary_rows if r['author_or_speaker'] == name])} works", flush=True)
 
     rhetorical_rows = []
     for name in rhetorical:
-        rhetorical_rows.extend(fetch_for_name(name, "rhetorical", max_works=1))
+        rhetorical_rows.extend(fetch_for_name(name, "rhetorical", max_works=args.max_works))
         print(f"rhetorical: {name}: {len([r for r in rhetorical_rows if r['author_or_speaker'] == name])} works", flush=True)
 
     write_metadata("literary", literary_rows)

@@ -1,0 +1,3 @@
+corpus,name,original_language,title,source_id,source_url,local_text_path
+literary,Example Author,en,Example Original Work,example_author_work_001,https://example.org/original,raw_inputs/example_author_work_001.txt
+rhetorical,Example Speaker,en,Example Original Speech,example_speaker_speech_001,https://example.org/original,raw_inputs/example_speaker_speech_001.txt

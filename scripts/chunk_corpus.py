@@ -32,8 +32,13 @@ def chunk_corpus(corpus: str) -> None:
     with source_path.open(encoding="utf-8") as handle:
         for source in csv.DictReader(handle):
             text = (ROOT / source["raw_text_path"]).read_text(encoding="utf-8", errors="replace")
+            source_id = source.get("source_id") or source.get("gutenberg_id")
+            if not source_id:
+                raise ValueError(f"missing source_id for {source.get('title', '')}")
+            safe_source_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", source_id).strip("_")
+            language = source.get("language") or source.get("original_language") or "und"
             for index, chunk in enumerate(chunk_words(text), start=1):
-                chunk_id = f"{corpus}_{source['gutenberg_id']}_{index:04d}"
+                chunk_id = f"{corpus}_{safe_source_id}_{index:04d}"
                 chunk_path = out_dir / f"{chunk_id}.txt"
                 chunk_path.write_text(chunk, encoding="utf-8")
                 rows.append({
@@ -41,8 +46,8 @@ def chunk_corpus(corpus: str) -> None:
                     "corpus": corpus,
                     "author_or_speaker": source["author_or_speaker"],
                     "title": source["title"],
-                    "source_id": source["gutenberg_id"],
-                    "language": "en",
+                    "source_id": source_id,
+                    "language": language,
                     "word_count": str(len(chunk.split())),
                     "chunk_path": str(chunk_path.relative_to(ROOT)),
                 })
