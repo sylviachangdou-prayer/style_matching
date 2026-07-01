@@ -16,9 +16,11 @@ FIELDS = [
     "source_url",
     "source_text_rule",
     "language",
+    "word_count",
     "raw_text_path",
 ]
 REQUIRED = {"corpus", "name", "original_language", "title", "source_id", "local_text_path"}
+REGISTRY_PATH = ROOT / "data" / "source_registry" / "all_people.csv"
 
 
 def slug(value: str) -> str:
@@ -36,12 +38,25 @@ def read_manifest(path: Path) -> list[dict[str, str]]:
         return list(reader)
 
 
-def import_rows(rows: list[dict[str, str]], manifest_dir: Path) -> dict[str, list[dict[str, str]]]:
+def registry_keys() -> set[tuple[str, str, str]]:
+    if not REGISTRY_PATH.exists():
+        return set()
+    with REGISTRY_PATH.open(encoding="utf-8") as handle:
+        return {
+            (row["corpus"], row["name"], row["original_language"])
+            for row in csv.DictReader(handle)
+        }
+
+
+def import_rows(rows: list[dict[str, str]], manifest_dir: Path, dry_run: bool) -> dict[str, list[dict[str, str]]]:
     by_corpus: dict[str, list[dict[str, str]]] = {}
+    allowed = registry_keys()
     for row in rows:
         corpus = row["corpus"]
         name = row["name"]
         language = row["original_language"]
+        if allowed and (corpus, name, language) not in allowed:
+            raise ValueError(f"manifest row not in source registry: {corpus} | {name} | {language}")
         source_id = row["source_id"]
         local_path = Path(row["local_text_path"])
         if not local_path.is_absolute():
@@ -49,10 +64,13 @@ def import_rows(rows: list[dict[str, str]], manifest_dir: Path) -> dict[str, lis
         if not local_path.exists():
             raise FileNotFoundError(local_path)
 
+        text = local_path.read_text(encoding="utf-8", errors="replace")
+        word_count = len(re.findall(r"\S+", text))
         out_dir = ROOT / "data" / corpus / "raw" / slug(name)
-        out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / f"{slug(source_id)}.txt"
-        shutil.copy2(local_path, out_path)
+        if not dry_run:
+            out_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(local_path, out_path)
 
         by_corpus.setdefault(corpus, []).append({
             "corpus": corpus,
@@ -62,6 +80,7 @@ def import_rows(rows: list[dict[str, str]], manifest_dir: Path) -> dict[str, lis
             "source_url": row.get("source_url", ""),
             "source_text_rule": "original-language source text only",
             "language": language,
+            "word_count": str(word_count),
             "raw_text_path": str(out_path.relative_to(ROOT)),
         })
     return by_corpus
@@ -97,15 +116,19 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--append", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     rows = read_manifest(args.manifest)
-    by_corpus = import_rows(rows, args.manifest.resolve().parent)
+    by_corpus = import_rows(rows, args.manifest.resolve().parent, args.dry_run)
     for corpus, corpus_rows in sorted(by_corpus.items()):
-        write_sources(corpus, corpus_rows, args.append)
+        if args.dry_run:
+            print(f"{corpus}: validated {len(corpus_rows)} source rows")
+        else:
+            write_sources(corpus, corpus_rows, args.append)
 
 
 if __name__ == "__main__":

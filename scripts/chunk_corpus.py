@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import csv
 import re
 from pathlib import Path
@@ -20,7 +21,7 @@ def chunk_words(text: str, min_words: int = 75, max_words: int = 150) -> list[st
     return chunks
 
 
-def chunk_corpus(corpus: str) -> None:
+def chunk_corpus(corpus: str, min_words: int, max_words: int) -> None:
     source_path = ROOT / "data" / corpus / "meta" / "sources.csv"
     if not source_path.exists():
         raise FileNotFoundError(source_path)
@@ -37,7 +38,7 @@ def chunk_corpus(corpus: str) -> None:
                 raise ValueError(f"missing source_id for {source.get('title', '')}")
             safe_source_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", source_id).strip("_")
             language = source.get("language") or source.get("original_language") or "und"
-            for index, chunk in enumerate(chunk_words(text), start=1):
+            for index, chunk in enumerate(chunk_words(text, min_words=min_words, max_words=max_words), start=1):
                 chunk_id = f"{corpus}_{safe_source_id}_{index:04d}"
                 chunk_path = out_dir / f"{chunk_id}.txt"
                 chunk_path.write_text(chunk, encoding="utf-8")
@@ -61,9 +62,19 @@ def chunk_corpus(corpus: str) -> None:
     print(f"{corpus}: wrote {len(rows)} chunks")
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--corpus", choices=["literary", "rhetorical", "both"], default="both")
+    parser.add_argument("--min-words", type=int, default=75)
+    parser.add_argument("--max-words", type=int, default=150)
+    return parser.parse_args()
+
+
 def main() -> None:
-    chunk_corpus("literary")
-    chunk_corpus("rhetorical")
+    args = parse_args()
+    corpora = ["literary", "rhetorical"] if args.corpus == "both" else [args.corpus]
+    for corpus in corpora:
+        chunk_corpus(corpus, min_words=args.min_words, max_words=args.max_words)
 
 
 if __name__ == "__main__":
