@@ -1,0 +1,140 @@
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import re
+from collections import defaultdict
+from pathlib import Path
+
+import pandas as pd
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Build chunk parquet directly from source texts without per-chunk files.")
+    parser.add_argument("--corpus", choices=["literary", "rhetorical", "both"], default="literary")
+    parser.add_argument("--language")
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--coverage-output", type=Path)
+    parser.add_argument("--min-words", type=int, default=75)
+    parser.add_argument("--max-words", type=int, default=150)
+    parser.add_argument("--min-sources", type=int, default=3)
+    parser.add_argument("--min-chunks", type=int, default=30)
+    return parser.parse_args()
+
+
+def safe_id(value: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_.-]+", "_", value).strip("_")
+
+
+def chunk_words(text: str, min_words: int, max_words: int) -> list[str]:
+    words = re.findall(r"\S+", text)
+    chunks = []
+    for start in range(0, len(words), max_words):
+        chunk = words[start:start + max_words]
+        if len(chunk) >= min_words:
+            chunks.append(" ".join(chunk))
+    return chunks
+
+
+def read_sources(corpus: str) -> list[dict[str, str]]:
+    path = ROOT / "data" / corpus / "meta" / "sources.csv"
+    if not path.exists():
+        return []
+    with path.open(encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
+def build_rows(corpus: str, args: argparse.Namespace) -> list[dict[str, str | int]]:
+    rows = []
+    for source in read_sources(corpus):
+        language = source.get("language") or source.get("original_language") or "und"
+        if args.language and language != args.language:
+            continue
+        source_id = source.get("source_id") or source.get("gutenberg_id")
+        if not source_id:
+            raise ValueError(f"missing source_id for {source.get('title', '')}")
+        raw_path = ROOT / source["raw_text_path"]
+        if not raw_path.exists():
+            raise FileNotFoundError(raw_path)
+        text = raw_path.read_text(encoding="utf-8", errors="replace")
+        for index, chunk in enumerate(chunk_words(text, args.min_words, args.max_words), start=1):
+            rows.append({
+                "chunk_id": f"{corpus}_{safe_id(source_id)}_{index:04d}",
+                "corpus": corpus,
+                "author_or_speaker": source["author_or_speaker"],
+                "title": source.get("title", ""),
+                "source_id": source_id,
+                "language": language,
+                "word_count": len(chunk.split()),
+                "text": chunk,
+            })
+    return rows
+
+
+def coverage(rows: list[dict[str, str | int]], args: argparse.Namespace) -> dict:
+    source_ids: dict[tuple[str, str, str], set[str]] = defaultdict(set)
+    chunk_counts: dict[tuple[str, str, str], int] = defaultdict(int)
+    for row in rows:
+        key = (str(row["corpus"]), str(row["language"]), str(row["author_or_speaker"]))
+        source_ids[key].add(str(row["source_id"]))
+        chunk_counts[key] += 1
+
+    people = []
+    for corpus, language, name in sorted(set(source_ids) | set(chunk_counts)):
+        source_count = len(source_ids[(corpus, language, name)])
+        chunk_count = chunk_counts[(corpus, language, name)]
+        ready = source_count >= args.min_sources and chunk_count >= args.min_chunks
+        people.append({
+            "corpus": corpus,
+            "language": language,
+            "author_or_speaker": name,
+            "source_count": source_count,
+            "chunk_count": chunk_count,
+            "source_heldout_ready": ready,
+        })
+    people.sort(key=lambda row: (row["source_heldout_ready"], row["corpus"], row["language"], row["chunk_count"]))
+    return {
+        "corpus": args.corpus,
+        "language": args.language,
+        "min_sources": args.min_sources,
+        "min_chunks": args.min_chunks,
+        "n_chunks": len(rows),
+        "n_people": len({row["author_or_speaker"] for row in people}),
+        "ready_people": sum(1 for row in people if row["source_heldout_ready"]),
+        "people": people,
+        "not_ready": [row for row in people if not row["source_heldout_ready"]],
+    }
+
+
+def main() -> None:
+    args = parse_args()
+    corpora = ["literary", "rhetorical"] if args.corpus == "both" else [args.corpus]
+    rows = []
+    for corpus in corpora:
+        rows.extend(build_rows(corpus, args))
+    if not rows:
+        raise ValueError("No chunks produced.")
+
+    df = pd.DataFrame(rows)
+    if df["chunk_id"].duplicated().any():
+        duplicated = df.loc[df["chunk_id"].duplicated(), "chunk_id"].head().tolist()
+        raise ValueError(f"duplicate chunk_id values: {duplicated}")
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(args.output, index=False)
+
+    report = coverage(rows, args)
+    if args.coverage_output:
+        args.coverage_output.parent.mkdir(parents=True, exist_ok=True)
+        args.coverage_output.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(json.dumps({key: report[key] for key in ["n_chunks", "n_people", "ready_people"]}, indent=2))
+    print(f"Wrote {args.output}")
+    if args.coverage_output:
+        print(f"Wrote {args.coverage_output}")
+
+
+if __name__ == "__main__":
+    main()
