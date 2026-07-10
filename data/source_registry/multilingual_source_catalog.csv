@@ -1,0 +1,46 @@
+corpus,name,original_language,title,source_id,source_url,source_format
+literary,Lu Xun,zh,中國小說史略,gutenberg_25559,https://www.gutenberg.org/ebooks/25559.txt.utf-8,gutenberg_text
+literary,Lu Xun,zh,南腔北調集,gutenberg_25346,https://www.gutenberg.org/ebooks/25346.txt.utf-8,gutenberg_text
+literary,Lu Xun,zh,吶喊,gutenberg_27166,https://www.gutenberg.org/ebooks/27166.txt.utf-8,gutenberg_text
+literary,Wu Jianren,zh,二十年目睹之怪現狀,gutenberg_24099,https://www.gutenberg.org/ebooks/24099.txt.utf-8,gutenberg_text
+literary,Wu Jianren,zh,九命奇冤,gutenberg_24113,https://www.gutenberg.org/ebooks/24113.txt.utf-8,gutenberg_text
+literary,Wu Jianren,zh,恨海,gutenberg_23865,https://www.gutenberg.org/ebooks/23865.txt.utf-8,gutenberg_text
+literary,Feng Menglong,zh,警世通言,gutenberg_24141,https://www.gutenberg.org/ebooks/24141.txt.utf-8,gutenberg_text
+literary,Feng Menglong,zh,喻世明言,gutenberg_27582,https://www.gutenberg.org/ebooks/27582.txt.utf-8,gutenberg_text
+literary,Feng Menglong,zh,醒世恆言,gutenberg_24239,https://www.gutenberg.org/ebooks/24239.txt.utf-8,gutenberg_text
+literary,Natsume Soseki,ja,吾輩は猫である,aozora_789_14547,https://www.aozora.gr.jp/cards/000148/files/789_14547.html,aozora_html
+literary,Natsume Soseki,ja,坊っちゃん,aozora_752_14964,https://www.aozora.gr.jp/cards/000148/files/752_14964.html,aozora_html
+literary,Natsume Soseki,ja,こころ,aozora_773_14560,https://www.aozora.gr.jp/cards/000148/files/773_14560.html,aozora_html
+literary,Ryunosuke Akutagawa,ja,羅生門,aozora_127_15260,https://www.aozora.gr.jp/cards/000879/files/127_15260.html,aozora_html
+literary,Ryunosuke Akutagawa,ja,河童,aozora_45761_39095,https://www.aozora.gr.jp/cards/000879/files/45761_39095.html,aozora_html
+literary,Ryunosuke Akutagawa,ja,藪の中,aozora_179_15255,https://www.aozora.gr.jp/cards/000879/files/179_15255.html,aozora_html
+literary,Osamu Dazai,ja,人間失格,aozora_301_14912,https://www.aozora.gr.jp/cards/000035/files/301_14912.html,aozora_html
+literary,Osamu Dazai,ja,斜陽,aozora_1565_8559,https://www.aozora.gr.jp/cards/000035/files/1565_8559.html,aozora_html
+literary,Osamu Dazai,ja,走れメロス,aozora_1567_14913,https://www.aozora.gr.jp/cards/000035/files/1567_14913.html,aozora_html
+literary,Marcel Proust,fr,Du côté de chez Swann,gutenberg_2650,https://www.gutenberg.org/ebooks/2650.txt.utf-8,gutenberg_text
+literary,Marcel Proust,fr,Les plaisirs et les jours,gutenberg_58698,https://www.gutenberg.org/ebooks/58698.txt.utf-8,gutenberg_text
+literary,Marcel Proust,fr,Pastiches et mélanges,gutenberg_64145,https://www.gutenberg.org/ebooks/64145.txt.utf-8,gutenberg_text
+literary,Gustave Flaubert,fr,Madame Bovary,gutenberg_14155,https://www.gutenberg.org/ebooks/14155.txt.utf-8,gutenberg_text
+literary,Gustave Flaubert,fr,Salammbô,gutenberg_48881,https://www.gutenberg.org/ebooks/48881.txt.utf-8,gutenberg_text
+literary,Gustave Flaubert,fr,Trois contes,gutenberg_12065,https://www.gutenberg.org/ebooks/12065.txt.utf-8,gutenberg_text
+literary,Emile Zola,fr,L'Assommoir,gutenberg_6497,https://www.gutenberg.org/ebooks/6497.txt.utf-8,gutenberg_text
+literary,Emile Zola,fr,Germinal,gutenberg_5711,https://www.gutenberg.org/ebooks/5711.txt.utf-8,gutenberg_text
+literary,Emile Zola,fr,Nana,gutenberg_5250,https://www.gutenberg.org/ebooks/5250.txt.utf-8,gutenberg_text
+literary,Franz Kafka,de,Die Verwandlung,gutenberg_22367,https://www.gutenberg.org/ebooks/22367.txt.utf-8,gutenberg_text
+literary,Franz Kafka,de,Ein Landarzt,gutenberg_21989,https://www.gutenberg.org/ebooks/21989.txt.utf-8,gutenberg_text
+literary,Franz Kafka,de,Der Prozess,gutenberg_69327,https://www.gutenberg.org/ebooks/69327.txt.utf-8,gutenberg_text
+literary,Friedrich Nietzsche,de,Also sprach Zarathustra,gutenberg_7205,https://www.gutenberg.org/ebooks/7205.txt.utf-8,gutenberg_text
+literary,Friedrich Nietzsche,de,Jenseits von Gut und Böse,gutenberg_7204,https://www.gutenberg.org/ebooks/7204.txt.utf-8,gutenberg_text
+literary,Friedrich Nietzsche,de,"Menschliches, Allzumenschliches",gutenberg_7207,https://www.gutenberg.org/ebooks/7207.txt.utf-8,gutenberg_text
+literary,Johann Wolfgang von Goethe,de,Die Leiden des jungen Werther,gutenberg_2407,https://www.gutenberg.org/ebooks/2407.txt.utf-8,gutenberg_text
+literary,Johann Wolfgang von Goethe,de,Die Wahlverwandtschaften,gutenberg_2403,https://www.gutenberg.org/ebooks/2403.txt.utf-8,gutenberg_text
+literary,Johann Wolfgang von Goethe,de,Italienische Reise,gutenberg_2404,https://www.gutenberg.org/ebooks/2404.txt.utf-8,gutenberg_text
+literary,Fyodor Dostoevsky,ru,Кроткая,wikisource_dostoevsky_krotkaya,https://ru.wikisource.org/wiki/Кроткая_(Достоевский),wikisource_subpages
+literary,Fyodor Dostoevsky,ru,Белые ночи,wikisource_dostoevsky_white_nights,https://ru.wikisource.org/wiki/Белые_ночи_(Достоевский),wikisource_subpages
+literary,Fyodor Dostoevsky,ru,Записки из подполья,wikisource_dostoevsky_underground,https://ru.wikisource.org/wiki/Записки_из_подполья_(Достоевский),wikisource_subpages
+literary,Leo Tolstoy,ru,Детство,wikisource_tolstoy_childhood,https://ru.wikisource.org/wiki/Детство_(Толстой),wikisource_subpages
+literary,Leo Tolstoy,ru,После бала,wikisource_tolstoy_after_the_ball,https://ru.wikisource.org/wiki/После_бала_(Толстой),wikisource_subpages
+literary,Leo Tolstoy,ru,Крейцерова соната,wikisource_tolstoy_kreutzer,https://ru.wikisource.org/wiki/Крейцерова_соната_(Толстой),wikisource_subpages
+literary,Anton Chekhov,ru,Палата № 6,wikisource_chekhov_ward_6,https://ru.wikisource.org/wiki/Палата_No_6_(Чехов),wikisource_subpages
+literary,Anton Chekhov,ru,Чёрный монах,wikisource_chekhov_black_monk,https://ru.wikisource.org/wiki/Чёрный_монах_(Чехов),wikisource_subpages
+literary,Anton Chekhov,ru,Дуэль,wikisource_chekhov_duel,https://ru.wikisource.org/wiki/Дуэль_(Чехов),wikisource_subpages

@@ -40,22 +40,10 @@ def main() -> None:
         "by_corpus": count_by(rows, "corpus"),
         "by_corpus_language": count_by(rows, "corpus", "original_language"),
         "by_batch": count_by(rows, "batch"),
-        "by_status": count_by(rows, "modeling_status"),
         "duplicates": duplicate_keys(rows),
-        "registry_only": [
-            {
-                "name": row["name"],
-                "corpus": row["corpus"],
-                "original_language": row["original_language"],
-                "batch": row["batch"],
-                "source_family": row["source_family"],
-            }
-            for row in rows
-            if row["modeling_status"] == "registry_only"
-        ],
     }
     OUT_PATH.write_text(json.dumps(audit, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(json.dumps({key: audit[key] for key in ["n_records", "by_corpus", "by_corpus_language", "by_status", "duplicates"]}, indent=2))
+    print(json.dumps({key: audit[key] for key in ["n_records", "by_corpus", "by_corpus_language", "duplicates"]}, indent=2))
     print(f"Wrote {OUT_PATH.relative_to(ROOT)}")
 
 

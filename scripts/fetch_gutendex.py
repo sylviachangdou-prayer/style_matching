@@ -22,7 +22,7 @@ def slug(value: str) -> str:
     return value.strip("_")
 
 
-def read_registry_names(path: Path, corpus: str, language: str, batches: set[str] | None, statuses: set[str] | None) -> list[str]:
+def read_registry_names(path: Path, corpus: str, language: str, batches: set[str] | None) -> list[str]:
     with path.open(encoding="utf-8") as handle:
         names = []
         for row in csv.DictReader(handle):
@@ -31,8 +31,6 @@ def read_registry_names(path: Path, corpus: str, language: str, batches: set[str
             if row.get("original_language") != language:
                 continue
             if batches and row.get("batch") not in batches:
-                continue
-            if statuses and row.get("modeling_status") not in statuses:
                 continue
             names.append(row["name"])
         return names
@@ -84,9 +82,9 @@ def text_url(book: dict) -> str | None:
 def clean_gutenberg(text: str) -> str:
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     start = re.search(r"\*\*\* START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK .*?\*\*\*", text, flags=re.I | re.S)
-    end = re.search(r"\*\*\* END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK .*?\*\*\*", text, flags=re.I | re.S)
     if start:
         text = text[start.end():]
+    end = re.search(r"\*\*\* END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK .*?\*\*\*", text, flags=re.I | re.S)
     if end:
         text = text[:end.start()]
     text = re.sub(r"\n{3,}", "\n\n", text)
@@ -118,7 +116,7 @@ def author_match(book: dict, name: str) -> bool:
     return False
 
 
-def fetch_for_name(name: str, corpus: str, max_works: int) -> list[dict[str, str]]:
+def fetch_for_name(name: str, corpus: str, max_works: int, existing_ids: set[str] | None = None) -> list[dict[str, str]]:
     query = urllib.parse.urlencode({"languages": "en", "search": name})
     url = f"https://gutendex.com/books/?{query}"
     rows = []
@@ -129,6 +127,9 @@ def fetch_for_name(name: str, corpus: str, max_works: int) -> list[dict[str, str
         if len(rows) >= max_works:
             break
         if not author_match(book, name):
+            continue
+        source_id = f"gutenberg_{book['id']}"
+        if existing_ids and source_id in existing_ids:
             continue
         if corpus == "rhetorical" and not looks_like_rhetorical(book):
             continue
@@ -158,7 +159,7 @@ def fetch_for_name(name: str, corpus: str, max_works: int) -> list[dict[str, str
             "corpus": corpus,
             "author_or_speaker": name,
             "title": book.get("title", ""),
-            "source_id": f"gutenberg_{book['id']}",
+            "source_id": source_id,
             "gutenberg_id": str(book["id"]),
             "source_url": url,
             "source_text_rule": "original-language source text only",
@@ -172,15 +173,35 @@ def fetch_for_name(name: str, corpus: str, max_works: int) -> list[dict[str, str
     return rows
 
 
+def read_existing_sources(corpus: str) -> list[dict[str, str]]:
+    path = ROOT / "data" / corpus / "meta" / "sources.csv"
+    if not path.exists():
+        return []
+    with path.open(encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
 def write_metadata(corpus: str, rows: list[dict[str, str]]) -> None:
     meta_dir = ROOT / "data" / corpus / "meta"
     meta_dir.mkdir(parents=True, exist_ok=True)
     path = meta_dir / "sources.csv"
-    fields = ["corpus", "author_or_speaker", "title", "source_id", "gutenberg_id", "source_url", "source_text_rule", "language", "raw_text_path"]
+    fields = ["corpus", "author_or_speaker", "title", "source_id", "gutenberg_id", "source_url", "source_text_rule", "language", "word_count", "raw_text_path"]
+    existing = []
+    if path.exists():
+        with path.open(encoding="utf-8") as handle:
+            existing = list(csv.DictReader(handle))
+    merged = []
+    seen = set()
+    for row in existing + rows:
+        key = (row.get("corpus", corpus), row.get("author_or_speaker", ""), row.get("language", ""), row.get("source_id", ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        merged.append(row)
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(merged)
 
 
 def parse_args() -> argparse.Namespace:
@@ -188,7 +209,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--corpus", choices=["literary", "rhetorical", "both"], default="literary")
     parser.add_argument("--language", default="en")
     parser.add_argument("--batch", action="append", help="Registry batch to include; may be repeated.")
-    parser.add_argument("--status", action="append", help="Registry modeling_status to include; may be repeated. Defaults to collected.")
     parser.add_argument("--max-works", type=int, default=1)
     return parser.parse_args()
 
@@ -196,23 +216,29 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     batches = set(args.batch) if args.batch else None
-    statuses = set(args.status or ["collected"])
-
     literary = []
     rhetorical = []
     if args.corpus in {"literary", "both"}:
-        literary = read_registry_names(REGISTRY_DIR / "literary_authors.csv", "literary", args.language, batches, statuses)
+        literary = read_registry_names(REGISTRY_DIR / "literary_authors.csv", "literary", args.language, batches)
     if args.corpus in {"rhetorical", "both"}:
-        rhetorical = read_registry_names(REGISTRY_DIR / "rhetorical_speakers.csv", "rhetorical", args.language, batches, statuses)
+        rhetorical = read_registry_names(REGISTRY_DIR / "rhetorical_speakers.csv", "rhetorical", args.language, batches)
 
     literary_rows = []
+    literary_existing = {
+        row.get("source_id", "")
+        for row in read_existing_sources("literary")
+    }
     for name in literary:
-        literary_rows.extend(fetch_for_name(name, "literary", max_works=args.max_works))
+        literary_rows.extend(fetch_for_name(name, "literary", max_works=args.max_works, existing_ids=literary_existing))
         print(f"literary: {name}: {len([r for r in literary_rows if r['author_or_speaker'] == name])} works", flush=True)
 
     rhetorical_rows = []
+    rhetorical_existing = {
+        row.get("source_id", "")
+        for row in read_existing_sources("rhetorical")
+    }
     for name in rhetorical:
-        rhetorical_rows.extend(fetch_for_name(name, "rhetorical", max_works=args.max_works))
+        rhetorical_rows.extend(fetch_for_name(name, "rhetorical", max_works=args.max_works, existing_ids=rhetorical_existing))
         print(f"rhetorical: {name}: {len([r for r in rhetorical_rows if r['author_or_speaker'] == name])} works", flush=True)
 
     write_metadata("literary", literary_rows)

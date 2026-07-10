@@ -1,71 +1,80 @@
-name,corpus,original_language,era,batch,source_family,source_unit,min_independent_sources,modeling_status,notes
-Jane Austen,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Charles Dickens,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-George Eliot,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Thomas Hardy,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Mark Twain,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Henry James,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Edith Wharton,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Herman Melville,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Nathaniel Hawthorne,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Edgar Allan Poe,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English short fiction and essays
-Washington Irving,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English sketches and essays
-Louisa May Alcott,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Kate Chopin,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Willa Cather,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Jack London,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Stephen Crane,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Charlotte Bronte,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Emily Bronte,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Anne Bronte,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Mary Wollstonecraft Shelley,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Robert Louis Stevenson,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Joseph Conrad,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-H. G. Wells,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Frances Hodgson Burnett,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-L. M. Montgomery,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Elizabeth Cleghorn Gaskell,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Anthony Trollope,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Wilkie Collins,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Arthur Conan Doyle,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-George MacDonald,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,collected,original English prose
-Virginia Woolf,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose/essays
-James Joyce,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose
-D. H. Lawrence,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose
-E. M. Forster,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose
-Katherine Mansfield,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English short fiction
-George Orwell,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose/essays
-W. E. B. Du Bois,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English essays/prose
-Zora Neale Hurston,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose
-F. Scott Fitzgerald,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose
-Ernest Hemingway,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose
-William Faulkner,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose
-John Steinbeck,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose
-Ralph Ellison,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose/essays
-James Baldwin,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose/essays
-Toni Morrison,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose/essays
-Joan Didion,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English essays/prose
-Ursula K. Le Guin,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose/essays
-Kurt Vonnegut,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose/essays
-Flannery O'Connor,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,registry_only,original English prose
-Marcel Proust,literary,fr,20c,expand_literary_multilingual,curated French originals,work,3,registry_only,French originals only
-Albert Camus,literary,fr,20c,expand_literary_multilingual,curated French originals,work,3,registry_only,French originals only
-Jean-Paul Sartre,literary,fr,20c,expand_literary_multilingual,curated French originals,work,3,registry_only,French originals only
-Simone de Beauvoir,literary,fr,20c,expand_literary_multilingual,curated French originals,work,3,registry_only,French originals only
-Colette,literary,fr,20c,expand_literary_multilingual,curated French originals,work,3,registry_only,French originals only
-Franz Kafka,literary,de,20c,expand_literary_multilingual,curated German originals,work,3,registry_only,German originals only
-Thomas Mann,literary,de,20c,expand_literary_multilingual,curated German originals,work,3,registry_only,German originals only
-Bertolt Brecht,literary,de,20c,expand_literary_multilingual,curated German originals,work,3,registry_only,German originals only
-Hannah Arendt,literary,de,20c,expand_literary_multilingual,curated German originals,work,3,registry_only,German originals only
-Hannah Arendt,literary,en,20c,expand_literary_multilingual,curated English originals,work,3,registry_only,English originals only
-Jorge Luis Borges,literary,es,20c,expand_literary_multilingual,curated Spanish originals,work,3,registry_only,Spanish originals only
-Gabriel Garcia Marquez,literary,es,20c,expand_literary_multilingual,curated Spanish originals,work,3,registry_only,Spanish originals only
-Federico Garcia Lorca,literary,es,20c,expand_literary_multilingual,curated Spanish originals,work,3,registry_only,Spanish originals only
-Italo Calvino,literary,it,20c,expand_literary_multilingual,curated Italian originals,work,3,registry_only,Italian originals only
-Lu Xun,literary,zh,20c,expand_literary_multilingual,curated Chinese originals,work,3,registry_only,Chinese originals only
-Lao She,literary,zh,20c,expand_literary_multilingual,curated Chinese originals,work,3,registry_only,Chinese originals only
-Eileen Chang,literary,zh,20c,expand_literary_multilingual,curated Chinese originals,work,3,registry_only,Chinese originals only
-Eileen Chang,literary,en,20c,expand_literary_multilingual,curated English originals,work,3,registry_only,English originals only
-Natsume Soseki,literary,ja,20c,expand_literary_multilingual,curated Japanese originals,work,3,registry_only,Japanese originals only
-Ryunosuke Akutagawa,literary,ja,20c,expand_literary_multilingual,curated Japanese originals,work,3,registry_only,Japanese originals only
-Osamu Dazai,literary,ja,20c,expand_literary_multilingual,curated Japanese originals,work,3,registry_only,Japanese originals only
+name,corpus,original_language,era,batch,source_family,source_unit,min_independent_sources,notes
+Jane Austen,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Charles Dickens,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+George Eliot,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Thomas Hardy,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Mark Twain,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Henry James,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Edith Wharton,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Herman Melville,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Nathaniel Hawthorne,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Edgar Allan Poe,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English short fiction and essays
+Washington Irving,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English sketches and essays
+Louisa May Alcott,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Kate Chopin,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Willa Cather,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Jack London,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Stephen Crane,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Charlotte Bronte,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Emily Bronte,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Anne Bronte,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Mary Wollstonecraft Shelley,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Robert Louis Stevenson,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Joseph Conrad,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,original English prose
+H. G. Wells,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Frances Hodgson Burnett,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,original English prose
+L. M. Montgomery,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Elizabeth Cleghorn Gaskell,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Anthony Trollope,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Wilkie Collins,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Arthur Conan Doyle,literary,en,20c,seed_literary_en,Project Gutenberg,work,3,original English prose
+George MacDonald,literary,en,19c,seed_literary_en,Project Gutenberg,work,3,original English prose
+Virginia Woolf,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose/essays
+James Joyce,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose
+D. H. Lawrence,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose
+E. M. Forster,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose
+Katherine Mansfield,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English short fiction
+George Orwell,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose/essays
+W. E. B. Du Bois,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English essays/prose
+Zora Neale Hurston,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose
+F. Scott Fitzgerald,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose
+Ernest Hemingway,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose
+William Faulkner,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose
+John Steinbeck,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose
+Ralph Ellison,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose/essays
+James Baldwin,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose/essays
+Toni Morrison,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose/essays
+Joan Didion,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English essays/prose
+Ursula K. Le Guin,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose/essays
+Kurt Vonnegut,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose/essays
+Flannery O'Connor,literary,en,20c,expand_literary_modern_en,curated original texts,work,3,original English prose
+Marcel Proust,literary,fr,20c,expand_literary_multilingual,Project Gutenberg,work,3,French originals only
+Gustave Flaubert,literary,fr,19c,expand_literary_multilingual,Project Gutenberg,work,3,French originals only
+Emile Zola,literary,fr,19c,expand_literary_multilingual,Project Gutenberg,work,3,French originals only
+Albert Camus,literary,fr,20c,expand_literary_multilingual,curated French originals,work,3,French originals only
+Jean-Paul Sartre,literary,fr,20c,expand_literary_multilingual,curated French originals,work,3,French originals only
+Simone de Beauvoir,literary,fr,20c,expand_literary_multilingual,curated French originals,work,3,French originals only
+Colette,literary,fr,20c,expand_literary_multilingual,curated French originals,work,3,French originals only
+Franz Kafka,literary,de,20c,expand_literary_multilingual,Project Gutenberg,work,3,German originals only
+Friedrich Nietzsche,literary,de,19c,expand_literary_multilingual,Project Gutenberg,work,3,German originals only
+Johann Wolfgang von Goethe,literary,de,18c_19c,expand_literary_multilingual,Project Gutenberg,work,3,German originals only
+Thomas Mann,literary,de,20c,expand_literary_multilingual,curated German originals,work,3,German originals only
+Bertolt Brecht,literary,de,20c,expand_literary_multilingual,curated German originals,work,3,German originals only
+Hannah Arendt,literary,de,20c,expand_literary_multilingual,curated German originals,work,3,German originals only
+Hannah Arendt,literary,en,20c,expand_literary_multilingual,curated English originals,work,3,English originals only
+Jorge Luis Borges,literary,es,20c,expand_literary_multilingual,curated Spanish originals,work,3,Spanish originals only
+Gabriel Garcia Marquez,literary,es,20c,expand_literary_multilingual,curated Spanish originals,work,3,Spanish originals only
+Federico Garcia Lorca,literary,es,20c,expand_literary_multilingual,curated Spanish originals,work,3,Spanish originals only
+Italo Calvino,literary,it,20c,expand_literary_multilingual,curated Italian originals,work,3,Italian originals only
+Lu Xun,literary,zh,20c,expand_literary_multilingual,Project Gutenberg,work,3,Chinese originals only
+Wu Jianren,literary,zh,19c_20c,expand_literary_multilingual,Project Gutenberg,work,3,Chinese originals only
+Feng Menglong,literary,zh,16c_17c,expand_literary_multilingual,Project Gutenberg,work,3,Chinese originals only
+Lao She,literary,zh,20c,expand_literary_multilingual,curated Chinese originals,work,3,Chinese originals only
+Eileen Chang,literary,zh,20c,expand_literary_multilingual,curated Chinese originals,work,3,Chinese originals only
+Eileen Chang,literary,en,20c,expand_literary_multilingual,curated English originals,work,3,English originals only
+Natsume Soseki,literary,ja,20c,expand_literary_multilingual,Aozora Bunko,work,3,Japanese originals only
+Ryunosuke Akutagawa,literary,ja,20c,expand_literary_multilingual,Aozora Bunko,work,3,Japanese originals only
+Osamu Dazai,literary,ja,20c,expand_literary_multilingual,Aozora Bunko,work,3,Japanese originals only
+Fyodor Dostoevsky,literary,ru,19c,expand_literary_multilingual,Russian Wikisource,work,3,Russian originals only
+Leo Tolstoy,literary,ru,19c_20c,expand_literary_multilingual,Russian Wikisource,work,3,Russian originals only
+Anton Chekhov,literary,ru,19c_20c,expand_literary_multilingual,Russian Wikisource,work,3,Russian originals only
