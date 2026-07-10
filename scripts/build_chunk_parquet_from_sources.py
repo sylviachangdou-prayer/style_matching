@@ -121,25 +121,37 @@ def build_rows(corpus: str, args: argparse.Namespace) -> list[dict[str, str | in
 def coverage(rows: list[dict[str, str | int]], args: argparse.Namespace) -> dict:
     source_ids: dict[tuple[str, str, str], set[str]] = defaultdict(set)
     chunk_counts: dict[tuple[str, str, str], int] = defaultdict(int)
+    source_corpora: dict[tuple[str, str, str], set[str]] = defaultdict(set)
     for row in rows:
-        key = (str(row["corpus"]), str(row["language"]), str(row["author_or_speaker"]))
-        source_ids[key].add(str(row["source_id"]))
+        key = (str(row["language"]), str(row["author_or_speaker"]), "profile")
+        source_ids[key].add(f"{row['corpus']}::{row['source_id']}")
         chunk_counts[key] += 1
+        source_corpora[key].add(str(row["corpus"]))
 
     people = []
-    for corpus, language, name in sorted(set(source_ids) | set(chunk_counts)):
-        source_count = len(source_ids[(corpus, language, name)])
-        chunk_count = chunk_counts[(corpus, language, name)]
+    for language, name, _ in sorted(set(source_ids) | set(chunk_counts)):
+        key = (language, name, "profile")
+        source_count = len(source_ids[key])
+        chunk_count = chunk_counts[key]
         ready = source_count >= args.min_sources and chunk_count >= args.min_chunks
         people.append({
-            "corpus": corpus,
             "language": language,
             "author_or_speaker": name,
             "source_count": source_count,
             "chunk_count": chunk_count,
+            "source_corpora": sorted(source_corpora[key]),
             "source_heldout_ready": ready,
         })
-    people.sort(key=lambda row: (row["source_heldout_ready"], row["corpus"], row["language"], row["chunk_count"]))
+    people.sort(key=lambda row: (row["source_heldout_ready"], row["language"], row["author_or_speaker"]))
+    source_keys = {
+        (str(row["language"]), str(row["corpus"]), str(row["source_id"]))
+        for row in rows
+    }
+    source_count_by_language = defaultdict(int)
+    source_count_by_language_corpus = defaultdict(int)
+    for language, corpus, _ in source_keys:
+        source_count_by_language[language] += 1
+        source_count_by_language_corpus[f"{language}::{corpus}"] += 1
     return {
         "corpus": args.corpus,
         "language": args.language,
@@ -149,6 +161,9 @@ def coverage(rows: list[dict[str, str | int]], args: argparse.Namespace) -> dict
         "n_authors": len({row["author_or_speaker"] for row in people}),
         "n_people": len({row["author_or_speaker"] for row in people}),
         "n_author_language_profiles": len(people),
+        "n_sources": len(source_keys),
+        "source_count_by_language": dict(sorted(source_count_by_language.items())),
+        "source_count_by_language_corpus": dict(sorted(source_count_by_language_corpus.items())),
         "ready_people": sum(1 for row in people if row["source_heldout_ready"]),
         "people": people,
         "not_ready": [row for row in people if not row["source_heldout_ready"]],

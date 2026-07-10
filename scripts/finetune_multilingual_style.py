@@ -23,7 +23,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--model-name", default="StyleDistance/mstyledistance")
     parser.add_argument("--split", default="train")
-    parser.add_argument("--pairs-per-author", type=int, default=200)
+    parser.add_argument("--pairs-per-author", type=int, default=500)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--learning-rate", type=float, default=2e-5)
@@ -34,29 +34,24 @@ def parse_args() -> argparse.Namespace:
 
 
 def make_pairs(df: pd.DataFrame, pairs_per_author: int, seed: int) -> list[tuple[str, str]]:
-    required = {"author_or_speaker", "source_id", "text"}
+    required = {"author_or_speaker", "language", "corpus", "source_id", "text"}
     missing = required - set(df.columns)
     if missing:
         raise ValueError(f"Missing required columns: {sorted(missing)}")
 
     rng = random.Random(seed)
     pairs: list[tuple[str, str]] = []
-    for author, group in df.groupby("author_or_speaker"):
+    for (language, author), group in df.groupby(["language", "author_or_speaker"]):
         by_source = {
-            source_id: rows["text"].dropna().astype(str).tolist()
-            for source_id, rows in group.groupby("source_id")
+            source_key: rows["text"].dropna().astype(str).tolist()
+            for source_key, rows in group.groupby(group["corpus"].astype(str) + "::" + group["source_id"].astype(str))
         }
         sources = [source for source, texts in by_source.items() if texts]
         if len(sources) < 2:
             continue
-        candidates = []
-        for left_index, left_source in enumerate(sources):
-            for right_source in sources[left_index + 1:]:
-                for left in by_source[left_source]:
-                    for right in by_source[right_source]:
-                        candidates.append((left, right))
-        rng.shuffle(candidates)
-        pairs.extend(candidates[:pairs_per_author])
+        for _ in range(pairs_per_author):
+            left_source, right_source = rng.sample(sources, 2)
+            pairs.append((rng.choice(by_source[left_source]), rng.choice(by_source[right_source])))
 
     rng.shuffle(pairs)
     return pairs
@@ -95,7 +90,10 @@ def main() -> None:
         "split": args.split,
         "n_rows": int(len(df)),
         "n_pairs": int(len(pairs)),
-        "n_authors_with_cross_source_pairs": int(df.groupby("author_or_speaker")["source_id"].nunique().ge(2).sum()),
+        "n_author_language_profiles_with_cross_source_pairs": int(
+            df.assign(source_key=df["corpus"].astype(str) + "::" + df["source_id"].astype(str))
+            .groupby(["language", "author_or_speaker"])["source_key"].nunique().ge(2).sum()
+        ),
         "epochs": args.epochs,
         "batch_size": args.batch_size,
         "learning_rate": args.learning_rate,

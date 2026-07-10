@@ -1,0 +1,10 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2
+PyYAML>=6
+numpy>=1.26
+pandas>=2.2
+pyarrow>=14
+sentence-transformers>=4.1
+torch>=2.3
+huggingface_hub>=0.23

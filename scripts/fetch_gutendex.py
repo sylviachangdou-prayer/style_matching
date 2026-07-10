@@ -120,55 +120,57 @@ def fetch_for_name(name: str, corpus: str, max_works: int, existing_ids: set[str
     query = urllib.parse.urlencode({"languages": "en", "search": name})
     url = f"https://gutendex.com/books/?{query}"
     rows = []
-    page = fetch_json(url)
-    books = page.get("results", [])
+    while url and (max_works <= 0 or len(rows) < max_works):
+        page = fetch_json(url)
+        for book in page.get("results", []):
+            if max_works > 0 and len(rows) >= max_works:
+                break
+            if not author_match(book, name):
+                continue
+            source_id = f"gutenberg_{book['id']}"
+            if existing_ids and source_id in existing_ids:
+                continue
+            if corpus == "rhetorical" and not looks_like_rhetorical(book):
+                continue
+            if corpus == "literary" and not looks_like_literary(book):
+                continue
 
-    for book in books:
-        if len(rows) >= max_works:
-            break
-        if not author_match(book, name):
-            continue
-        source_id = f"gutenberg_{book['id']}"
-        if existing_ids and source_id in existing_ids:
-            continue
-        if corpus == "rhetorical" and not looks_like_rhetorical(book):
-            continue
-        if corpus == "literary" and not looks_like_literary(book):
-            continue
+            download_url = text_url(book)
+            if not download_url:
+                continue
 
-        url = text_url(book)
-        if not url:
-            continue
+            try:
+                print(f"download: {corpus}: {name}: {book.get('id')} {book.get('title', '')[:80]}", flush=True)
+                raw = fetch_text(download_url)
+            except (HTTPError, URLError, TimeoutError, http.client.IncompleteRead) as error:
+                print(f"skip download: {name}: {book.get('id')}: {error}", flush=True)
+                continue
+            cleaned = clean_gutenberg(raw)
+            if len(cleaned.split()) < 1000:
+                continue
 
-        try:
-            print(f"download: {corpus}: {name}: {book.get('id')} {book.get('title', '')[:80]}", flush=True)
-            raw = fetch_text(url)
-        except (HTTPError, URLError, TimeoutError, http.client.IncompleteRead) as error:
-            print(f"skip download: {name}: {book.get('id')}: {error}", flush=True)
-            continue
-        cleaned = clean_gutenberg(raw)
-        if len(cleaned.split()) < 1000:
-            continue
-
-        out_dir = ROOT / "data" / corpus / "raw" / slug(name)
-        out_dir.mkdir(parents=True, exist_ok=True)
-        text_path = out_dir / f"gutenberg_{book['id']}.txt"
-        meta_path = out_dir / f"gutenberg_{book['id']}.json"
-        text_path.write_text(cleaned, encoding="utf-8")
-        meta = {
-            "corpus": corpus,
-            "author_or_speaker": name,
-            "title": book.get("title", ""),
-            "source_id": source_id,
-            "gutenberg_id": str(book["id"]),
-            "source_url": url,
-            "source_text_rule": "original-language source text only",
-            "language": "en",
-            "raw_text_path": str(text_path.relative_to(ROOT)),
-        }
-        meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
-        rows.append(meta)
-        time.sleep(0.25)
+            out_dir = ROOT / "data" / corpus / "raw" / slug(name)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            text_path = out_dir / f"gutenberg_{book['id']}.txt"
+            meta_path = out_dir / f"gutenberg_{book['id']}.json"
+            text_path.write_text(cleaned, encoding="utf-8")
+            meta = {
+                "corpus": corpus,
+                "author_or_speaker": name,
+                "title": book.get("title", ""),
+                "source_id": source_id,
+                "gutenberg_id": str(book["id"]),
+                "source_url": download_url,
+                "source_text_rule": "original-language source text only",
+                "language": "en",
+                "raw_text_path": str(text_path.relative_to(ROOT)),
+            }
+            meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+            rows.append(meta)
+            if existing_ids is not None:
+                existing_ids.add(source_id)
+            time.sleep(0.25)
+        url = page.get("next")
 
     return rows
 
@@ -209,7 +211,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--corpus", choices=["literary", "rhetorical", "both"], default="literary")
     parser.add_argument("--language", default="en")
     parser.add_argument("--batch", action="append", help="Registry batch to include; may be repeated.")
-    parser.add_argument("--max-works", type=int, default=1)
+    parser.add_argument("--max-works", type=int, default=0, help="Maximum works per author; 0 means all available works.")
     return parser.parse_args()
 
 

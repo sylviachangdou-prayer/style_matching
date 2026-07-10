@@ -140,18 +140,57 @@ def encode_topic_cached(
     return np.vstack([cached[chunk_id] for chunk_id in ids]).astype("float32")
 
 
+def balanced_profile_sample(
+    df: pd.DataFrame,
+    per_source_cap: int,
+    profile_cap: int,
+    seed: int,
+) -> pd.DataFrame:
+    """Keep source diversity while preventing prolific authors dominating profiles."""
+    if per_source_cap <= 0 and profile_cap <= 0:
+        return df.reset_index(drop=True)
+    sampled = []
+    for _, profile in df.groupby(["language", "author_or_speaker"], sort=True):
+        source_parts = []
+        for _, source in profile.groupby(["corpus", "source_id"], sort=True):
+            if per_source_cap > 0 and len(source) > per_source_cap:
+                source = source.sample(n=per_source_cap, random_state=seed)
+            source_parts.append(source)
+        profile_sample = pd.concat(source_parts, ignore_index=False)
+        if profile_cap > 0 and len(profile_sample) > profile_cap:
+            profile_sample = profile_sample.sample(n=profile_cap, random_state=seed)
+        sampled.append(profile_sample)
+    if not sampled:
+        return df.iloc[0:0].copy()
+    return pd.concat(sampled, ignore_index=True)
+
+
+def profile_metadata(df: pd.DataFrame) -> list[dict[str, object]]:
+    rows = []
+    for profile_id, (key, indices) in enumerate(df.groupby(["language", "author_or_speaker"]).indices.items()):
+        language, author = key
+        source_corpora = sorted(df.iloc[indices]["corpus"].astype(str).unique().tolist())
+        source_ids = sorted({
+            str(row["corpus"]) + "::" + str(row["source_id"])
+            for _, row in df.iloc[indices].iterrows()
+        })
+        rows.append({
+            "profile_id": profile_id,
+            "language": language,
+            "author_or_speaker": author,
+            "n_chunks": len(indices),
+            "n_sources": len(source_ids),
+            "source_corpora": source_corpora,
+        })
+    return rows
+
+
 def build_index(args: argparse.Namespace) -> None:
     df = pd.read_parquet(args.input)
     validate_frame(df)
     if "split" in df and args.split:
         df = df[df["split"].eq(args.split)].copy()
-    if args.profile_cap:
-        df = (
-            df.sample(frac=1, random_state=args.seed)
-            .groupby(["corpus", "language", "author_or_speaker"], group_keys=False)
-            .head(args.profile_cap)
-            .reset_index(drop=True)
-        )
+    df = balanced_profile_sample(df, args.per_source_cap, args.profile_cap, args.seed)
     if df.empty:
         raise ValueError("No rows available to build profiles")
 
@@ -166,8 +205,8 @@ def build_index(args: argparse.Namespace) -> None:
         topic_embeddings = encode_topic_cached(
             topic_model, df, topic_cache_path, args.topic_model_name, args.batch_size
         )
-    group_columns = ["corpus", "language", "author_or_speaker"]
-    profile_rows = []
+    group_columns = ["language", "author_or_speaker"]
+    profile_rows = profile_metadata(df)
     centroids = []
     topic_centroids = []
     representative_rows = []
@@ -180,19 +219,12 @@ def build_index(args: argparse.Namespace) -> None:
             topic_centroid = topic_embeddings[indices].mean(axis=0)
             topic_centroid /= max(np.linalg.norm(topic_centroid), 1e-12)
             topic_centroids.append(topic_centroid)
-        corpus, language, author = key
-        profile_rows.append({
-            "profile_id": profile_id,
-            "corpus": corpus,
-            "language": language,
-            "author_or_speaker": author,
-            "n_chunks": len(indices),
-        })
         local_scores = group_embeddings @ centroid
         for local_index in np.argsort(local_scores)[-3:][::-1]:
             row = df.iloc[indices[local_index]]
             representative_rows.append({
                 "profile_id": profile_id,
+                "corpus": row["corpus"],
                 "source_id": row["source_id"],
                 "title": row.get("title", ""),
                 "text": row["text"],
@@ -211,6 +243,7 @@ def build_index(args: argparse.Namespace) -> None:
         "input": str(args.input),
         "split": args.split,
         "profile_cap": args.profile_cap,
+        "per_source_cap": args.per_source_cap,
         "embedding_cache": str(cache_path),
         "device": resolve_device(args.device),
         "topic_model_name": args.topic_model_name,
@@ -290,8 +323,9 @@ class StyleIndex:
                 passages = self.passages[self.passages["profile_id"].eq(profile_id)]
                 matches.append({
                     "author_or_speaker": profile["author_or_speaker"],
-                    "corpus": profile["corpus"],
                     "target_language": profile["language"],
+                    "source_corpora": profile["source_corpora"],
+                    "n_sources": int(profile["n_sources"]),
                     "style_similarity": float(scores[index]),
                     "topic_similarity": float(topic_scores[index]) if topic_scores is not None else None,
                     "affinity_score": float(ranking_scores[index]),
@@ -357,7 +391,8 @@ def parse_args() -> argparse.Namespace:
     build.add_argument("--backend", choices=["torch", "onnx", "openvino"])
     build.add_argument("--batch-size", type=int, default=64)
     build.add_argument("--split", default="train")
-    build.add_argument("--profile-cap", type=int, default=300)
+    build.add_argument("--profile-cap", type=int, default=600)
+    build.add_argument("--per-source-cap", type=int, default=50)
     build.add_argument("--seed", type=int, default=20260710)
     build.add_argument("--embedding-cache", type=Path)
     build.add_argument("--topic-model-name", default=DEFAULT_TOPIC_MODEL)

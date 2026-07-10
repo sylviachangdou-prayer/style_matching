@@ -27,8 +27,9 @@ The two channels are physically separate:
 - Within-language weighting: 0.7 style + 0.3 topic.
 - Cross-language weighting: 0.5 style + 0.5 topic, with a visible reduced-confidence label.
 
-The offline index stores one normalized centroid per corpus/language/author and three
-representative original-language passages. Online inference loads this index once, encodes the
+The offline index stores one normalized centroid per language/author profile and three
+representative original-language passages. Literary and rhetorical sources are pooled inside
+that profile; their corpus provenance remains in metadata. Online inference loads this index once, encodes the
 user passage once, and performs a matrix multiplication. The build script caches chunk
 embeddings by `chunk_id`, so a reconnect or a later corpus expansion does not re-encode the
 whole corpus. It writes one parquet file, not one file per chunk.
@@ -48,7 +49,7 @@ Run source collection in Colab from the repository root:
 ```bash
 python scripts/fetch_gutendex.py \
   --corpus both --language en \
-  --max-works 3
+  --max-works 0
 python scripts/fetch_multilingual_sources.py \
   --language zh --language ja --language fr --language de --language ru \
   --skip-existing
@@ -65,6 +66,9 @@ language-aware chunking for Chinese/Japanese. Every author with at least one sou
 enters the profile index. Authors with fewer than three independent sources remain available
 for exploratory retrieval but are flagged as not source-heldout-ready and must not inflate the
 headline source-heldout evaluation.
+The coverage JSON records n_author_language_profiles, n_sources, and source counts by
+language and corpus. The heldout report records the same profile/source counts plus the
+source assignment for each eligible profile.
 
 ## Colab GPU workflow
 
@@ -88,6 +92,10 @@ artifacts/mstyledistance_stylematch_v1/
 artifacts/multilingual_style_index_v1/
 ```
 
+The notebook also writes artifacts/source_heldout_eval_v1/; its metrics include overall,
+per-language, and per-corpus source-heldout results. The heldout split assigns complete
+sources to train, dev, or test, so chunks from one source never cross those splits.
+
 The web app should load the index once at process start. It must not download models, translate
 the request, or encode every author profile inside a request handler. Benchmark model loading
 separately from warm request latency; the current target is p50 <= 500 ms and p95 <= 1.5 s on a
@@ -101,10 +109,13 @@ There is no from-scratch language-model training. Colab GPU is used for:
 2. one-epoch contrastive adaptation in `scripts/finetune_multilingual_style.py`;
 3. optional language-pair calibration and reranker fitting after the robust splits exist.
 
-The fine-tuning script deliberately forms positives from different works by the same author.
+The fine-tuning script deliberately forms positives from different works by the same author in
+the same language; literary and rhetorical works can both contribute to that author profile.
 This prevents the easiest book-identity shortcut. It excludes authors without at least two
 sources from the fine-tuning objective while keeping their raw sources available for indexing.
-The default training path never uses machine translation.
+The default training path never uses machine translation. Profile construction samples at most
+50 chunks per source and 600 chunks per author-language profile, while source collection itself
+has no work-count cap.
 
 ## Literature record, 2023-2026
 
@@ -138,6 +149,12 @@ The default training path never uses machine translation.
 
 The longer decision memo, including translation-mediated ablation rules, latency contract,
 and evaluation gates, is in `docs/frontier_multilingual_strategy_2026.md`.
+
+## Web app
+
+All web code lives in `web/` (FastAPI backend for a Hugging Face Docker Space, static
+frontend for Vercel, demo fallback while the index is still training). See `web/README.md`
+for local run and deployment steps. `python -m pytest web/tests -q` runs without models.
 
 ## Verification
 

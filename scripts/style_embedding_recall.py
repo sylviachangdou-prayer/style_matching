@@ -20,6 +20,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--train-cap", type=int, default=300)
     parser.add_argument("--eval-splits", default="dev,test")
     parser.add_argument("--seed", type=int, default=20260701)
+    parser.add_argument("--device", default="auto", help="auto, cpu, cuda, or mps")
     return parser.parse_args()
 
 
@@ -32,20 +33,38 @@ def validate(df: pd.DataFrame) -> None:
         raise ValueError("chunk_id must be unique")
 
 
+def profile_key(df: pd.DataFrame) -> pd.Series:
+    if "language" not in df.columns:
+        return df["author_or_speaker"].astype(str)
+    return df["language"].astype(str) + "::" + df["author_or_speaker"].astype(str)
+
+
+def resolve_device(device: str) -> str:
+    if device != "auto":
+        return device
+    try:
+        import torch
+
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except ImportError:
+        return "cpu"
+
+
 def balanced_train(df: pd.DataFrame, train_cap: int, seed: int) -> pd.DataFrame:
     train = df[df["split"] == "train"].copy()
+    train["profile_key"] = profile_key(train)
     return (
         train.sample(frac=1, random_state=seed)
-        .groupby("author_or_speaker", group_keys=False)
+        .groupby("profile_key", group_keys=False)
         .head(train_cap)
         .reset_index(drop=True)
     )
 
 
-def encode_texts(model_name: str, texts: list[str], batch_size: int) -> np.ndarray:
+def encode_texts(model_name: str, texts: list[str], batch_size: int, device: str) -> np.ndarray:
     from sentence_transformers import SentenceTransformer
 
-    model = SentenceTransformer(model_name)
+    model = SentenceTransformer(model_name, device=device)
     embeddings = model.encode(
         texts,
         batch_size=batch_size,
@@ -70,14 +89,27 @@ def topk_accuracy(scores: np.ndarray, y_true: np.ndarray, k: int) -> float:
     return float(np.mean([true in row for true, row in zip(y_true, topk)]))
 
 
-def prediction_frame(eval_df: pd.DataFrame, label_encoder: LabelEncoder, scores: np.ndarray) -> pd.DataFrame:
+def prediction_frame(
+    eval_df: pd.DataFrame,
+    label_encoder: LabelEncoder,
+    scores: np.ndarray,
+    profile_to_author: dict[str, str],
+) -> pd.DataFrame:
     top3 = np.argsort(scores, axis=1)[:, -3:][:, ::-1]
     pred = top3[:, 0]
-    output = eval_df[["chunk_id", "author_or_speaker", "split"]].copy()
-    output["predicted_author"] = label_encoder.inverse_transform(pred)
+    output_columns = ["chunk_id", "author_or_speaker", "split"]
+    for column in ("language", "corpus", "source_id"):
+        if column in eval_df.columns:
+            output_columns.append(column)
+    output = eval_df[output_columns].copy()
+    predicted_profiles = label_encoder.inverse_transform(pred)
+    output["predicted_profile"] = predicted_profiles
+    output["predicted_author"] = [profile_to_author[profile] for profile in predicted_profiles]
     output["top1_score"] = np.max(scores, axis=1)
     for idx in range(3):
-        output[f"rank{idx + 1}_author"] = label_encoder.inverse_transform(top3[:, idx])
+        profiles = label_encoder.inverse_transform(top3[:, idx])
+        output[f"rank{idx + 1}_profile"] = profiles
+        output[f"rank{idx + 1}_author"] = [profile_to_author[profile] for profile in profiles]
         output[f"rank{idx + 1}_score"] = scores[np.arange(scores.shape[0]), top3[:, idx]]
     return output
 
@@ -94,13 +126,16 @@ def main() -> None:
     if eval_df.empty:
         raise ValueError(f"No rows found for eval splits: {sorted(eval_splits)}")
 
+    df["profile_key"] = profile_key(df)
+    eval_df["profile_key"] = profile_key(eval_df)
     label_encoder = LabelEncoder()
-    label_encoder.fit(df["author_or_speaker"])
-    y_train = label_encoder.transform(train["author_or_speaker"])
-    y_eval = label_encoder.transform(eval_df["author_or_speaker"])
+    label_encoder.fit(df["profile_key"])
+    y_train = label_encoder.transform(train["profile_key"])
+    y_eval = label_encoder.transform(eval_df["profile_key"])
 
-    train_emb = encode_texts(args.model_name, train["text"].fillna("").tolist(), args.batch_size)
-    eval_emb = encode_texts(args.model_name, eval_df["text"].fillna("").tolist(), args.batch_size)
+    device = resolve_device(args.device)
+    train_emb = encode_texts(args.model_name, train["text"].fillna("").tolist(), args.batch_size, device)
+    eval_emb = encode_texts(args.model_name, eval_df["text"].fillna("").tolist(), args.batch_size, device)
 
     centroids = []
     for label in range(len(label_encoder.classes_)):
@@ -115,16 +150,39 @@ def main() -> None:
         "model_name": args.model_name,
         "n_train": int(len(train)),
         "n_eval": int(len(eval_df)),
-        "n_authors": int(len(label_encoder.classes_)),
+        "n_authors": int(df["author_or_speaker"].nunique()),
+        "n_author_language_profiles": int(df["profile_key"].nunique()),
         "eval_splits": sorted(eval_splits),
         "top1_accuracy": float(topk_accuracy(scores, y_eval, 1)),
         "top3_accuracy": float(topk_accuracy(scores, y_eval, 3)),
         "top5_accuracy": float(topk_accuracy(scores, y_eval, 5)),
         "mrr": mrr_from_scores(scores, y_eval),
         "accuracy": float(accuracy_score(y_eval, pred)),
+        "device": device,
     }
 
-    predictions = prediction_frame(eval_df, label_encoder, scores)
+    def breakdown(column: str) -> dict[str, dict[str, float]]:
+        if column not in eval_df.columns:
+            return {}
+        result = {}
+        for value, subset in eval_df.groupby(column, sort=True):
+            positions = subset.index.to_numpy()
+            subset_scores = scores[positions]
+            subset_labels = y_eval[positions]
+            result[str(value)] = {
+                "n_eval": int(len(subset)),
+                "top1_accuracy": topk_accuracy(subset_scores, subset_labels, 1),
+                "top3_accuracy": topk_accuracy(subset_scores, subset_labels, 3),
+                "top5_accuracy": topk_accuracy(subset_scores, subset_labels, 5),
+                "mrr": mrr_from_scores(subset_scores, subset_labels),
+            }
+        return result
+
+    metrics["by_language"] = breakdown("language")
+    metrics["by_corpus"] = breakdown("corpus")
+
+    profile_to_author = dict(zip(df["profile_key"], df["author_or_speaker"]))
+    predictions = prediction_frame(eval_df, label_encoder, scores, profile_to_author)
     pred_path = args.out_dir / "style_embedding_predictions.parquet"
     metrics_path = args.out_dir / "style_embedding_metrics.json"
     centroid_path = args.out_dir / "style_embedding_author_centroids.npz"
@@ -135,7 +193,8 @@ def main() -> None:
     metrics_path.write_text(json.dumps(metrics, indent=2), encoding="utf-8")
     np.savez_compressed(
         centroid_path,
-        authors=label_encoder.classes_,
+        authors=np.asarray([profile_to_author[profile] for profile in label_encoder.classes_]),
+        profiles=label_encoder.classes_,
         centroids=centroid_matrix.astype("float32"),
     )
     np.save(train_emb_path, train_emb)

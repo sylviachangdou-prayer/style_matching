@@ -1,0 +1,13 @@
+# Web-layer thresholds. The style/topic mix (0.7/0.3 within, 0.5/0.5 cross) is
+# written into the index metadata at build time; the API reads it from there.
+affinity:
+  # Uncalibrated cosine. Recalibrate against the cross-topic dev set before
+  # treating this as anything more than a first honest cut-off.
+  low_confidence_threshold: 0.25
+input:
+  min_words: 40        # space-delimited languages
+  min_cjk_chars: 80    # zh / ja
+  max_chars: 8000
+retrieval:
+  top_k: 3
+  max_top_k: 5

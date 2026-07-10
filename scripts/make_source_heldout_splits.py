@@ -8,7 +8,7 @@ import pandas as pd
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Create source-heldout literary splits.")
+    parser = argparse.ArgumentParser(description="Create source-heldout splits across literary and rhetorical sources.")
     parser.add_argument(
         "--input",
         type=Path,
@@ -38,7 +38,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def validate(df: pd.DataFrame) -> None:
-    required = {"chunk_id", "author_or_speaker", "source_id", "title", "text"}
+    required = {"chunk_id", "author_or_speaker", "source_id", "title", "text", "language", "corpus"}
     missing = required - set(df.columns)
     if missing:
         raise ValueError(f"Missing required columns: {sorted(missing)}")
@@ -54,11 +54,15 @@ def cap(df: pd.DataFrame, n: int, seed: int) -> pd.DataFrame:
 
 def split_author(df: pd.DataFrame, seed: int, args: argparse.Namespace) -> tuple[pd.DataFrame | None, dict]:
     author = str(df["author_or_speaker"].iloc[0])
-    source_counts = df.groupby("source_id").size().sort_values(ascending=False)
+    language = str(df["language"].iloc[0])
+    source_key = df["corpus"].astype(str) + "::" + df["source_id"].astype(str)
+    source_counts = source_key.groupby(source_key).size().sort_values(ascending=False)
     report = {
         "author": author,
+        "language": language,
         "n_sources": int(source_counts.shape[0]),
         "n_chunks": int(len(df)),
+        "source_corpora": sorted(df["corpus"].astype(str).unique().tolist()),
         "source_counts": {str(k): int(v) for k, v in source_counts.items()},
         "eligible": False,
         "reason": "",
@@ -73,9 +77,9 @@ def split_author(df: pd.DataFrame, seed: int, args: argparse.Namespace) -> tuple
     dev_source = source_ids[1]
     train_sources = source_ids[2:]
 
-    train = df[df["source_id"].isin(train_sources)].copy()
-    dev = df[df["source_id"] == dev_source].copy()
-    test = df[df["source_id"] == test_source].copy()
+    train = df[source_key.isin(train_sources)].copy()
+    dev = df[source_key == dev_source].copy()
+    test = df[source_key == test_source].copy()
 
     train = cap(train, args.train_cap, seed).assign(split="train")
     dev = cap(dev, args.dev_cap, seed).assign(split="dev")
@@ -95,6 +99,9 @@ def split_author(df: pd.DataFrame, seed: int, args: argparse.Namespace) -> tuple
             "train_sources": [str(s) for s in train_sources],
             "dev_source": str(dev_source),
             "test_source": str(test_source),
+            "train_corpora": sorted(df[source_key.isin(train_sources)]["corpus"].astype(str).unique().tolist()),
+            "dev_corpus": str(df.loc[source_key == dev_source, "corpus"].iloc[0]),
+            "test_corpus": str(df.loc[source_key == test_source, "corpus"].iloc[0]),
             "train_chunks": int(len(train)),
             "dev_chunks": int(len(dev)),
             "test_chunks": int(len(test)),
@@ -110,7 +117,7 @@ def main() -> None:
 
     splits = []
     author_reports = []
-    for index, (_, author_df) in enumerate(df.groupby("author_or_speaker")):
+    for index, (_, author_df) in enumerate(df.groupby(["language", "author_or_speaker"])):
         split, report = split_author(author_df, args.seed + index, args)
         author_reports.append(report)
         if split is not None:
@@ -129,6 +136,8 @@ def main() -> None:
         "output": str(args.output),
         "n_rows": int(len(out)),
         "n_authors": int(out["author_or_speaker"].nunique()),
+        "n_author_language_profiles": int(out[["language", "author_or_speaker"]].drop_duplicates().shape[0]),
+        "n_sources": int(out[["language", "corpus", "source_id"]].drop_duplicates().shape[0]),
         "split_counts": out["split"].value_counts().to_dict(),
         "eligible_authors": int(sum(r["eligible"] for r in author_reports)),
         "excluded_authors": int(sum(not r["eligible"] for r in author_reports)),
