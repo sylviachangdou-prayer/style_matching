@@ -117,6 +117,9 @@ def author_match(book: dict, name: str) -> bool:
 
 
 def fetch_for_name(name: str, corpus: str, max_works: int, existing_ids: set[str] | None = None) -> list[dict[str, str]]:
+    # Announce before the first API call: gutendex can be slow, and silent
+    # minutes-long queries are indistinguishable from a hang in Colab.
+    print(f"query: {corpus}: {name}", flush=True)
     query = urllib.parse.urlencode({"languages": "en", "search": name})
     url = f"https://gutendex.com/books/?{query}"
     rows = []
@@ -233,6 +236,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--language", default="en")
     parser.add_argument("--batch", action="append", help="Registry batch to include; may be repeated.")
     parser.add_argument("--max-works", type=int, default=0, help="Maximum works per author; 0 means all available works.")
+    parser.add_argument(
+        "--skip-covered",
+        action="store_true",
+        help="Skip querying authors who already have at least one source; makes reruns pick up only newly registered authors.",
+    )
     return parser.parse_args()
 
 
@@ -247,20 +255,24 @@ def main() -> None:
         rhetorical = read_registry_names(REGISTRY_DIR / "rhetorical_speakers.csv", "rhetorical", args.language, batches)
 
     literary_rows = []
-    literary_existing = {
-        row.get("source_id", "")
-        for row in read_existing_sources("literary")
-    }
+    literary_sources = read_existing_sources("literary")
+    literary_existing = {row.get("source_id", "") for row in literary_sources}
+    literary_covered = {row.get("author_or_speaker", "") for row in literary_sources}
     for name in literary:
+        if args.skip_covered and name in literary_covered:
+            print(f"skip covered: literary: {name}", flush=True)
+            continue
         literary_rows.extend(fetch_for_name(name, "literary", max_works=args.max_works, existing_ids=literary_existing))
         print(f"literary: {name}: {len([r for r in literary_rows if r['author_or_speaker'] == name])} works", flush=True)
 
     rhetorical_rows = []
-    rhetorical_existing = {
-        row.get("source_id", "")
-        for row in read_existing_sources("rhetorical")
-    }
+    rhetorical_sources = read_existing_sources("rhetorical")
+    rhetorical_existing = {row.get("source_id", "") for row in rhetorical_sources}
+    rhetorical_covered = {row.get("author_or_speaker", "") for row in rhetorical_sources}
     for name in rhetorical:
+        if args.skip_covered and name in rhetorical_covered:
+            print(f"skip covered: rhetorical: {name}", flush=True)
+            continue
         rhetorical_rows.extend(fetch_for_name(name, "rhetorical", max_works=args.max_works, existing_ids=rhetorical_existing))
         print(f"rhetorical: {name}: {len([r for r in rhetorical_rows if r['author_or_speaker'] == name])} works", flush=True)
 
