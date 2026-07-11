@@ -75,12 +75,27 @@ def fetch_bytes(url: str) -> bytes:
                 return bytes(data[:total_length]) if total_length else bytes(data)
         except requests.RequestException as error:
             last_error = error
+            response = getattr(error, "response", None)
+            if response is not None and response.status_code == 429:
+                retry_after = response.headers.get("Retry-After", "")
+                wait = int(retry_after) if retry_after.isdigit() else 30
+                time.sleep(min(wait, 120))
+                continue
         time.sleep(min(attempt + 1, 3))
     raise RuntimeError(f"download remained incomplete after retries: {url}") from last_error
 
 
 def fetch_json(url: str) -> dict:
-    return json.loads(fetch_bytes(url).decode("utf-8"))
+    # Chunked API responses carry no Content-Length, so a truncated body looks
+    # complete to fetch_bytes; validate by parsing and retry on damage.
+    last_error: Exception | None = None
+    for attempt in range(5):
+        try:
+            return json.loads(fetch_bytes(url).decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError) as error:
+            last_error = error
+            time.sleep(2 * (attempt + 1))
+    raise RuntimeError(f"API response stayed truncated after retries: {url}") from last_error
 
 
 def clean_gutenberg(text: str) -> str:
@@ -177,7 +192,10 @@ def script_ratio(text: str, language: str) -> float:
 
 def validate_text(text: str, language: str, source_id: str) -> None:
     compact_length = len(re.sub(r"\s+", "", text))
-    if compact_length < 5_000:
+    # CJK characters are denser than Latin words: 2,000 hanzi/kana is already a
+    # substantial essay, while 5,000 Latin characters is only ~900 words.
+    minimum_length = 2_000 if language in {"zh", "ja"} else 5_000
+    if compact_length < minimum_length:
         raise ValueError(f"{source_id}: text too short ({compact_length} non-space characters)")
     minimum = 0.50 if language in {"zh", "ja"} else 0.75
     ratio = script_ratio(text, language)
@@ -256,6 +274,7 @@ def main() -> None:
     if languages:
         rows = [row for row in rows if row["original_language"] in languages]
     manifest_rows = []
+    failures: list[tuple[str, str]] = []
     for row in rows:
         print(f"fetch {row['original_language']} | {row['name']} | {row['title']}", flush=True)
         existing_path = REGISTRY_DIR / "raw_inputs" / f"{slug(row['name'])}_{slug(row['source_id'])}.txt"
@@ -274,9 +293,18 @@ def main() -> None:
             })
             manifest_rows.append(metadata | {"local_text_path": str(existing_path.relative_to(REGISTRY_DIR))})
             continue
-        manifest_rows.append(fetch_row(row))
+        try:
+            manifest_rows.append(fetch_row(row))
+        except Exception as error:  # noqa: BLE001 - keep the batch alive, fail loudly at the end
+            failures.append((row["source_id"], f"{type(error).__name__}: {error}"))
+            print(f"FAILED {row['source_id']}: {error}", flush=True)
     write_manifest(manifest_rows)
     print(f"Wrote {len(manifest_rows)} original-language sources and updated {MANIFEST}")
+    if failures:
+        print(f"\n{len(failures)} source(s) failed; successes were kept and rerunning with --skip-existing resumes here:")
+        for source_id, message in failures:
+            print(f"  {source_id}: {message}")
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
