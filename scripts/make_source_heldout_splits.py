@@ -52,10 +52,15 @@ def cap(df: pd.DataFrame, n: int, seed: int) -> pd.DataFrame:
     return df.sample(n=n, random_state=seed)
 
 
+def independent_source_keys(df: pd.DataFrame) -> pd.Series:
+    identity = df["independent_source_id"] if "independent_source_id" in df else df["source_id"]
+    return df["corpus"].astype(str) + "::" + identity.fillna("").astype(str)
+
+
 def split_author(df: pd.DataFrame, seed: int, args: argparse.Namespace) -> tuple[pd.DataFrame | None, dict]:
     author = str(df["author_or_speaker"].iloc[0])
     language = str(df["language"].iloc[0])
-    source_key = df["corpus"].astype(str) + "::" + df["source_id"].astype(str)
+    source_key = independent_source_keys(df)
     source_counts = source_key.groupby(source_key).size().sort_values(ascending=False)
     report = {
         "author": author,
@@ -137,11 +142,22 @@ def main() -> None:
         "n_rows": int(len(out)),
         "n_authors": int(out["author_or_speaker"].nunique()),
         "n_author_language_profiles": int(out[["language", "author_or_speaker"]].drop_duplicates().shape[0]),
-        "n_sources": int(out[["language", "corpus", "source_id"]].drop_duplicates().shape[0]),
+        "n_sources": int(
+            out.assign(independent_source_key=independent_source_keys(out))[
+                ["language", "independent_source_key"]
+            ].drop_duplicates().shape[0]
+        ),
         "split_counts": out["split"].value_counts().to_dict(),
         "eligible_authors": int(sum(r["eligible"] for r in author_reports)),
         "excluded_authors": int(sum(not r["eligible"] for r in author_reports)),
         "authors": author_reports,
+        "source_leakage": bool(
+            out.assign(source_key=independent_source_keys(out))
+            .groupby(["language", "author_or_speaker", "source_key"])["split"]
+            .nunique()
+            .gt(1)
+            .any()
+        ),
     }
     args.report.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps(report, indent=2))

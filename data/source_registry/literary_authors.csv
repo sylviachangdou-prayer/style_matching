@@ -78,3 +78,70 @@ Osamu Dazai,literary,ja,20c,expand_literary_multilingual,Aozora Bunko,work,3,Jap
 Fyodor Dostoevsky,literary,ru,19c,expand_literary_multilingual,Russian Wikisource,work,3,Russian originals only
 Leo Tolstoy,literary,ru,19c_20c,expand_literary_multilingual,Russian Wikisource,work,3,Russian originals only
 Anton Chekhov,literary,ru,19c_20c,expand_literary_multilingual,Russian Wikisource,work,3,Russian originals only
+Agatha Christie,literary,en,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,original English prose; US-PD early works only
+G. K. Chesterton,literary,en,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,original English prose/essays
+Rudyard Kipling,literary,en,19c_20c,expand_multilingual_2026_07,Project Gutenberg,work,3,original English prose
+Lord Dunsany,literary,en,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,original English fantasy prose
+E. Nesbit,literary,en,19c_20c,expand_multilingual_2026_07,Project Gutenberg,work,3,original English prose
+William Morris,literary,en,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,original English fantasy prose/essays
+P. G. Wodehouse,literary,en,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,original English prose; US-PD early works only
+Sinclair Lewis,literary,en,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,original English prose; US-PD early works only
+Bram Stoker,literary,en,19c_20c,expand_multilingual_2026_07,Project Gutenberg,work,3,original English prose
+Liu E,literary,zh,19c_20c,expand_multilingual_2026_07,Project Gutenberg,work,3,Chinese originals only
+Li Boyuan,literary,zh,19c_20c,expand_multilingual_2026_07,Project Gutenberg,work,3,Chinese originals only
+Zeng Pu,literary,zh,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,Chinese originals only
+Su Manshu,literary,zh,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,Chinese originals only
+Zhu Ziqing,literary,zh,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,Chinese originals only
+Yu Dafu,literary,zh,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,Chinese originals only
+Mori Ogai,literary,ja,19c_20c,expand_multilingual_2026_07,Aozora Bunko,work,3,Japanese originals only
+Higuchi Ichiyo,literary,ja,19c,expand_multilingual_2026_07,Aozora Bunko,work,3,Japanese originals only
+Miyazawa Kenji,literary,ja,20c,expand_multilingual_2026_07,Aozora Bunko,work,3,Japanese originals only
+Okamoto Kido,literary,ja,20c,expand_multilingual_2026_07,Aozora Bunko,work,3,Japanese originals only; detective fiction
+Izumi Kyoka,literary,ja,19c_20c,expand_multilingual_2026_07,Aozora Bunko,work,3,Japanese originals only
+Shimazaki Toson,literary,ja,20c,expand_multilingual_2026_07,Aozora Bunko,work,3,Japanese originals only
+Arishima Takeo,literary,ja,20c,expand_multilingual_2026_07,Aozora Bunko,work,3,Japanese originals only
+Kunikida Doppo,literary,ja,19c_20c,expand_multilingual_2026_07,Aozora Bunko,work,3,Japanese originals only
+Victor Hugo,literary,fr,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,French originals only
+Guy de Maupassant,literary,fr,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,French originals only
+Jules Verne,literary,fr,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,French originals only
+Honore de Balzac,literary,fr,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,French originals only
+Stendhal,literary,fr,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,French originals only
+George Sand,literary,fr,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,French originals only
+Alexandre Dumas,literary,fr,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,French originals only
+Anatole France,literary,fr,19c_20c,expand_multilingual_2026_07,Project Gutenberg,work,3,French originals only
+Alphonse Daudet,literary,fr,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,French originals only
+Maurice Leblanc,literary,fr,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,French originals only; detective fiction; single PG source so exploratory
+Gaston Leroux,literary,fr,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,French originals only; detective fiction
+Emile Gaboriau,literary,fr,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,French originals only; detective fiction
+Theodor Fontane,literary,de,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,German originals only
+Stefan Zweig,literary,de,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,German originals only
+Rainer Maria Rilke,literary,de,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,German originals only
+Heinrich Heine,literary,de,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,German originals only
+E. T. A. Hoffmann,literary,de,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,German originals only
+Arthur Schnitzler,literary,de,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,German originals only
+Hermann Hesse,literary,de,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,German originals only; US-PD early works only
+Theodor Storm,literary,de,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,German originals only
+Benito Perez Galdos,literary,es,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,Spanish originals only
+Miguel de Unamuno,literary,es,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,Spanish originals only
+Vicente Blasco Ibanez,literary,es,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,Spanish originals only
+Emilia Pardo Bazan,literary,es,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,Spanish originals only
+Leopoldo Alas,literary,es,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,Spanish originals only
+Pio Baroja,literary,es,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,Spanish originals only; US-PD early works only
+Juan Valera,literary,es,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,Spanish originals only
+Luigi Pirandello,literary,it,20c,expand_multilingual_2026_07,Project Gutenberg,work,3,Italian originals only
+Giovanni Verga,literary,it,19c,expand_multilingual_2026_07,Italian Wikisource,work,3,Italian originals only
+Italo Svevo,literary,it,20c,expand_multilingual_2026_07,Italian Wikisource,work,3,Italian originals only
+Edmondo De Amicis,literary,it,19c,expand_multilingual_2026_07,Project Gutenberg,work,3,Italian originals only
+Antonio Fogazzaro,literary,it,19c_20c,expand_multilingual_2026_07,Project Gutenberg,work,3,Italian originals only
+Ivan Turgenev,literary,ru,19c,expand_multilingual_2026_07,Russian Wikisource,work,3,Russian originals only
+Nikolai Gogol,literary,ru,19c,expand_multilingual_2026_07,Russian Wikisource,work,3,Russian originals only
+Alexander Pushkin,literary,ru,19c,expand_multilingual_2026_07,Russian Wikisource,work,3,Russian prose originals only
+Ivan Goncharov,literary,ru,19c,expand_multilingual_2026_07,Russian Wikisource,work,3,Russian originals only
+Nikolai Leskov,literary,ru,19c,expand_multilingual_2026_07,Russian Wikisource,work,3,Russian originals only
+Alexander Kuprin,literary,ru,20c,expand_multilingual_2026_07,Russian Wikisource,work,3,Russian originals only
+Maxim Gorky,literary,ru,20c,expand_multilingual_2026_07,Russian Wikisource,work,3,Russian originals only
+Henryk Sienkiewicz,literary,pl,19c_20c,expand_multilingual_2026_07,Polish Wikisource,work,3,Polish originals only
+Boleslaw Prus,literary,pl,19c,expand_multilingual_2026_07,Polish Wikisource,work,3,Polish originals only
+Wladyslaw Reymont,literary,pl,19c_20c,expand_multilingual_2026_07,Polish Wikisource,work,3,Polish originals only
+Stefan Zeromski,literary,pl,20c,expand_multilingual_2026_07,Polish Wikisource,work,3,Polish originals only
+Eliza Orzeszkowa,literary,pl,19c,expand_multilingual_2026_07,Polish Wikisource,work,3,Polish originals only

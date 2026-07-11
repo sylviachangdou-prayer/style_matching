@@ -21,15 +21,64 @@ measurement of the translator.
 
 The two channels are physically separate:
 
-- Style: `StyleDistance/mstyledistance`, optionally fine-tuned on source-separated author pairs.
+- Style: `StyleDistance/mstyledistance`, optionally fine-tuned on source-separated author pairs;
+  the multilingual authorship-representation model is retained as an independent challenger.
 - Topic/tone: `intfloat/multilingual-e5-base`, used only for the topic component of the Affinity
   score.
-- Within-language weighting: 0.7 style + 0.3 topic.
-- Cross-language weighting: 0.5 style + 0.5 topic, with a visible reduced-confidence label.
+- Current provisional within-language weighting: 0.7 style + 0.3 topic.
+- Current provisional cross-language weighting: 0.5 style + 0.5 topic, with a visible
+  reduced-confidence label.
 
-The offline index stores one normalized centroid per language/author profile and three
-representative original-language passages. Literary and rhetorical sources are pooled inside
-that profile; their corpus provenance remains in metadata. Online inference loads this index once, encodes the
+Backbones and sub-scores are not fused merely because they exist. Each candidate method is first
+evaluated alone on identical source/topic/domain-heldout splits. A combined score is adopted only
+if a regularized reranker improves held-out ranking, calibration, and selective risk over the best
+single method. Fixed weights are product defaults until that comparison exists, not empirical
+optima.
+
+## Multi-view style strategy
+
+The next model comparison retains mStyleDistance as the reproducible baseline and evaluates the
+2025 multilingual authorship-representation model as a challenger. The latter contributes two
+important training ideas: probabilistic content masking and language-aware contrastive batches.
+Neither model automatically replaces the other.
+
+The candidate Style Match Score has complementary views:
+
+1. mStyleDistance similarity;
+2. multilingual authorship-representation similarity;
+3. character 3–5-gram similarity;
+4. function-word/Burrows' Delta distance;
+5. punctuation and sentence-rhythm distance;
+6. POS/dependency-syntax distance;
+7. compression distance;
+8. discourse markers such as hedging, modality, pronouns, questions, and parallelism.
+
+Fit a regularized pairwise logistic reranker on source-heldout development data. Hard negatives
+must share language and, where possible, corpus/register and topic so the objective cannot be
+solved through easy language or subject cues. TopicSim remains outside the Style Match Score; it
+may enter the user-facing Affinity Score but cannot be used to claim stronger style recognition.
+
+Replace one-centroid-per-author retrieval with a comparison against source/work prototypes and,
+when supported, corpus/register prototypes. A robust aggregate over several prototypes preserves
+within-author variation that a single centroid can average away. Compare this design against the
+single-centroid baseline before deployment.
+
+## Diachronic style output
+
+The index optionally builds `language × decade` style centroids from sources with verified
+publication or delivery years. The API returns `decade_match`, its style similarity, and the
+number of supporting sources/chunks. This is a separate diachronic-style result, not part of the
+author score. It is uncalibrated until decade-heldout evaluation is available.
+
+Never infer a decade from an author's lifespan, registry era, translation date, or an undated
+edition. If no dated sources exist for the input language, return
+`decade_status = unavailable_no_dated_sources` and no decade match. Source metadata therefore
+needs a verified `year`; chunk construction derives the decade mechanically from that field.
+
+The offline index stores a normalized centroid plus optional source/work prototypes per
+language/author profile and up to three licence-approved representative original-language
+passages. Literary and rhetorical sources are pooled inside that profile; their corpus provenance
+remains in metadata. Online inference loads this index once, encodes the
 user passage once, and performs a matrix multiplication. The build script caches chunk
 embeddings by `chunk_id`, so a reconnect or a later corpus expansion does not re-encode the
 whole corpus. It writes one parquet file, not one file per chunk.
@@ -42,6 +91,9 @@ The multilingual literary catalog is in
 French, German, and Russian originals, alongside the existing English sources. The catalog
 records author, language, title, source ID, and source URL. The fetcher downloads and validates
 the declared script before creating `source_manifest.csv`.
+Every imported source also receives an `independent_source_id`. Mirrors and editions of the same
+work share this ID, so coverage, training pairs, held-out splits, prototypes, and decade support
+cannot count duplicated text as independent evidence.
 The 45 catalog rows are one multilingual expansion batch, not the total project author count.
 
 Run source collection in Colab from the repository root:
@@ -52,6 +104,7 @@ python scripts/fetch_gutendex.py \
   --max-works 0
 python scripts/fetch_multilingual_sources.py \
   --language zh --language ja --language fr --language de --language ru \
+  --language es --language it --language pl \
   --skip-existing
 python scripts/import_source_manifest.py data/source_registry/source_manifest.csv --append
 python scripts/build_chunk_parquet_from_sources.py \
@@ -79,10 +132,12 @@ Colab. Set the runtime to a GPU before running the notebook. The notebook:
 2. queries Gutenberg for every registry author in both corpora, then fetches the curated
    multilingual catalog with reconnect-safe `--skip-existing`;
 3. imports sources and builds one combined parquet chunk artifact;
-4. fine-tunes mStyleDistance with same-author/different-source positive pairs and in-batch
-   negatives;
+4. fine-tunes mStyleDistance and the multilingual authorship challenger with
+   same-author/different-source positive pairs, matched hard negatives, and language-aware
+   batches;
 5. builds a cached style + topic profile index;
-6. benchmarks warm query latency and prints a sample result.
+6. benchmarks warm query latency, prints within-language results, and runs a cross-language
+   smoke test that fails if the index contains only one language.
 
 The artifacts needed by the future web app are:
 
@@ -95,6 +150,37 @@ artifacts/multilingual_style_index_v1/
 The notebook also writes artifacts/source_heldout_eval_v1/; its metrics include overall,
 per-language, and per-corpus source-heldout results. The heldout split assigns complete
 sources to train, dev, or test, so chunks from one source never cross those splits.
+
+The current notebook also produces four backbone evaluations, classical style scores,
+single-centroid versus source-prototype scores, a learned-fusion decision, open-set metrics,
+ordered language-pair results, optional author-heldout decade results, CPU/GPU latency, and a
+versioned `artifacts/baseline_v1/` readiness bundle. Critical collection, training, indexing, and
+baseline-acceptance commands fail immediately; decade evaluation remains unavailable rather than
+blocking when dated support is insufficient.
+
+Key post-run checks are:
+
+```bash
+python scripts/audit_source_metadata.py \
+  --corpus both --output artifacts/baseline_v1/source_metadata_audit.json
+python scripts/audit_release_readiness.py \
+  --chunks data/all/meta/all_sources_chunks.parquet \
+  --heldout-report data/all/meta/all_source_heldout_report.json \
+  --training-config artifacts/mstyledistance_stylematch_v1/training_config.json \
+  --index-metadata artifacts/multilingual_style_index_v1/metadata.json \
+  --embedding-metrics artifacts/eval_mstyle_finetuned/style_embedding_metrics.json \
+  --output-dir artifacts/baseline_v1 --strict
+python scripts/check_release_gates.py \
+  --retrieval-metrics artifacts/eval_mstyle_finetuned/style_embedding_metrics.json \
+  --open-set-metrics artifacts/open_set_eval_v1/en/open_set_metrics.json \
+  --latency artifacts/multilingual_style_index_v1/latency_cpu.json \
+  --heldout-report data/all/meta/all_source_heldout_report.json \
+  --index-metadata artifacts/multilingual_style_index_v1/metadata.json \
+  --source-metadata-audit artifacts/baseline_v1/source_metadata_audit.json \
+  --language-id-report artifacts/baseline_v1/language_id_report.json \
+  --readiness-report artifacts/baseline_v1/readiness_report.json \
+  --output artifacts/baseline_v1/release_gates.json
+```
 
 The web app should load the index once at process start. It must not download models, translate
 the request, or encode every author profile inside a request handler. Benchmark model loading
@@ -116,6 +202,11 @@ sources from the fine-tuning objective while keeping their raw sources available
 The default training path never uses machine translation. Profile construction samples at most
 50 chunks per source and 600 chunks per author-language profile, while source collection itself
 has no work-count cap.
+
+Before GPU training, `--audit-only` compares the 163 registry profiles with the actual chunk
+artifact and reports profiles with no chunks, one source, at least two sources, and at least three
+sources. Fine-tuning asserts that every profile with two or more independent sources contributes
+the requested number of pairs. Registry membership alone is never treated as training evidence.
 
 ## Literature record, 2023-2026
 
@@ -139,6 +230,18 @@ has no work-count cap.
 - Kim, Zhang, and Jurgens (EMNLP 2025), [Leveraging Multilingual Training for Authorship
   Representation](https://aclanthology.org/2025.emnlp-main.1766/). Supports content masking,
   language-aware batching, and multilingual/domain-heldout evaluation.
+- Alshomary et al. (EMNLP 2025), [Layered Insights: Generalizable Analysis of Human Authorial
+  Style by Leveraging All Transformer Layers](https://aclanthology.org/2025.emnlp-main.521/).
+  Supports testing representations from multiple transformer layers rather than assuming the
+  final layer contains the most robust cross-domain style signal.
+- Alshomary et al. (COLING 2025), [Latent Space Interpretation for Stylistic Analysis and
+  Explainable Authorship Attribution](https://aclanthology.org/2025.coling-main.75/). Supports
+  prototype-based interpretation of latent style space; explanation agreement must still be
+  evaluated rather than treated as ground truth.
+- Alipoormolabashi, Patel, and Balasubramanian (ACL 2025), [Quantifying Misattribution
+  Unfairness in Authorship Attribution](https://aclanthology.org/2025.acl-short.80/). Adds
+  author-level misattribution exposure to the evaluation checklist because central profiles can
+  be over-returned for texts they did not write.
 - Icard et al. (COLING 2025), [Embedding Style Beyond Topics: Analyzing Dispersion Effects
   Across Different Language Models](https://aclanthology.org/2025.coling-main.236/). Basis for
   treating embedding dispersion and language-pair score calibration as measurable risks.
@@ -146,6 +249,9 @@ has no work-count cap.
   Authorship Attribution in the Era of Generative AI](https://aclanthology.org/2026.acl-long.2018/).
   Research direction for a later explicit style/content VAE and explanation layer; it is not
   silently substituted for the current reproducible baseline.
+- Anand, Alshomary, and McKeown (EACL 2026), [iBERT: Interpretable Embeddings via Sense
+  Decomposition](https://aclanthology.org/2026.eacl-long.65/). Challenger for decomposable style
+  features and explanation, not a production replacement without the same held-out comparison.
 
 The longer decision memo, including translation-mediated ablation rules, latency contract,
 and evaluation gates, is in `docs/frontier_multilingual_strategy_2026.md`.
@@ -155,6 +261,10 @@ and evaluation gates, is in `docs/frontier_multilingual_strategy_2026.md`.
 All web code lives in `web/` (FastAPI backend for a Hugging Face Docker Space, static
 frontend for Vercel, demo fallback while the index is still training). See `web/README.md`
 for local run and deployment steps. `python -m pytest web/tests -q` runs without models.
+
+The model card, data card, and evaluation-report template are in `docs/`. Artifact publication is
+dry-run by default: `scripts/publish_hf_artifacts.py` uploads only with an explicit `--publish` and
+uses separate private model and dataset repositories.
 
 ## Verification
 

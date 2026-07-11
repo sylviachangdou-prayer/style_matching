@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import json
+import logging
 import sys
 import time
 from contextlib import asynccontextmanager
@@ -24,6 +26,7 @@ from web.api.language import SUPPORTED_LANGUAGES, detect_language
 CJK_LANGUAGES = {"zh", "ja"}
 DEFAULT_INDEX_DIR = ROOT / "artifacts" / "multilingual_style_index_v1"
 CONFIG_PATH = Path(__file__).resolve().parents[1] / "config" / "weights.yaml"
+LOGGER = logging.getLogger("stylematch.metrics")
 
 _DEFAULT_CONFIG = {
     "affinity": {"low_confidence_threshold": 0.25},
@@ -128,8 +131,13 @@ def health() -> dict:
         "model_name": metadata.get("model_name"),
         "topic_model_name": metadata.get("topic_model_name"),
         "n_profiles": metadata.get("n_profiles"),
+        "n_decade_profiles": metadata.get("n_decade_profiles", 0),
         "languages": metadata.get("languages"),
         "score_status": metadata.get("score_status"),
+        "score_version": metadata.get("score_version"),
+        "artifact_version": metadata.get("artifact_version"),
+        "selection_decision": metadata.get("selection_decision"),
+        "deployment_matches_selection": metadata.get("deployment_matches_selection"),
     }
 
 
@@ -156,7 +164,17 @@ def match(request: MatchRequest) -> dict:
     threshold = config["affinity"]["low_confidence_threshold"]
     for matches in result["results"].values():
         for match_row in matches:
-            match_row["low_confidence"] = match_row["affinity_score"] < threshold
+            rejection = result.get("rejection", {}).get(match_row.get("target_language"), {})
+            match_row["low_confidence"] = (
+                match_row["affinity_score"] < threshold
+                or match_row.get("admission_tier", "exploratory") != "formal"
+                or rejection.get("accept") is False
+            )
+
+    result["style_match_status"] = "calibrated" if result.get("calibrated") else result.get(
+        "score_status", "uncalibrated"
+    )
+    result["affinity_status"] = "provisional_uncalibrated"
 
     result.update({
         "language_detected": request.language is None,
@@ -164,6 +182,23 @@ def match(request: MatchRequest) -> dict:
         "low_confidence_threshold": threshold,
         "elapsed_ms": round(elapsed_ms, 1),
     })
+    LOGGER.info(json.dumps({
+        "event": "match",
+        "input_language": language,
+        "mode": request.mode,
+        "elapsed_ms": round(elapsed_ms, 1),
+        "low_confidence": all(
+            match_row.get("low_confidence", False)
+            for matches in result["results"].values()
+            for match_row in matches
+        ),
+        "returned_authors": [
+            match_row["author_or_speaker"]
+            for matches in result["results"].values()
+            for match_row in matches
+        ],
+        "decade": (result.get("decade_match") or {}).get("decade"),
+    }, ensure_ascii=False))
     return result
 
 

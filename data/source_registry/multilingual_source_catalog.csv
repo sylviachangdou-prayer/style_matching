@@ -1,46 +1,222 @@
-corpus,name,original_language,title,source_id,source_url,source_format
-literary,Lu Xun,zh,中國小說史略,gutenberg_25559,https://www.gutenberg.org/ebooks/25559.txt.utf-8,gutenberg_text
-literary,Lu Xun,zh,南腔北調集,gutenberg_25346,https://www.gutenberg.org/ebooks/25346.txt.utf-8,gutenberg_text
-literary,Lu Xun,zh,吶喊,gutenberg_27166,https://www.gutenberg.org/ebooks/27166.txt.utf-8,gutenberg_text
-literary,Wu Jianren,zh,二十年目睹之怪現狀,gutenberg_24099,https://www.gutenberg.org/ebooks/24099.txt.utf-8,gutenberg_text
-literary,Wu Jianren,zh,九命奇冤,gutenberg_24113,https://www.gutenberg.org/ebooks/24113.txt.utf-8,gutenberg_text
-literary,Wu Jianren,zh,恨海,gutenberg_23865,https://www.gutenberg.org/ebooks/23865.txt.utf-8,gutenberg_text
-literary,Feng Menglong,zh,警世通言,gutenberg_24141,https://www.gutenberg.org/ebooks/24141.txt.utf-8,gutenberg_text
-literary,Feng Menglong,zh,喻世明言,gutenberg_27582,https://www.gutenberg.org/ebooks/27582.txt.utf-8,gutenberg_text
-literary,Feng Menglong,zh,醒世恆言,gutenberg_24239,https://www.gutenberg.org/ebooks/24239.txt.utf-8,gutenberg_text
-literary,Natsume Soseki,ja,吾輩は猫である,aozora_789_14547,https://www.aozora.gr.jp/cards/000148/files/789_14547.html,aozora_html
-literary,Natsume Soseki,ja,坊っちゃん,aozora_752_14964,https://www.aozora.gr.jp/cards/000148/files/752_14964.html,aozora_html
-literary,Natsume Soseki,ja,こころ,aozora_773_14560,https://www.aozora.gr.jp/cards/000148/files/773_14560.html,aozora_html
-literary,Ryunosuke Akutagawa,ja,羅生門,aozora_127_15260,https://www.aozora.gr.jp/cards/000879/files/127_15260.html,aozora_html
-literary,Ryunosuke Akutagawa,ja,河童,aozora_45761_39095,https://www.aozora.gr.jp/cards/000879/files/45761_39095.html,aozora_html
-literary,Ryunosuke Akutagawa,ja,藪の中,aozora_179_15255,https://www.aozora.gr.jp/cards/000879/files/179_15255.html,aozora_html
-literary,Osamu Dazai,ja,人間失格,aozora_301_14912,https://www.aozora.gr.jp/cards/000035/files/301_14912.html,aozora_html
-literary,Osamu Dazai,ja,斜陽,aozora_1565_8559,https://www.aozora.gr.jp/cards/000035/files/1565_8559.html,aozora_html
-literary,Osamu Dazai,ja,走れメロス,aozora_1567_14913,https://www.aozora.gr.jp/cards/000035/files/1567_14913.html,aozora_html
-literary,Marcel Proust,fr,Du côté de chez Swann,gutenberg_2650,https://www.gutenberg.org/ebooks/2650.txt.utf-8,gutenberg_text
-literary,Marcel Proust,fr,Les plaisirs et les jours,gutenberg_58698,https://www.gutenberg.org/ebooks/58698.txt.utf-8,gutenberg_text
-literary,Marcel Proust,fr,Pastiches et mélanges,gutenberg_64145,https://www.gutenberg.org/ebooks/64145.txt.utf-8,gutenberg_text
-literary,Gustave Flaubert,fr,Madame Bovary,gutenberg_14155,https://www.gutenberg.org/ebooks/14155.txt.utf-8,gutenberg_text
-literary,Gustave Flaubert,fr,Salammbô,gutenberg_48881,https://www.gutenberg.org/ebooks/48881.txt.utf-8,gutenberg_text
-literary,Gustave Flaubert,fr,Trois contes,gutenberg_12065,https://www.gutenberg.org/ebooks/12065.txt.utf-8,gutenberg_text
-literary,Emile Zola,fr,L'Assommoir,gutenberg_6497,https://www.gutenberg.org/ebooks/6497.txt.utf-8,gutenberg_text
-literary,Emile Zola,fr,Germinal,gutenberg_5711,https://www.gutenberg.org/ebooks/5711.txt.utf-8,gutenberg_text
-literary,Emile Zola,fr,Nana,gutenberg_5250,https://www.gutenberg.org/ebooks/5250.txt.utf-8,gutenberg_text
-literary,Franz Kafka,de,Die Verwandlung,gutenberg_22367,https://www.gutenberg.org/ebooks/22367.txt.utf-8,gutenberg_text
-literary,Franz Kafka,de,Ein Landarzt,gutenberg_21989,https://www.gutenberg.org/ebooks/21989.txt.utf-8,gutenberg_text
-literary,Franz Kafka,de,Der Prozess,gutenberg_69327,https://www.gutenberg.org/ebooks/69327.txt.utf-8,gutenberg_text
-literary,Friedrich Nietzsche,de,Also sprach Zarathustra,gutenberg_7205,https://www.gutenberg.org/ebooks/7205.txt.utf-8,gutenberg_text
-literary,Friedrich Nietzsche,de,Jenseits von Gut und Böse,gutenberg_7204,https://www.gutenberg.org/ebooks/7204.txt.utf-8,gutenberg_text
-literary,Friedrich Nietzsche,de,"Menschliches, Allzumenschliches",gutenberg_7207,https://www.gutenberg.org/ebooks/7207.txt.utf-8,gutenberg_text
-literary,Johann Wolfgang von Goethe,de,Die Leiden des jungen Werther,gutenberg_2407,https://www.gutenberg.org/ebooks/2407.txt.utf-8,gutenberg_text
-literary,Johann Wolfgang von Goethe,de,Die Wahlverwandtschaften,gutenberg_2403,https://www.gutenberg.org/ebooks/2403.txt.utf-8,gutenberg_text
-literary,Johann Wolfgang von Goethe,de,Italienische Reise,gutenberg_2404,https://www.gutenberg.org/ebooks/2404.txt.utf-8,gutenberg_text
-literary,Fyodor Dostoevsky,ru,Кроткая,wikisource_dostoevsky_krotkaya,https://ru.wikisource.org/wiki/Кроткая_(Достоевский),wikisource_subpages
-literary,Fyodor Dostoevsky,ru,Белые ночи,wikisource_dostoevsky_white_nights,https://ru.wikisource.org/wiki/Белые_ночи_(Достоевский),wikisource_subpages
-literary,Fyodor Dostoevsky,ru,Записки из подполья,wikisource_dostoevsky_underground,https://ru.wikisource.org/wiki/Записки_из_подполья_(Достоевский),wikisource_subpages
-literary,Leo Tolstoy,ru,Детство,wikisource_tolstoy_childhood,https://ru.wikisource.org/wiki/Детство_(Толстой),wikisource_subpages
-literary,Leo Tolstoy,ru,После бала,wikisource_tolstoy_after_the_ball,https://ru.wikisource.org/wiki/После_бала_(Толстой),wikisource_subpages
-literary,Leo Tolstoy,ru,Крейцерова соната,wikisource_tolstoy_kreutzer,https://ru.wikisource.org/wiki/Крейцерова_соната_(Толстой),wikisource_subpages
-literary,Anton Chekhov,ru,Палата № 6,wikisource_chekhov_ward_6,https://ru.wikisource.org/wiki/Палата_No_6_(Чехов),wikisource_subpages
-literary,Anton Chekhov,ru,Чёрный монах,wikisource_chekhov_black_monk,https://ru.wikisource.org/wiki/Чёрный_монах_(Чехов),wikisource_subpages
-literary,Anton Chekhov,ru,Дуэль,wikisource_chekhov_duel,https://ru.wikisource.org/wiki/Дуэль_(Чехов),wikisource_subpages
+corpus,name,original_language,year,title,source_id,source_url,source_format
+literary,Lu Xun,zh,1923,中國小說史略,gutenberg_25559,https://www.gutenberg.org/ebooks/25559.txt.utf-8,gutenberg_text
+literary,Lu Xun,zh,1934,南腔北調集,gutenberg_25346,https://www.gutenberg.org/ebooks/25346.txt.utf-8,gutenberg_text
+literary,Lu Xun,zh,1923,吶喊,gutenberg_27166,https://www.gutenberg.org/ebooks/27166.txt.utf-8,gutenberg_text
+literary,Wu Jianren,zh,1909,二十年目睹之怪現狀,gutenberg_24099,https://www.gutenberg.org/ebooks/24099.txt.utf-8,gutenberg_text
+literary,Wu Jianren,zh,1906,九命奇冤,gutenberg_24113,https://www.gutenberg.org/ebooks/24113.txt.utf-8,gutenberg_text
+literary,Wu Jianren,zh,1906,恨海,gutenberg_23865,https://www.gutenberg.org/ebooks/23865.txt.utf-8,gutenberg_text
+literary,Feng Menglong,zh,1624,警世通言,gutenberg_24141,https://www.gutenberg.org/ebooks/24141.txt.utf-8,gutenberg_text
+literary,Feng Menglong,zh,1620,喻世明言,gutenberg_27582,https://www.gutenberg.org/ebooks/27582.txt.utf-8,gutenberg_text
+literary,Feng Menglong,zh,1627,醒世恆言,gutenberg_24239,https://www.gutenberg.org/ebooks/24239.txt.utf-8,gutenberg_text
+literary,Natsume Soseki,ja,1905,吾輩は猫である,aozora_789_14547,https://www.aozora.gr.jp/cards/000148/files/789_14547.html,aozora_html
+literary,Natsume Soseki,ja,1906,坊っちゃん,aozora_752_14964,https://www.aozora.gr.jp/cards/000148/files/752_14964.html,aozora_html
+literary,Natsume Soseki,ja,1914,こころ,aozora_773_14560,https://www.aozora.gr.jp/cards/000148/files/773_14560.html,aozora_html
+literary,Ryunosuke Akutagawa,ja,1915,羅生門,aozora_127_15260,https://www.aozora.gr.jp/cards/000879/files/127_15260.html,aozora_html
+literary,Ryunosuke Akutagawa,ja,1927,河童,aozora_45761_39095,https://www.aozora.gr.jp/cards/000879/files/45761_39095.html,aozora_html
+literary,Ryunosuke Akutagawa,ja,1922,藪の中,aozora_179_15255,https://www.aozora.gr.jp/cards/000879/files/179_15255.html,aozora_html
+literary,Osamu Dazai,ja,1948,人間失格,aozora_301_14912,https://www.aozora.gr.jp/cards/000035/files/301_14912.html,aozora_html
+literary,Osamu Dazai,ja,1947,斜陽,aozora_1565_8559,https://www.aozora.gr.jp/cards/000035/files/1565_8559.html,aozora_html
+literary,Osamu Dazai,ja,1940,走れメロス,aozora_1567_14913,https://www.aozora.gr.jp/cards/000035/files/1567_14913.html,aozora_html
+literary,Marcel Proust,fr,1913,Du côté de chez Swann,gutenberg_2650,https://www.gutenberg.org/ebooks/2650.txt.utf-8,gutenberg_text
+literary,Marcel Proust,fr,1896,Les plaisirs et les jours,gutenberg_58698,https://www.gutenberg.org/ebooks/58698.txt.utf-8,gutenberg_text
+literary,Marcel Proust,fr,1919,Pastiches et mélanges,gutenberg_64145,https://www.gutenberg.org/ebooks/64145.txt.utf-8,gutenberg_text
+literary,Gustave Flaubert,fr,1857,Madame Bovary,gutenberg_14155,https://www.gutenberg.org/ebooks/14155.txt.utf-8,gutenberg_text
+literary,Gustave Flaubert,fr,1862,Salammbô,gutenberg_48881,https://www.gutenberg.org/ebooks/48881.txt.utf-8,gutenberg_text
+literary,Gustave Flaubert,fr,1877,Trois contes,gutenberg_12065,https://www.gutenberg.org/ebooks/12065.txt.utf-8,gutenberg_text
+literary,Emile Zola,fr,1877,L'Assommoir,gutenberg_6497,https://www.gutenberg.org/ebooks/6497.txt.utf-8,gutenberg_text
+literary,Emile Zola,fr,1885,Germinal,gutenberg_5711,https://www.gutenberg.org/ebooks/5711.txt.utf-8,gutenberg_text
+literary,Emile Zola,fr,1880,Nana,gutenberg_5250,https://www.gutenberg.org/ebooks/5250.txt.utf-8,gutenberg_text
+literary,Franz Kafka,de,1915,Die Verwandlung,gutenberg_22367,https://www.gutenberg.org/ebooks/22367.txt.utf-8,gutenberg_text
+literary,Franz Kafka,de,1919,Ein Landarzt,gutenberg_21989,https://www.gutenberg.org/ebooks/21989.txt.utf-8,gutenberg_text
+literary,Franz Kafka,de,1925,Der Prozess,gutenberg_69327,https://www.gutenberg.org/ebooks/69327.txt.utf-8,gutenberg_text
+literary,Friedrich Nietzsche,de,1883,Also sprach Zarathustra,gutenberg_7205,https://www.gutenberg.org/ebooks/7205.txt.utf-8,gutenberg_text
+literary,Friedrich Nietzsche,de,1886,Jenseits von Gut und Böse,gutenberg_7204,https://www.gutenberg.org/ebooks/7204.txt.utf-8,gutenberg_text
+literary,Friedrich Nietzsche,de,1878,"Menschliches, Allzumenschliches",gutenberg_7207,https://www.gutenberg.org/ebooks/7207.txt.utf-8,gutenberg_text
+literary,Johann Wolfgang von Goethe,de,1774,Die Leiden des jungen Werther,gutenberg_2407,https://www.gutenberg.org/ebooks/2407.txt.utf-8,gutenberg_text
+literary,Johann Wolfgang von Goethe,de,1809,Die Wahlverwandtschaften,gutenberg_2403,https://www.gutenberg.org/ebooks/2403.txt.utf-8,gutenberg_text
+literary,Johann Wolfgang von Goethe,de,1816,Italienische Reise,gutenberg_2404,https://www.gutenberg.org/ebooks/2404.txt.utf-8,gutenberg_text
+literary,Fyodor Dostoevsky,ru,1876,Кроткая,wikisource_dostoevsky_krotkaya,https://ru.wikisource.org/wiki/Кроткая_(Достоевский),wikisource_subpages
+literary,Fyodor Dostoevsky,ru,1848,Белые ночи,wikisource_dostoevsky_white_nights,https://ru.wikisource.org/wiki/Белые_ночи_(Достоевский),wikisource_subpages
+literary,Fyodor Dostoevsky,ru,1864,Записки из подполья,wikisource_dostoevsky_underground,https://ru.wikisource.org/wiki/Записки_из_подполья_(Достоевский),wikisource_subpages
+literary,Leo Tolstoy,ru,1852,Детство,wikisource_tolstoy_childhood,https://ru.wikisource.org/wiki/Детство_(Толстой),wikisource_subpages
+literary,Leo Tolstoy,ru,1911,После бала,wikisource_tolstoy_after_the_ball,https://ru.wikisource.org/wiki/После_бала_(Толстой),wikisource_subpages
+literary,Leo Tolstoy,ru,1889,Крейцерова соната,wikisource_tolstoy_kreutzer,https://ru.wikisource.org/wiki/Крейцерова_соната_(Толстой),wikisource_subpages
+literary,Anton Chekhov,ru,1892,Палата № 6,wikisource_chekhov_ward_6,https://ru.wikisource.org/wiki/Палата_No_6_(Чехов),wikisource_subpages
+literary,Anton Chekhov,ru,1894,Чёрный монах,wikisource_chekhov_black_monk,https://ru.wikisource.org/wiki/Чёрный_монах_(Чехов),wikisource_subpages
+literary,Anton Chekhov,ru,1891,Дуэль,wikisource_chekhov_duel,https://ru.wikisource.org/wiki/Дуэль_(Чехов),wikisource_subpages
+literary,Liu E,zh,1907,老殘遊記,gutenberg_23850,https://www.gutenberg.org/ebooks/23850.txt.utf-8,gutenberg_text
+literary,Liu E,zh,1907,老殘遊記續集,gutenberg_56291,https://www.gutenberg.org/ebooks/56291.txt.utf-8,gutenberg_text
+literary,Li Boyuan,zh,1903,官場現形記,gutenberg_24138,https://www.gutenberg.org/ebooks/24138.txt.utf-8,gutenberg_text
+literary,Li Boyuan,zh,1903,官場現形記(下),gutenberg_24139,https://www.gutenberg.org/ebooks/24139.txt.utf-8,gutenberg_text
+literary,Li Boyuan,zh,1906,文明小史,gutenberg_25379,https://www.gutenberg.org/ebooks/25379.txt.utf-8,gutenberg_text
+literary,Zeng Pu,zh,1905,孽海花,gutenberg_25128,https://www.gutenberg.org/ebooks/25128.txt.utf-8,gutenberg_text
+literary,Su Manshu,zh,1912,斷鴻零雁記,gutenberg_23983,https://www.gutenberg.org/ebooks/23983.txt.utf-8,gutenberg_text
+literary,Zhu Ziqing,zh,1934,歐遊雜記,gutenberg_24110,https://www.gutenberg.org/ebooks/24110.txt.utf-8,gutenberg_text
+literary,Yu Dafu,zh,1921,沉沦,gutenberg_27636,https://www.gutenberg.org/ebooks/27636.txt.utf-8,gutenberg_text
+rhetorical,Sun Yat-sen,zh,1924,三民主義,wikisource_sunyatsen_sanmin,https://zh.wikisource.org/wiki/三民主義,wikisource_subpages
+rhetorical,Sun Yat-sen,zh,1919,孫文學說,wikisource_sunyatsen_xueshuo,https://zh.wikisource.org/wiki/孫文學說,wikisource_subpages
+rhetorical,Sun Yat-sen,zh,1894,上李鴻章書,wikisource_sunyatsen_lihongzhang,https://zh.wikisource.org/wiki/上李鴻章書,wikisource_subpages
+rhetorical,Liang Qichao,zh,1900,少年中國說,wikisource_liangqichao_shaonian,https://zh.wikisource.org/wiki/少年中國說,wikisource_subpages
+rhetorical,Liang Qichao,zh,1902,新民說,wikisource_liangqichao_xinmin,https://zh.wikisource.org/wiki/新民說,wikisource_subpages
+rhetorical,Liang Qichao,zh,1899,飲冰室自由書,wikisource_liangqichao_ziyoushu,https://zh.wikisource.org/wiki/飲冰室自由書,wikisource_subpages
+rhetorical,Cai Yuanpei,zh,1917,就任北京大學校長之演說,wikisource_caiyuanpei_beida,https://zh.wikisource.org/wiki/就任北京大學校長之演說,wikisource_subpages
+rhetorical,Cai Yuanpei,zh,1917,以美育代宗教說,wikisource_caiyuanpei_meiyu,https://zh.wikisource.org/wiki/以美育代宗教說,wikisource_subpages
+literary,Mori Ogai,ja,1890,舞姫,aozora_682_15414,https://www.aozora.gr.jp/cards/000129/files/682_15414.html,aozora_html
+literary,Mori Ogai,ja,1911,雁,aozora_45224_19919,https://www.aozora.gr.jp/cards/000129/files/45224_19919.html,aozora_html
+literary,Mori Ogai,ja,1916,高瀬舟,aozora_45245_22007,https://www.aozora.gr.jp/cards/000129/files/45245_22007.html,aozora_html
+literary,Higuchi Ichiyo,ja,1895,たけくらべ,aozora_55671_64594,https://www.aozora.gr.jp/cards/000064/files/55671_64594.html,aozora_html
+literary,Higuchi Ichiyo,ja,1895,にごりえ,aozora_56042_54978,https://www.aozora.gr.jp/cards/000064/files/56042_54978.html,aozora_html
+literary,Higuchi Ichiyo,ja,1895,十三夜,aozora_386_15291,https://www.aozora.gr.jp/cards/000064/files/386_15291.html,aozora_html
+literary,Miyazawa Kenji,ja,1934,銀河鉄道の夜,aozora_43737_19215,https://www.aozora.gr.jp/cards/000081/files/43737_19215.html,aozora_html
+literary,Miyazawa Kenji,ja,1934,風の又三郎,aozora_462_15405,https://www.aozora.gr.jp/cards/000081/files/462_15405.html,aozora_html
+literary,Miyazawa Kenji,ja,1924,注文の多い料理店,aozora_1927_17906,https://www.aozora.gr.jp/cards/000081/files/1927_17906.html,aozora_html
+literary,Okamoto Kido,ja,1917,半七捕物帳,aozora_964_15046,https://www.aozora.gr.jp/cards/000082/files/964_15046.html,aozora_html
+literary,Okamoto Kido,ja,1925,三浦老人昔話,aozora_1304_18858,https://www.aozora.gr.jp/cards/000082/files/1304_18858.html,aozora_html
+literary,Okamoto Kido,ja,1926,青蛙堂鬼談,aozora_1307_20001,https://www.aozora.gr.jp/cards/000082/files/1307_20001.html,aozora_html
+literary,Izumi Kyoka,ja,1900,高野聖,aozora_521_20583,https://www.aozora.gr.jp/cards/000050/files/521_20583.html,aozora_html
+literary,Izumi Kyoka,ja,1907,婦系図,aozora_1087_34456,https://www.aozora.gr.jp/cards/000050/files/1087_34456.html,aozora_html
+literary,Izumi Kyoka,ja,1908,草迷宮,aozora_3586_12103,https://www.aozora.gr.jp/cards/000050/files/3586_12103.html,aozora_html
+literary,Shimazaki Toson,ja,1906,破戒,aozora_1502_24633,https://www.aozora.gr.jp/cards/000158/files/1502_24633.html,aozora_html
+literary,Shimazaki Toson,ja,1932,夜明け前,aozora_1507_14593,https://www.aozora.gr.jp/cards/000158/files/1507_14593.html,aozora_html
+literary,Shimazaki Toson,ja,1911,家,aozora_1510_40740,https://www.aozora.gr.jp/cards/000158/files/1510_40740.html,aozora_html
+literary,Arishima Takeo,ja,1919,或る女,aozora_202_20066,https://www.aozora.gr.jp/cards/000025/files/202_20066.html,aozora_html
+literary,Arishima Takeo,ja,1917,カインの末裔,aozora_204_19524,https://www.aozora.gr.jp/cards/000025/files/204_19524.html,aozora_html
+literary,Arishima Takeo,ja,1918,小さき者へ,aozora_206_20463,https://www.aozora.gr.jp/cards/000025/files/206_20463.html,aozora_html
+literary,Kunikida Doppo,ja,1898,武蔵野,aozora_329_15886,https://www.aozora.gr.jp/cards/000038/files/329_15886.html,aozora_html
+literary,Kunikida Doppo,ja,1901,牛肉と馬鈴薯,aozora_323_43411,https://www.aozora.gr.jp/cards/000038/files/323_43411.html,aozora_html
+literary,Kunikida Doppo,ja,1904,春の鳥,aozora_1057_15980,https://www.aozora.gr.jp/cards/000038/files/1057_15980.html,aozora_html
+literary,Victor Hugo,fr,1831,Notre-Dame de Paris,gutenberg_19657,https://www.gutenberg.org/ebooks/19657.txt.utf-8,gutenberg_text
+literary,Victor Hugo,fr,1874,Quatrevingt-Treize,gutenberg_9645,https://www.gutenberg.org/ebooks/9645.txt.utf-8,gutenberg_text
+literary,Victor Hugo,fr,1869,L'homme qui rit,gutenberg_5423,https://www.gutenberg.org/ebooks/5423.txt.utf-8,gutenberg_text
+rhetorical,Victor Hugo,fr,1875,"Actes et Paroles, Volume 1",gutenberg_8186,https://www.gutenberg.org/ebooks/8186.txt.utf-8,gutenberg_text
+rhetorical,Victor Hugo,fr,1875,"Actes et Paroles, Volume 2: Pendant l'exil",gutenberg_8453,https://www.gutenberg.org/ebooks/8453.txt.utf-8,gutenberg_text
+rhetorical,Victor Hugo,fr,1889,"Actes et Paroles, Volume 4: Depuis l'exil",gutenberg_8490,https://www.gutenberg.org/ebooks/8490.txt.utf-8,gutenberg_text
+literary,Guy de Maupassant,fr,1880,Boule de Suif,gutenberg_10746,https://www.gutenberg.org/ebooks/10746.txt.utf-8,gutenberg_text
+literary,Guy de Maupassant,fr,1888,Pierre et Jean,gutenberg_11131,https://www.gutenberg.org/ebooks/11131.txt.utf-8,gutenberg_text
+literary,Guy de Maupassant,fr,1883,Une vie,gutenberg_17457,https://www.gutenberg.org/ebooks/17457.txt.utf-8,gutenberg_text
+literary,Jules Verne,fr,1872,Le tour du monde en quatre-vingts jours,gutenberg_800,https://www.gutenberg.org/ebooks/800.txt.utf-8,gutenberg_text
+literary,Jules Verne,fr,1864,Voyage au centre de la Terre,gutenberg_4791,https://www.gutenberg.org/ebooks/4791.txt.utf-8,gutenberg_text
+literary,Jules Verne,fr,1874,L'île mystérieuse,gutenberg_14287,https://www.gutenberg.org/ebooks/14287.txt.utf-8,gutenberg_text
+literary,Honore de Balzac,fr,1833,Eugénie Grandet,gutenberg_11049,https://www.gutenberg.org/ebooks/11049.txt.utf-8,gutenberg_text
+literary,Honore de Balzac,fr,1830,La Maison du Chat-qui-pelote,gutenberg_24217,https://www.gutenberg.org/ebooks/24217.txt.utf-8,gutenberg_text
+literary,Honore de Balzac,fr,,La Comédie humaine - Volume 14. Études philosophiques,gutenberg_71773,https://www.gutenberg.org/ebooks/71773.txt.utf-8,gutenberg_text
+literary,Stendhal,fr,1830,Le rouge et le noir,gutenberg_798,https://www.gutenberg.org/ebooks/798.txt.utf-8,gutenberg_text
+literary,Stendhal,fr,1839,La Chartreuse de Parme,gutenberg_796,https://www.gutenberg.org/ebooks/796.txt.utf-8,gutenberg_text
+literary,Stendhal,fr,1890,"Vie de Henri Brulard, tome 1",gutenberg_53749,https://www.gutenberg.org/ebooks/53749.txt.utf-8,gutenberg_text
+literary,George Sand,fr,1841,Pauline,gutenberg_12447,https://www.gutenberg.org/ebooks/12447.txt.utf-8,gutenberg_text
+literary,George Sand,fr,1842,"Consuelo, Tome 1",gutenberg_12666,https://www.gutenberg.org/ebooks/12666.txt.utf-8,gutenberg_text
+literary,George Sand,fr,1833,Lavinia,gutenberg_13016,https://www.gutenberg.org/ebooks/13016.txt.utf-8,gutenberg_text
+literary,Alexandre Dumas,fr,1850,La Tulipe Noire,gutenberg_1910,https://www.gutenberg.org/ebooks/1910.txt.utf-8,gutenberg_text
+literary,Alexandre Dumas,fr,1846,La dame de Monsoreau — Tome 1,gutenberg_9637,https://www.gutenberg.org/ebooks/9637.txt.utf-8,gutenberg_text
+literary,Alexandre Dumas,fr,1847,Les quarante-cinq — Tome 1,gutenberg_7770,https://www.gutenberg.org/ebooks/7770.txt.utf-8,gutenberg_text
+literary,Anatole France,fr,1890,Thaïs,gutenberg_6377,https://www.gutenberg.org/ebooks/6377.txt.utf-8,gutenberg_text
+literary,Anatole France,fr,1908,L'Île des Pingouins,gutenberg_8524,https://www.gutenberg.org/ebooks/8524.txt.utf-8,gutenberg_text
+literary,Anatole France,fr,1892,La rôtisserie de la Reine Pédauque,gutenberg_11645,https://www.gutenberg.org/ebooks/11645.txt.utf-8,gutenberg_text
+literary,Alphonse Daudet,fr,1869,Lettres de mon moulin,gutenberg_11770,https://www.gutenberg.org/ebooks/11770.txt.utf-8,gutenberg_text
+literary,Alphonse Daudet,fr,1872,Tartarin de Tarascon,gutenberg_10687,https://www.gutenberg.org/ebooks/10687.txt.utf-8,gutenberg_text
+literary,Alphonse Daudet,fr,1868,Le petit chose,gutenberg_13256,https://www.gutenberg.org/ebooks/13256.txt.utf-8,gutenberg_text
+literary,Maurice Leblanc,fr,1907,"Arsène Lupin, gentleman-cambrioleur",gutenberg_32854,https://www.gutenberg.org/ebooks/32854.txt.utf-8,gutenberg_text
+literary,Gaston Leroux,fr,1907,Le mystère de la chambre jaune,gutenberg_13765,https://www.gutenberg.org/ebooks/13765.txt.utf-8,gutenberg_text
+literary,Gaston Leroux,fr,1908,Le parfum de la dame en noir,gutenberg_15554,https://www.gutenberg.org/ebooks/15554.txt.utf-8,gutenberg_text
+literary,Gaston Leroux,fr,1910,Le Fantôme de l'Opéra,gutenberg_62215,https://www.gutenberg.org/ebooks/62215.txt.utf-8,gutenberg_text
+literary,Emile Gaboriau,fr,1866,L'affaire Lerouge,gutenberg_15579,https://www.gutenberg.org/ebooks/15579.txt.utf-8,gutenberg_text
+literary,Emile Gaboriau,fr,1869,Monsieur Lecoq — Volume 1,gutenberg_8650,https://www.gutenberg.org/ebooks/8650.txt.utf-8,gutenberg_text
+literary,Emile Gaboriau,fr,1868,Les esclaves de Paris,gutenberg_36894,https://www.gutenberg.org/ebooks/36894.txt.utf-8,gutenberg_text
+literary,Theodor Fontane,de,1895,Effi Briest,gutenberg_5323,https://www.gutenberg.org/ebooks/5323.txt.utf-8,gutenberg_text
+literary,Theodor Fontane,de,1898,Der Stechlin,gutenberg_53628,https://www.gutenberg.org/ebooks/53628.txt.utf-8,gutenberg_text
+literary,Theodor Fontane,de,1892,Frau Jenny Treibel,gutenberg_46184,https://www.gutenberg.org/ebooks/46184.txt.utf-8,gutenberg_text
+literary,Stefan Zweig,de,1911,Brennendes Geheimnis,gutenberg_24173,https://www.gutenberg.org/ebooks/24173.txt.utf-8,gutenberg_text
+literary,Stefan Zweig,de,1922,Amok: Novellen einer Leidenschaft,gutenberg_57850,https://www.gutenberg.org/ebooks/57850.txt.utf-8,gutenberg_text
+literary,Stefan Zweig,de,1920,"Drei Meister: Balzac, Dickens, Dostojewski",gutenberg_36389,https://www.gutenberg.org/ebooks/36389.txt.utf-8,gutenberg_text
+literary,Rainer Maria Rilke,de,1910,Die Aufzeichnungen des Malte Laurids Brigge,gutenberg_2188,https://www.gutenberg.org/ebooks/2188.txt.utf-8,gutenberg_text
+literary,Rainer Maria Rilke,de,1900,Geschichten vom lieben Gott,gutenberg_38402,https://www.gutenberg.org/ebooks/38402.txt.utf-8,gutenberg_text
+literary,Rainer Maria Rilke,de,1899,Zwei Prager Geschichten,gutenberg_27822,https://www.gutenberg.org/ebooks/27822.txt.utf-8,gutenberg_text
+literary,Heinrich Heine,de,1826,Die Harzreise,gutenberg_24249,https://www.gutenberg.org/ebooks/24249.txt.utf-8,gutenberg_text
+literary,Heinrich Heine,de,1844,Deutschland. Ein Wintermärchen,gutenberg_6079,https://www.gutenberg.org/ebooks/6079.txt.utf-8,gutenberg_text
+literary,Heinrich Heine,de,1827,Buch der Lieder,gutenberg_3498,https://www.gutenberg.org/ebooks/3498.txt.utf-8,gutenberg_text
+literary,E. T. A. Hoffmann,de,1814,Der Goldene Topf,gutenberg_17362,https://www.gutenberg.org/ebooks/17362.txt.utf-8,gutenberg_text
+literary,E. T. A. Hoffmann,de,1817,Nachtstücke,gutenberg_6341,https://www.gutenberg.org/ebooks/6341.txt.utf-8,gutenberg_text
+literary,E. T. A. Hoffmann,de,1815,Die Elixiere des Teufels,gutenberg_76360,https://www.gutenberg.org/ebooks/76360.txt.utf-8,gutenberg_text
+literary,Arthur Schnitzler,de,1918,Casanovas Heimfahrt,gutenberg_18148,https://www.gutenberg.org/ebooks/18148.txt.utf-8,gutenberg_text
+literary,Arthur Schnitzler,de,1905,"Die griechische Tänzerin, und andere Novellen",gutenberg_17142,https://www.gutenberg.org/ebooks/17142.txt.utf-8,gutenberg_text
+literary,Arthur Schnitzler,de,1900,Reigen: Zehn Dialoge,gutenberg_37266,https://www.gutenberg.org/ebooks/37266.txt.utf-8,gutenberg_text
+literary,Hermann Hesse,de,1922,Siddhartha,gutenberg_2499,https://www.gutenberg.org/ebooks/2499.txt.utf-8,gutenberg_text
+literary,Hermann Hesse,de,1919,Demian,gutenberg_41907,https://www.gutenberg.org/ebooks/41907.txt.utf-8,gutenberg_text
+literary,Hermann Hesse,de,1906,Unterm Rad,gutenberg_49908,https://www.gutenberg.org/ebooks/49908.txt.utf-8,gutenberg_text
+literary,Thomas Mann,de,1901,Buddenbrooks: Verfall einer Familie,gutenberg_34811,https://www.gutenberg.org/ebooks/34811.txt.utf-8,gutenberg_text
+literary,Thomas Mann,de,1912,Der Tod in Venedig,gutenberg_12108,https://www.gutenberg.org/ebooks/12108.txt.utf-8,gutenberg_text
+literary,Thomas Mann,de,1903,Tonio Kröger,gutenberg_23313,https://www.gutenberg.org/ebooks/23313.txt.utf-8,gutenberg_text
+literary,Theodor Storm,de,1849,Immensee,gutenberg_6651,https://www.gutenberg.org/ebooks/6651.txt.utf-8,gutenberg_text
+literary,Theodor Storm,de,1876,Aquis submersus,gutenberg_8889,https://www.gutenberg.org/ebooks/8889.txt.utf-8,gutenberg_text
+literary,Theodor Storm,de,1874,Pole Poppenspäler,gutenberg_8919,https://www.gutenberg.org/ebooks/8919.txt.utf-8,gutenberg_text
+literary,Benito Perez Galdos,es,1873,Trafalgar,gutenberg_16961,https://www.gutenberg.org/ebooks/16961.txt.utf-8,gutenberg_text
+literary,Benito Perez Galdos,es,1878,Marianela,gutenberg_17340,https://www.gutenberg.org/ebooks/17340.txt.utf-8,gutenberg_text
+literary,Benito Perez Galdos,es,1887,Fortunata y Jacinta,gutenberg_17013,https://www.gutenberg.org/ebooks/17013.txt.utf-8,gutenberg_text
+literary,Miguel de Unamuno,es,1914,Niebla,gutenberg_49836,https://www.gutenberg.org/ebooks/49836.txt.utf-8,gutenberg_text
+literary,Miguel de Unamuno,es,1917,Abel Sánchez,gutenberg_44512,https://www.gutenberg.org/ebooks/44512.txt.utf-8,gutenberg_text
+literary,Miguel de Unamuno,es,1921,La Tía Tula,gutenberg_44358,https://www.gutenberg.org/ebooks/44358.txt.utf-8,gutenberg_text
+literary,Vicente Blasco Ibanez,es,1898,La Barraca,gutenberg_14944,https://www.gutenberg.org/ebooks/14944.txt.utf-8,gutenberg_text
+literary,Vicente Blasco Ibanez,es,1903,La Catedral,gutenberg_16670,https://www.gutenberg.org/ebooks/16670.txt.utf-8,gutenberg_text
+literary,Vicente Blasco Ibanez,es,1916,Los cuatro jinetes del apocalipsis,gutenberg_24536,https://www.gutenberg.org/ebooks/24536.txt.utf-8,gutenberg_text
+literary,Emilia Pardo Bazan,es,1886,Los pazos de Ulloa,gutenberg_18005,https://www.gutenberg.org/ebooks/18005.txt.utf-8,gutenberg_text
+literary,Emilia Pardo Bazan,es,1883,La Tribuna,gutenberg_17491,https://www.gutenberg.org/ebooks/17491.txt.utf-8,gutenberg_text
+literary,Emilia Pardo Bazan,es,1881,Un viaje de novios,gutenberg_17406,https://www.gutenberg.org/ebooks/17406.txt.utf-8,gutenberg_text
+literary,Leopoldo Alas,es,1885,La Regenta,gutenberg_17073,https://www.gutenberg.org/ebooks/17073.txt.utf-8,gutenberg_text
+literary,Leopoldo Alas,es,1891,Su único hijo,gutenberg_17341,https://www.gutenberg.org/ebooks/17341.txt.utf-8,gutenberg_text
+literary,Leopoldo Alas,es,1893,El Señor y los demás son Cuentos,gutenberg_62361,https://www.gutenberg.org/ebooks/62361.txt.utf-8,gutenberg_text
+literary,Pio Baroja,es,1904,La lucha por la vida: La busca,gutenberg_43432,https://www.gutenberg.org/ebooks/43432.txt.utf-8,gutenberg_text
+literary,Pio Baroja,es,1908,Zalacaín el Aventurero,gutenberg_13264,https://www.gutenberg.org/ebooks/13264.txt.utf-8,gutenberg_text
+literary,Pio Baroja,es,1911,Las inquietudes de Shanti Andía,gutenberg_12848,https://www.gutenberg.org/ebooks/12848.txt.utf-8,gutenberg_text
+literary,Juan Valera,es,1874,Pepita Jiménez,gutenberg_17223,https://www.gutenberg.org/ebooks/17223.txt.utf-8,gutenberg_text
+literary,Juan Valera,es,1895,Juanita la Larga,gutenberg_16484,https://www.gutenberg.org/ebooks/16484.txt.utf-8,gutenberg_text
+literary,Juan Valera,es,1879,Doña Luz,gutenberg_17338,https://www.gutenberg.org/ebooks/17338.txt.utf-8,gutenberg_text
+literary,Luigi Pirandello,it,1918,Un cavallo nella luna: Novelle,gutenberg_56775,https://www.gutenberg.org/ebooks/56775.txt.utf-8,gutenberg_text
+literary,Luigi Pirandello,it,1921,Sei personaggi in cerca d'autore,gutenberg_18457,https://www.gutenberg.org/ebooks/18457.txt.utf-8,gutenberg_text
+literary,Luigi Pirandello,it,1908,L'umorismo,gutenberg_56958,https://www.gutenberg.org/ebooks/56958.txt.utf-8,gutenberg_text
+literary,Edmondo De Amicis,it,1868,La vita militare: bozzetti,gutenberg_45647,https://www.gutenberg.org/ebooks/45647.txt.utf-8,gutenberg_text
+literary,Edmondo De Amicis,it,1879,Ricordi di Parigi,gutenberg_17853,https://www.gutenberg.org/ebooks/17853.txt.utf-8,gutenberg_text
+literary,Edmondo De Amicis,it,1876,Marocco,gutenberg_30725,https://www.gutenberg.org/ebooks/30725.txt.utf-8,gutenberg_text
+literary,Antonio Fogazzaro,it,1888,Il mistero del poeta,gutenberg_22504,https://www.gutenberg.org/ebooks/22504.txt.utf-8,gutenberg_text
+literary,Antonio Fogazzaro,it,1887,Fedele ed altri racconti,gutenberg_57082,https://www.gutenberg.org/ebooks/57082.txt.utf-8,gutenberg_text
+literary,Antonio Fogazzaro,it,1901,Idillii spezzati,gutenberg_60115,https://www.gutenberg.org/ebooks/60115.txt.utf-8,gutenberg_text
+literary,Giovanni Verga,it,1881,I Malavoglia,wikisource_verga_malavoglia,https://it.wikisource.org/wiki/I_Malavoglia,wikisource_subpages
+literary,Giovanni Verga,it,1889,Mastro-don Gesualdo,wikisource_verga_gesualdo,https://it.wikisource.org/wiki/Mastro-don_Gesualdo,wikisource_subpages
+literary,Italo Svevo,it,1898,Senilità,wikisource_svevo_senilita,https://it.wikisource.org/wiki/Senilità,wikisource_subpages
+literary,Italo Svevo,it,1923,La coscienza di Zeno,wikisource_svevo_zeno,https://it.wikisource.org/wiki/La_coscienza_di_Zeno,wikisource_subpages
+literary,Italo Svevo,it,1892,Una vita,wikisource_svevo_unavita,https://it.wikisource.org/wiki/Una_vita,wikisource_subpages
+literary,Ivan Turgenev,ru,1858,Ася (Тургенев),wikisource_turgenev_asya,https://ru.wikisource.org/wiki/Ася_(Тургенев),wikisource_subpages
+literary,Ivan Turgenev,ru,1862,Отцы и дети (Тургенев),wikisource_turgenev_ottsy,https://ru.wikisource.org/wiki/Отцы_и_дети_(Тургенев),wikisource_subpages
+literary,Ivan Turgenev,ru,1860,Первая любовь (Тургенев),wikisource_turgenev_pervaya,https://ru.wikisource.org/wiki/Первая_любовь_(Тургенев),wikisource_subpages
+literary,Nikolai Gogol,ru,1842,Мёртвые души (Гоголь),wikisource_gogol_dushi,https://ru.wikisource.org/wiki/Мёртвые_души_(Гоголь),wikisource_subpages
+literary,Nikolai Gogol,ru,1842,Шинель (Гоголь),wikisource_gogol_shinel,https://ru.wikisource.org/wiki/Шинель_(Гоголь),wikisource_subpages
+literary,Nikolai Gogol,ru,1835,Тарас Бульба (Гоголь),wikisource_gogol_bulba,https://ru.wikisource.org/wiki/Тарас_Бульба_(Гоголь),wikisource_subpages
+literary,Alexander Pushkin,ru,1836,Капитанская дочка (Пушкин),wikisource_pushkin_dochka,https://ru.wikisource.org/wiki/Капитанская_дочка_(Пушкин),wikisource_subpages
+literary,Alexander Pushkin,ru,1834,Пиковая дама (Пушкин),wikisource_pushkin_dama,https://ru.wikisource.org/wiki/Пиковая_дама_(Пушкин),wikisource_subpages
+literary,Alexander Pushkin,ru,1841,Дубровский (Пушкин),wikisource_pushkin_dubrovsky,https://ru.wikisource.org/wiki/Дубровский_(Пушкин),wikisource_subpages
+literary,Ivan Goncharov,ru,1859,Обломов (Гончаров),wikisource_goncharov_oblomov,https://ru.wikisource.org/wiki/Обломов_(Гончаров),wikisource_subpages
+literary,Ivan Goncharov,ru,1847,Обыкновенная история (Гончаров),wikisource_goncharov_istoria,https://ru.wikisource.org/wiki/Обыкновенная_история_(Гончаров),wikisource_subpages
+literary,Ivan Goncharov,ru,1869,Обрыв (Гончаров),wikisource_goncharov_obryv,https://ru.wikisource.org/wiki/Обрыв_(Гончаров),wikisource_subpages
+literary,Nikolai Leskov,ru,1881,Левша (Лесков),wikisource_leskov_levsha,https://ru.wikisource.org/wiki/Левша_(Лесков),wikisource_subpages
+literary,Nikolai Leskov,ru,1873,Очарованный странник (Лесков),wikisource_leskov_strannik,https://ru.wikisource.org/wiki/Очарованный_странник_(Лесков),wikisource_subpages
+literary,Nikolai Leskov,ru,1865,Леди Макбет Мценского уезда (Лесков),wikisource_leskov_makbet,https://ru.wikisource.org/wiki/Леди_Макбет_Мценского_уезда_(Лесков),wikisource_subpages
+literary,Alexander Kuprin,ru,1911,Гранатовый браслет (Куприн),wikisource_kuprin_braslet,https://ru.wikisource.org/wiki/Гранатовый_браслет_(Куприн),wikisource_subpages
+literary,Alexander Kuprin,ru,1898,Олеся (Куприн),wikisource_kuprin_olesya,https://ru.wikisource.org/wiki/Олеся_(Куприн),wikisource_subpages
+literary,Alexander Kuprin,ru,1905,Поединок (Куприн),wikisource_kuprin_poedinok,https://ru.wikisource.org/wiki/Поединок_(Куприн),wikisource_subpages
+literary,Maxim Gorky,ru,1913,Детство (Горький),wikisource_gorky_detstvo,https://ru.wikisource.org/wiki/Детство_(Горький),wikisource_subpages
+literary,Maxim Gorky,ru,1902,На дне (Горький),wikisource_gorky_nadne,https://ru.wikisource.org/wiki/На_дне_(Горький),wikisource_subpages
+literary,Maxim Gorky,ru,1895,Старуха Изергиль (Горький),wikisource_gorky_izergil,https://ru.wikisource.org/wiki/Старуха_Изергиль_(Горький),wikisource_subpages
+literary,Henryk Sienkiewicz,pl,1896,Quo vadis,wikisource_sienkiewicz_quovadis,https://pl.wikisource.org/wiki/Quo_vadis,wikisource_subpages
+literary,Henryk Sienkiewicz,pl,1886,Potop,wikisource_sienkiewicz_potop,https://pl.wikisource.org/wiki/Potop,wikisource_subpages
+literary,Henryk Sienkiewicz,pl,1900,Krzyżacy,wikisource_sienkiewicz_krzyzacy,https://pl.wikisource.org/wiki/Krzyżacy,wikisource_subpages
+literary,Boleslaw Prus,pl,1890,Lalka (Prus),wikisource_prus_lalka,https://pl.wikisource.org/wiki/Lalka_(Prus),wikisource_subpages
+literary,Boleslaw Prus,pl,1897,Faraon,wikisource_prus_faraon,https://pl.wikisource.org/wiki/Faraon,wikisource_subpages
+literary,Boleslaw Prus,pl,1886,Placówka,wikisource_prus_placowka,https://pl.wikisource.org/wiki/Placówka,wikisource_subpages
+literary,Wladyslaw Reymont,pl,1904,Chłopi,wikisource_reymont_chlopi,https://pl.wikisource.org/wiki/Chłopi,wikisource_subpages
+literary,Wladyslaw Reymont,pl,1899,Ziemia obiecana,wikisource_reymont_ziemia,https://pl.wikisource.org/wiki/Ziemia_obiecana,wikisource_subpages
+literary,Wladyslaw Reymont,pl,1896,Komedyantka,wikisource_reymont_komedyantka,https://pl.wikisource.org/wiki/Komedyantka,wikisource_subpages
+literary,Stefan Zeromski,pl,1900,Ludzie bezdomni,wikisource_zeromski_bezdomni,https://pl.wikisource.org/wiki/Ludzie_bezdomni,wikisource_subpages
+literary,Stefan Zeromski,pl,1925,Przedwiośnie,wikisource_zeromski_przedwiosnie,https://pl.wikisource.org/wiki/Przedwiośnie,wikisource_subpages
+literary,Stefan Zeromski,pl,1912,Wierna rzeka,wikisource_zeromski_rzeka,https://pl.wikisource.org/wiki/Wierna_rzeka,wikisource_subpages
+literary,Eliza Orzeszkowa,pl,1888,Nad Niemnem,wikisource_orzeszkowa_niemnem,https://pl.wikisource.org/wiki/Nad_Niemnem,wikisource_subpages
+literary,Eliza Orzeszkowa,pl,1873,Marta,wikisource_orzeszkowa_marta,https://pl.wikisource.org/wiki/Marta,wikisource_subpages
+literary,Eliza Orzeszkowa,pl,1888,Cham,wikisource_orzeszkowa_cham,https://pl.wikisource.org/wiki/Cham,wikisource_subpages

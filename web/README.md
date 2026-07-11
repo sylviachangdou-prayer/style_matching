@@ -89,3 +89,7 @@ as the root directory).
   with an explicit low-confidence state instead of a fake-precise label.
 - Demo mode is impossible to mistake for a measurement: flagged in the payload,
   `score_status: demo_fixture`, and a banner in the UI.
+- Responses include score/artifact versions, profile strategy, author profile text, style traits,
+  and decade status. Decade results remain absent until support and author-heldout gates pass.
+- Application logs contain only language, mode, latency, confidence state, returned labels, and
+  decade label. User text is never written to monitoring logs.

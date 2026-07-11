@@ -1,3 +1,3 @@
-corpus,name,original_language,title,source_id,source_url,local_text_path
-literary,Example Author,en,Example Original Work,example_author_work_001,https://example.org/original,raw_inputs/example_author_work_001.txt
-rhetorical,Example Speaker,en,Example Original Speech,example_speaker_speech_001,https://example.org/original,raw_inputs/example_speaker_speech_001.txt
+corpus,name,original_language,year,title,source_id,independent_source_id,source_url,topic,domain,register,source_type,delivered_language,license_status,display_allowed,canonical_url,local_text_path
+literary,Example Author,en,1920,Example Original Work,example_author_work_001,example_original_work,https://example.org/original,example topic,literature,literary_prose,work,en,public_domain,true,https://example.org/original,raw_inputs/example_author_work_001.txt
+rhetorical,Example Speaker,en,1960,Example Original Speech,example_speaker_speech_001,1960_example_original_speech,https://example.org/original,example topic,public_rhetoric,formal_public_address,speech_or_document,en,permission_granted,true,https://example.org/original,raw_inputs/example_speaker_speech_001.txt

@@ -83,3 +83,14 @@ Salvador Allende,rhetorical,es,20c,expand_rhetorical_multilingual,Spanish speech
 Hugo Chavez,rhetorical,es,20c_21c,expand_rhetorical_multilingual,Spanish speech archive,speech_or_document,3,Spanish originals only
 Greta Thunberg,rhetorical,en,21c,expand_rhetorical_public_figures,official speeches,speech_or_document,3,collect only speeches originally delivered in English
 Malala Yousafzai,rhetorical,en,21c,expand_rhetorical_public_figures,official speeches,speech_or_document,3,collect only speeches originally delivered in English
+Mahatma Gandhi,rhetorical,en,20c,expand_rhetorical_2026_07,Project Gutenberg,speech_or_document,3,English-original essays and speeches only
+Rabindranath Tagore,rhetorical,en,20c,expand_rhetorical_2026_07,Project Gutenberg,speech_or_document,3,English-original lectures and essays; self-translated poetry is author-rendered but flagged
+Swami Vivekananda,rhetorical,en,19c,expand_rhetorical_2026_07,Project Gutenberg,speech_or_document,3,English-delivered lectures only; single PG source so exploratory
+Frederick Douglass,rhetorical,en,19c,expand_rhetorical_2026_07,Project Gutenberg,speech_or_document,3,original English speeches and autobiographical prose
+Booker T. Washington,rhetorical,en,19c_20c,expand_rhetorical_2026_07,Project Gutenberg,speech_or_document,3,original English addresses and prose
+Robert G. Ingersoll,rhetorical,en,19c,expand_rhetorical_2026_07,Project Gutenberg,speech_or_document,3,original English lectures
+Emmeline Pankhurst,rhetorical,en,20c,expand_rhetorical_2026_07,Project Gutenberg,speech_or_document,3,original English rhetoric; single PG source so exploratory
+Victor Hugo,rhetorical,fr,19c,expand_rhetorical_2026_07,Project Gutenberg,speech_or_document,3,French speeches (Actes et Paroles) only
+Sun Yat-sen,rhetorical,zh,20c,expand_rhetorical_2026_07,Chinese Wikisource,speech_or_document,3,Chinese originals only
+Liang Qichao,rhetorical,zh,19c_20c,expand_rhetorical_2026_07,Chinese Wikisource,speech_or_document,3,Chinese originals only
+Cai Yuanpei,rhetorical,zh,20c,expand_rhetorical_2026_07,Chinese Wikisource,speech_or_document,3,Chinese originals only; two verified sources so exploratory

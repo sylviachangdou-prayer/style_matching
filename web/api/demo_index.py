@@ -147,8 +147,13 @@ class DemoIndex:
             "style_weight_within": 0.7,
             "style_weight_cross": 0.5,
             "n_profiles": len(_DEMO_PROFILES),
+            "n_decade_profiles": 1,
             "languages": sorted({profile["language"] for profile in _DEMO_PROFILES}),
             "score_status": "demo_fixture",
+            "score_version": "demo_v1",
+            "artifact_version": "demo_fixture",
+            "selection_decision": "demo_fixture",
+            "deployment_matches_selection": True,
         }
 
     def query(self, text: str, language: str, mode: str, top_k: int) -> dict:
@@ -182,6 +187,10 @@ class DemoIndex:
                     "affinity_score": style_weight * style + (1.0 - style_weight) * topic,
                     "style_weight": float(style_weight),
                     "calibrated": False,
+                    "profile": "Demo profile; not a measured production result",
+                    "style_traits": "illustrative, placeholder, uncalibrated",
+                    "photo_url": "",
+                    "admission_tier": "exploratory",
                     "representative_passages": profile["passages"],
                 })
             matches.sort(key=lambda match: match["affinity_score"], reverse=True)
@@ -192,5 +201,24 @@ class DemoIndex:
             "confidence": confidence,
             "ranking_scope": scope,
             "score_status": "demo_fixture",
+            "score_version": "demo_v1",
+            "artifact_version": "demo_fixture",
+            "profile_strategy": "single_centroid",
+            "rejection": {
+                target_language: {"status": "uncalibrated", "accept": None}
+                for target_language in results
+            },
+            "decade_status": "demo_fixture",
+            "decade_match": {
+                "decade": "1920s",
+                "corpus": "literary",
+                "style_similarity": 0.42,
+                "n_authors": 5,
+                "n_sources": 3,
+                "n_chunks": 30,
+                "calibrated": False,
+                "experimental": True,
+            },
+            "decade_matches": {},
             "results": results,
         }

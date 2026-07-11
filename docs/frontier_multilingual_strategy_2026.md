@@ -28,9 +28,11 @@ The retrieval task is open-set profile ranking and verification, not closed-set 
 1. Keep raw texts and passages in the author's source language only.
 2. Build source-heldout, topic/domain-heldout, and where possible time-heldout splits.
 3. Encode corpus chunks once with `StyleDistance/mstyledistance`.
-4. Normalize and average source-balanced samples into one profile per language and author, pooling literary and rhetorical source text while retaining corpus provenance.
-5. Store representative original-language passages nearest each profile centroid.
-6. Fit calibration separately for each input-language/target-language pair when genuine positive and negative validation pairs exist.
+4. Build both one source-balanced centroid and source/work prototypes per language and author, pooling literary and rhetorical text while retaining provenance.
+5. Compare mStyleDistance, the multilingual authorship-representation challenger, prototypes, classical style views, and learned fusion on identical frozen splits. Deploy the best single method unless fusion has a positive paired-bootstrap MRR interval without calibration loss.
+6. Store representative original-language passages only when licence metadata explicitly permits display.
+7. Fit open-set calibration by language and ordered language-pair calibration only when genuine positive and negative validation pairs exist.
+8. Build decade prototypes only from verified source years and expose them only after author-heldout support and performance gates pass.
 
 ### Online
 

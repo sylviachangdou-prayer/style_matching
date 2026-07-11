@@ -18,6 +18,7 @@ FIELDS = [
     "min_independent_sources",
     "notes",
 ]
+DISPLAY_FIELDS = ["photo_url", "profile", "style_traits"]
 
 
 LITERARY_SEED = [
@@ -104,6 +105,75 @@ LITERARY_EXPANSION = [
     ("Fyodor Dostoevsky", "ru", "19c", "expand_literary_multilingual", "Russian Wikisource", "work", 3, "Russian originals only"),
     ("Leo Tolstoy", "ru", "19c_20c", "expand_literary_multilingual", "Russian Wikisource", "work", 3, "Russian originals only"),
     ("Anton Chekhov", "ru", "19c_20c", "expand_literary_multilingual", "Russian Wikisource", "work", 3, "Russian originals only"),
+    # 2026-07 expansion. Every non-English author below was verified against live
+    # holdings (PG catalog CSV, Aozora person pages, Wikisource API) before entry.
+    ("Agatha Christie", "en", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "original English prose; US-PD early works only"),
+    ("G. K. Chesterton", "en", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "original English prose/essays"),
+    ("Rudyard Kipling", "en", "19c_20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "original English prose"),
+    ("Lord Dunsany", "en", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "original English fantasy prose"),
+    ("E. Nesbit", "en", "19c_20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "original English prose"),
+    ("William Morris", "en", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "original English fantasy prose/essays"),
+    ("P. G. Wodehouse", "en", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "original English prose; US-PD early works only"),
+    ("Sinclair Lewis", "en", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "original English prose; US-PD early works only"),
+    ("Bram Stoker", "en", "19c_20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "original English prose"),
+    ("Liu E", "zh", "19c_20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Chinese originals only"),
+    ("Li Boyuan", "zh", "19c_20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Chinese originals only"),
+    ("Zeng Pu", "zh", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Chinese originals only"),
+    ("Su Manshu", "zh", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Chinese originals only"),
+    ("Zhu Ziqing", "zh", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Chinese originals only"),
+    ("Yu Dafu", "zh", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Chinese originals only"),
+    ("Mori Ogai", "ja", "19c_20c", "expand_multilingual_2026_07", "Aozora Bunko", "work", 3, "Japanese originals only"),
+    ("Higuchi Ichiyo", "ja", "19c", "expand_multilingual_2026_07", "Aozora Bunko", "work", 3, "Japanese originals only"),
+    ("Miyazawa Kenji", "ja", "20c", "expand_multilingual_2026_07", "Aozora Bunko", "work", 3, "Japanese originals only"),
+    ("Okamoto Kido", "ja", "20c", "expand_multilingual_2026_07", "Aozora Bunko", "work", 3, "Japanese originals only; detective fiction"),
+    ("Izumi Kyoka", "ja", "19c_20c", "expand_multilingual_2026_07", "Aozora Bunko", "work", 3, "Japanese originals only"),
+    ("Shimazaki Toson", "ja", "20c", "expand_multilingual_2026_07", "Aozora Bunko", "work", 3, "Japanese originals only"),
+    ("Arishima Takeo", "ja", "20c", "expand_multilingual_2026_07", "Aozora Bunko", "work", 3, "Japanese originals only"),
+    ("Kunikida Doppo", "ja", "19c_20c", "expand_multilingual_2026_07", "Aozora Bunko", "work", 3, "Japanese originals only"),
+    ("Victor Hugo", "fr", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "French originals only"),
+    ("Guy de Maupassant", "fr", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "French originals only"),
+    ("Jules Verne", "fr", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "French originals only"),
+    ("Honore de Balzac", "fr", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "French originals only"),
+    ("Stendhal", "fr", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "French originals only"),
+    ("George Sand", "fr", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "French originals only"),
+    ("Alexandre Dumas", "fr", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "French originals only"),
+    ("Anatole France", "fr", "19c_20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "French originals only"),
+    ("Alphonse Daudet", "fr", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "French originals only"),
+    ("Maurice Leblanc", "fr", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "French originals only; detective fiction; single PG source so exploratory"),
+    ("Gaston Leroux", "fr", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "French originals only; detective fiction"),
+    ("Emile Gaboriau", "fr", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "French originals only; detective fiction"),
+    ("Theodor Fontane", "de", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "German originals only"),
+    ("Stefan Zweig", "de", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "German originals only"),
+    ("Rainer Maria Rilke", "de", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "German originals only"),
+    ("Heinrich Heine", "de", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "German originals only"),
+    ("E. T. A. Hoffmann", "de", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "German originals only"),
+    ("Arthur Schnitzler", "de", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "German originals only"),
+    ("Hermann Hesse", "de", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "German originals only; US-PD early works only"),
+    ("Theodor Storm", "de", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "German originals only"),
+    ("Benito Perez Galdos", "es", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Spanish originals only"),
+    ("Miguel de Unamuno", "es", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Spanish originals only"),
+    ("Vicente Blasco Ibanez", "es", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Spanish originals only"),
+    ("Emilia Pardo Bazan", "es", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Spanish originals only"),
+    ("Leopoldo Alas", "es", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Spanish originals only"),
+    ("Pio Baroja", "es", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Spanish originals only; US-PD early works only"),
+    ("Juan Valera", "es", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Spanish originals only"),
+    ("Luigi Pirandello", "it", "20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Italian originals only"),
+    ("Giovanni Verga", "it", "19c", "expand_multilingual_2026_07", "Italian Wikisource", "work", 3, "Italian originals only"),
+    ("Italo Svevo", "it", "20c", "expand_multilingual_2026_07", "Italian Wikisource", "work", 3, "Italian originals only"),
+    ("Edmondo De Amicis", "it", "19c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Italian originals only"),
+    ("Antonio Fogazzaro", "it", "19c_20c", "expand_multilingual_2026_07", "Project Gutenberg", "work", 3, "Italian originals only"),
+    ("Ivan Turgenev", "ru", "19c", "expand_multilingual_2026_07", "Russian Wikisource", "work", 3, "Russian originals only"),
+    ("Nikolai Gogol", "ru", "19c", "expand_multilingual_2026_07", "Russian Wikisource", "work", 3, "Russian originals only"),
+    ("Alexander Pushkin", "ru", "19c", "expand_multilingual_2026_07", "Russian Wikisource", "work", 3, "Russian prose originals only"),
+    ("Ivan Goncharov", "ru", "19c", "expand_multilingual_2026_07", "Russian Wikisource", "work", 3, "Russian originals only"),
+    ("Nikolai Leskov", "ru", "19c", "expand_multilingual_2026_07", "Russian Wikisource", "work", 3, "Russian originals only"),
+    ("Alexander Kuprin", "ru", "20c", "expand_multilingual_2026_07", "Russian Wikisource", "work", 3, "Russian originals only"),
+    ("Maxim Gorky", "ru", "20c", "expand_multilingual_2026_07", "Russian Wikisource", "work", 3, "Russian originals only"),
+    ("Henryk Sienkiewicz", "pl", "19c_20c", "expand_multilingual_2026_07", "Polish Wikisource", "work", 3, "Polish originals only"),
+    ("Boleslaw Prus", "pl", "19c", "expand_multilingual_2026_07", "Polish Wikisource", "work", 3, "Polish originals only"),
+    ("Wladyslaw Reymont", "pl", "19c_20c", "expand_multilingual_2026_07", "Polish Wikisource", "work", 3, "Polish originals only"),
+    ("Stefan Zeromski", "pl", "20c", "expand_multilingual_2026_07", "Polish Wikisource", "work", 3, "Polish originals only"),
+    ("Eliza Orzeszkowa", "pl", "19c", "expand_multilingual_2026_07", "Polish Wikisource", "work", 3, "Polish originals only"),
 ]
 
 
@@ -196,6 +266,18 @@ RHETORICAL_EXPANSION = [
     ("Hugo Chavez", "es", "20c_21c", "expand_rhetorical_multilingual", "Spanish speech archive", "speech_or_document", 3, "Spanish originals only"),
     ("Greta Thunberg", "en", "21c", "expand_rhetorical_public_figures", "official speeches", "speech_or_document", 3, "collect only speeches originally delivered in English"),
     ("Malala Yousafzai", "en", "21c", "expand_rhetorical_public_figures", "official speeches", "speech_or_document", 3, "collect only speeches originally delivered in English"),
+    # 2026-07 expansion, verified against live public-domain holdings before entry.
+    ("Mahatma Gandhi", "en", "20c", "expand_rhetorical_2026_07", "Project Gutenberg", "speech_or_document", 3, "English-original essays and speeches only"),
+    ("Rabindranath Tagore", "en", "20c", "expand_rhetorical_2026_07", "Project Gutenberg", "speech_or_document", 3, "English-original lectures and essays; self-translated poetry is author-rendered but flagged"),
+    ("Swami Vivekananda", "en", "19c", "expand_rhetorical_2026_07", "Project Gutenberg", "speech_or_document", 3, "English-delivered lectures only; single PG source so exploratory"),
+    ("Frederick Douglass", "en", "19c", "expand_rhetorical_2026_07", "Project Gutenberg", "speech_or_document", 3, "original English speeches and autobiographical prose"),
+    ("Booker T. Washington", "en", "19c_20c", "expand_rhetorical_2026_07", "Project Gutenberg", "speech_or_document", 3, "original English addresses and prose"),
+    ("Robert G. Ingersoll", "en", "19c", "expand_rhetorical_2026_07", "Project Gutenberg", "speech_or_document", 3, "original English lectures"),
+    ("Emmeline Pankhurst", "en", "20c", "expand_rhetorical_2026_07", "Project Gutenberg", "speech_or_document", 3, "original English rhetoric; single PG source so exploratory"),
+    ("Victor Hugo", "fr", "19c", "expand_rhetorical_2026_07", "Project Gutenberg", "speech_or_document", 3, "French speeches (Actes et Paroles) only"),
+    ("Sun Yat-sen", "zh", "20c", "expand_rhetorical_2026_07", "Chinese Wikisource", "speech_or_document", 3, "Chinese originals only"),
+    ("Liang Qichao", "zh", "19c_20c", "expand_rhetorical_2026_07", "Chinese Wikisource", "speech_or_document", 3, "Chinese originals only"),
+    ("Cai Yuanpei", "zh", "20c", "expand_rhetorical_2026_07", "Chinese Wikisource", "speech_or_document", 3, "Chinese originals only; two verified sources so exploratory"),
 ]
 
 
@@ -228,10 +310,10 @@ def dedupe(records: list[dict[str, str | int]]) -> list[dict[str, str | int]]:
     return output
 
 
-def write_csv(path: Path, records: list[dict[str, str | int]]) -> None:
+def write_csv(path: Path, records: list[dict[str, str | int]], fields: list[str] = FIELDS) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=FIELDS)
+        writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
         writer.writerows(records)
 
@@ -239,11 +321,23 @@ def write_csv(path: Path, records: list[dict[str, str | int]]) -> None:
 def main() -> None:
     literary = dedupe(rows(LITERARY_SEED + LITERARY_EXPANSION, "literary"))
     rhetorical = dedupe(rows(PRESIDENTIAL_SPEAKERS + RHETORICAL_EXPANSION, "rhetorical"))
-    all_people = dedupe(literary + rhetorical)
+    # Copy records so display-field enrichment on all_people cannot leak into
+    # the literary/rhetorical CSVs, which are written without display fields.
+    all_people = dedupe([dict(record) for record in literary + rhetorical])
+    existing_path = REGISTRY_DIR / "all_people.csv"
+    if existing_path.exists():
+        with existing_path.open(newline="", encoding="utf-8") as handle:
+            existing = {
+                (row["name"], row["corpus"], row["original_language"]): row
+                for row in csv.DictReader(handle)
+            }
+        for record in all_people:
+            old = existing.get((record["name"], record["corpus"], record["original_language"]), {})
+            record.update({field: old.get(field, "") for field in DISPLAY_FIELDS})
 
     write_csv(REGISTRY_DIR / "literary_authors.csv", literary)
     write_csv(REGISTRY_DIR / "rhetorical_speakers.csv", rhetorical)
-    write_csv(REGISTRY_DIR / "all_people.csv", all_people)
+    write_csv(REGISTRY_DIR / "all_people.csv", all_people, FIELDS + DISPLAY_FIELDS)
     print(f"Wrote {len(literary)} literary records")
     print(f"Wrote {len(rhetorical)} rhetorical records")
     print(f"Wrote {len(all_people)} total records")

@@ -20,9 +20,19 @@ MANIFEST_FIELDS = [
     "corpus",
     "name",
     "original_language",
+    "year",
     "title",
     "source_id",
+    "independent_source_id",
     "source_url",
+    "topic",
+    "domain",
+    "register",
+    "source_type",
+    "delivered_language",
+    "license_status",
+    "display_allowed",
+    "canonical_url",
     "local_text_path",
 ]
 USER_AGENT = "StyleMatch academic corpus builder; contact via repository"
@@ -31,6 +41,13 @@ USER_AGENT = "StyleMatch academic corpus builder; contact via repository"
 def slug(value: str) -> str:
     value = value.lower().replace("&", "and")
     return re.sub(r"[^a-z0-9]+", "_", value).strip("_")
+
+
+def source_identity(row: dict[str, str]) -> str:
+    explicit = row.get("independent_source_id", "").strip()
+    title_key = re.sub(r"[^\w]+", "_", row["title"].casefold(), flags=re.UNICODE).strip("_")
+    date_key = row.get("year", "").strip() if row.get("corpus") == "rhetorical" else ""
+    return explicit or f"{date_key}_{title_key}".strip("_") or row["source_id"]
 
 
 def fetch_bytes(url: str) -> bytes:
@@ -152,7 +169,8 @@ def script_ratio(text: str, language: str) -> float:
         expected = re.findall(r"[А-Яа-яЁё]", text)
         denominator = re.findall(r"[^\W\d_]", text)
     else:
-        expected = re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿÄÖÜäöüß]", text)
+        # Ā-ſ (Latin Extended-A) covers Polish ł/ż/ś/ą and similar diacritics.
+        expected = re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿÄÖÜäöüßĀ-ſ]", text)
         denominator = re.findall(r"[^\W\d_]", text)
     return len(expected) / max(len(denominator), 1)
 
@@ -205,7 +223,18 @@ def fetch_row(row: dict[str, str]) -> dict[str, str]:
     relative_path = Path("raw_inputs") / filename
     output_path = REGISTRY_DIR / relative_path
     output_path.write_text(text + "\n", encoding="utf-8")
-    return {field: row.get(field, "") for field in MANIFEST_FIELDS[:-1]} | {"local_text_path": str(relative_path)}
+    metadata = {field: row.get(field, "") for field in MANIFEST_FIELDS[:-1]}
+    metadata.update({
+        "independent_source_id": source_identity(row),
+        "domain": row.get("domain", "literature"),
+        "register": row.get("register", "literary_prose"),
+        "source_type": row.get("source_type", "work"),
+        "delivered_language": row["original_language"],
+        "license_status": row.get("license_status", "public_domain"),
+        "display_allowed": row.get("display_allowed", "true"),
+        "canonical_url": row.get("canonical_url", row["source_url"]),
+    })
+    return metadata | {"local_text_path": str(relative_path)}
 
 
 def parse_args() -> argparse.Namespace:
@@ -232,9 +261,18 @@ def main() -> None:
         existing_path = REGISTRY_DIR / "raw_inputs" / f"{slug(row['name'])}_{slug(row['source_id'])}.txt"
         if args.skip_existing and existing_path.exists():
             print(f"skip existing {existing_path.name}", flush=True)
-            manifest_rows.append({field: row.get(field, "") for field in MANIFEST_FIELDS[:-1]} | {
-                "local_text_path": str(existing_path.relative_to(REGISTRY_DIR))
+            metadata = {field: row.get(field, "") for field in MANIFEST_FIELDS[:-1]}
+            metadata.update({
+                "independent_source_id": source_identity(row),
+                "domain": row.get("domain", "literature"),
+                "register": row.get("register", "literary_prose"),
+                "source_type": row.get("source_type", "work"),
+                "delivered_language": row["original_language"],
+                "license_status": row.get("license_status", "public_domain"),
+                "display_allowed": row.get("display_allowed", "true"),
+                "canonical_url": row.get("canonical_url", row["source_url"]),
             })
+            manifest_rows.append(metadata | {"local_text_path": str(existing_path.relative_to(REGISTRY_DIR))})
             continue
         manifest_rows.append(fetch_row(row))
     write_manifest(manifest_rows)

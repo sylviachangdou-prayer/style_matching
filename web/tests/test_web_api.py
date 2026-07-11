@@ -53,6 +53,8 @@ class MatchEndpointTests(unittest.TestCase):
             health = client.get("/api/health").json()
             self.assertTrue(health["demo"])
             self.assertEqual(health["score_status"], "demo_fixture")
+            self.assertEqual(health["score_version"], "demo_v1")
+            self.assertEqual(health["artifact_version"], "demo_fixture")
 
             response = client.post("/api/match", json={"text": EN_TEXT})
             self.assertEqual(response.status_code, 200)
@@ -61,12 +63,18 @@ class MatchEndpointTests(unittest.TestCase):
             self.assertEqual(payload["input_language"], "en")
             self.assertTrue(payload["language_detected"])
             self.assertEqual(payload["confidence"], "standard")
+            self.assertEqual(payload["style_match_status"], "demo_fixture")
+            self.assertEqual(payload["affinity_status"], "provisional_uncalibrated")
+            self.assertEqual(payload["decade_match"]["decade"], "1920s")
+            self.assertEqual(payload["decade_status"], "demo_fixture")
             matches = payload["results"]["en"]
             self.assertEqual(len(matches), 3)
             top = matches[0]
             for field in ("style_similarity", "topic_similarity", "affinity_score",
-                          "style_weight", "why", "representative_passages", "low_confidence"):
+                          "style_weight", "why", "representative_passages", "low_confidence",
+                          "profile", "style_traits", "photo_url"):
                 self.assertIn(field, top)
+            self.assertEqual(top["admission_tier"], "exploratory")
             self.assertNotIn("corpus", top)
             self.assertIn("source_corpora", top)
             self.assertEqual(

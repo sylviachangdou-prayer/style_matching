@@ -6,62 +6,121 @@
 <title>StyleMatch — which famous voice do you write like?</title>
 <script src="config.js"></script>
 <style>
+  /* Design decisions (owner-approved): navy + khaki/warm-white palette following
+     the system light/dark scheme; flat book-page layout with no cards, authors
+     separated by whitespace only; ranked list with large serif numerals; serif
+     (Cochin/Georgia) headings and source passages; sans body; monospace input
+     and numbers; near-square corners throughout. */
   :root {
-    --bg: #faf9f6; --card: #ffffff; --ink: #1c1b18; --muted: #6b6a64;
-    --accent: #7743c9; --accent-soft: #efe8fb; --border: #e4e2db;
-    --style-bar: #7743c9; --topic-bar: #2e8b74; --warn-bg: #fdf3dc; --warn-ink: #7a5b12;
+    --bg: #f7f4ec;            /* warm white */
+    --field: #fffdf8;
+    --ink: #1b2a44;           /* navy text */
+    --muted: #7d715a;         /* khaki-brown */
+    --navy: #1f3a5f;
+    --navy-deep: #16293f;
+    --khaki: #e8e0c9;
+    --khaki-strong: #c9bb95;
+    --border: #d8cfb6;
+    --dot-style: #1f3a5f;     /* style = navy */
+    --dot-topic: #a38b55;     /* topic = light brown */
+    --dot-empty: #d8cfb6;
+    --warn-bg: #f1e7c8; --warn-ink: #6b5518;
+    --serif: Cochin, Georgia, "Songti SC", "Noto Serif SC", "Hiragino Mincho ProN",
+             "Noto Serif JP", "Noto Serif", serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Noto Sans Mono CJK SC", monospace;
+    --radius: 2px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #16151a; --card: #201f26; --ink: #ece9e2; --muted: #9a978f;
-      --accent: #a685e8; --accent-soft: #2c2440; --border: #34323c;
-      --style-bar: #a685e8; --topic-bar: #4fb397; --warn-bg: #3a3010; --warn-ink: #e4c56a;
+      --bg: #0e1a2b;          /* deep navy */
+      --field: #17273d;
+      --ink: #ece4d0;         /* cream */
+      --muted: #a89d82;
+      --navy: #b3c7e2;        /* lightened navy for emphasis on dark */
+      --navy-deep: #2a4468;
+      --khaki: #24354f;
+      --khaki-strong: #3a5074;
+      --border: #2d4160;
+      --dot-style: #8fadd6;
+      --dot-topic: #c8b283;
+      --dot-empty: #2d4160;
+      --warn-bg: #33290f; --warn-ink: #dcc37a;
     }
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
          font: 16px/1.6 -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans SC", sans-serif; }
-  main { max-width: 720px; margin: 0 auto; padding: 24px 16px 64px; }
-  h1 { font-size: 1.7rem; margin: 12px 0 4px; }
-  .tagline { color: var(--muted); margin: 0 0 20px; }
+  main { max-width: 680px; margin: 0 auto; padding: 28px 18px 72px; }
+  h1 { font-family: var(--serif); font-size: 2rem; letter-spacing: .01em;
+       color: var(--navy); margin: 12px 0 4px; }
+  .tagline { color: var(--muted); margin: 0 0 22px; }
   textarea { width: 100%; min-height: 180px; padding: 14px; border: 1px solid var(--border);
-             border-radius: 12px; background: var(--card); color: var(--ink);
-             font: inherit; resize: vertical; }
-  textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
+             border-radius: var(--radius); background: var(--field); color: var(--ink);
+             font: .92rem/1.55 var(--mono); resize: vertical; }
+  textarea::placeholder { color: var(--muted); }
+  textarea:focus { outline: 2px solid var(--navy); border-color: transparent; }
   .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 12px 0 20px; }
-  select, button { font: inherit; border-radius: 10px; padding: 8px 14px; border: 1px solid var(--border);
-                   background: var(--card); color: var(--ink); }
-  .counter { color: var(--muted); font-size: .85rem; margin-left: auto; }
-  .mode { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-  .mode button { border: 0; border-radius: 0; background: var(--card); cursor: pointer; }
-  .mode button.active { background: var(--accent); color: #fff; }
-  #go { background: var(--accent); color: #fff; border: 0; padding: 10px 26px; font-weight: 600; cursor: pointer; }
+  select, button { font: inherit; border-radius: var(--radius); padding: 8px 14px;
+                   border: 1px solid var(--border); background: var(--field); color: var(--ink); }
+  .counter { color: var(--muted); font: .82rem var(--mono); margin-left: auto; }
+  .mode { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .mode button { border: 0; border-radius: 0; background: var(--field); cursor: pointer; }
+  .mode button.active { background: var(--navy); color: var(--bg); }
+  #go { background: var(--navy); color: var(--bg); border: 0; padding: 10px 28px;
+        font-weight: 600; letter-spacing: .02em; cursor: pointer; }
+  #go:hover { background: var(--navy-deep); color: #fffdf8; }
   #go:disabled { opacity: .5; cursor: wait; }
-  .banner { padding: 10px 14px; border-radius: 10px; margin: 0 0 14px; font-size: .92rem; }
+  .banner { padding: 10px 14px; border-radius: var(--radius); margin: 0 0 16px;
+            font-size: .92rem; border: 1px solid var(--border); }
   .banner.warn { background: var(--warn-bg); color: var(--warn-ink); }
-  .banner.info { background: var(--accent-soft); color: var(--ink); }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-          padding: 18px; margin-bottom: 14px; }
-  .card.top { border-color: var(--accent); border-width: 2px; }
-  .match-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
-  .match-head h3 { margin: 0; font-size: 1.25rem; }
-  .chip { font-size: .75rem; padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); }
-  .affinity { margin-left: auto; font-size: 1.4rem; font-weight: 700; color: var(--accent); }
-  .bars { margin: 12px 0; display: grid; gap: 6px; }
-  .bar-row { display: grid; grid-template-columns: 5.5em 1fr 3.5em; align-items: center; gap: 8px; font-size: .85rem; }
-  .bar-track { background: var(--border); border-radius: 999px; height: 8px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 999px; }
-  .why { margin: 10px 0 0; padding-left: 20px; }
+  .banner.info { background: var(--khaki); color: var(--ink); }
+
+  /* Ranked list: large serif numeral column, whitespace-only separation. */
+  #output { margin-top: 26px; }
+  .match { display: grid; grid-template-columns: 2.4rem 1fr; column-gap: 14px;
+           margin-bottom: 40px; }
+  .rank-num { font-family: var(--serif); font-size: 1.9rem; line-height: 1.15;
+              text-align: right; color: var(--muted); }
+  .match.rank-1 .rank-num { color: var(--navy); }
+  .match-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+  .match-head h3 { margin: 0; font-family: var(--serif); font-size: 1.35rem;
+                   font-weight: 600; color: var(--muted); }
+  .match.rank-1 .match-head h3 { color: var(--navy); font-size: 1.55rem; }
+  .chip { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase;
+          padding: 1px 7px; border: 1px solid var(--khaki-strong);
+          border-radius: var(--radius); color: var(--muted); }
+  .affinity { margin-left: auto; font: 600 1.15rem var(--mono); color: var(--muted); }
+  .match.rank-1 .affinity { color: var(--navy); font-size: 1.3rem; }
+  .match-body img { width: 68px; height: 68px; object-fit: cover; filter: grayscale(1);
+                    float: left; margin: 8px 12px 5px 0; border-radius: var(--radius); }
+  .match-body p { margin: 7px 0 2px; font-size: .9rem; color: var(--muted); }
+  .traits { margin-top: 3px; font: .78rem var(--mono); color: var(--navy); }
+
+  /* Sub-scores: mini dot matrix + monospace value. */
+  .scores { margin: 8px 0 2px; display: grid; gap: 4px; }
+  .score-row { display: flex; align-items: center; gap: 10px; font-size: .78rem; }
+  .score-row .lbl { width: 3.4em; letter-spacing: .06em; text-transform: uppercase;
+                    color: var(--muted); }
+  .dots { display: inline-flex; gap: 4px; }
+  .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--dot-empty); }
+  .dots.style i.on { background: var(--dot-style); }
+  .dots.topic i.on { background: var(--dot-topic); }
+  .score-row .val { font: .78rem var(--mono); color: var(--ink); }
+
+  .why { margin: 8px 0 0; padding-left: 18px; }
   .why li { margin: 3px 0; font-size: .92rem; }
-  details { margin-top: 10px; }
-  summary { cursor: pointer; color: var(--accent); font-size: .9rem; }
-  blockquote { border-left: 3px solid var(--accent); margin: 10px 0; padding: 6px 12px;
-               background: var(--accent-soft); border-radius: 0 8px 8px 0; font-size: .92rem; }
-  blockquote cite { display: block; color: var(--muted); font-size: .8rem; font-style: normal; margin-top: 4px; }
-  .lang-section > h2 { font-size: 1rem; color: var(--muted); margin: 22px 0 10px; }
+  details { margin-top: 8px; }
+  summary { cursor: pointer; color: var(--navy); font-size: .9rem; }
+  blockquote { font-family: var(--serif); font-size: 1.05rem; line-height: 1.75;
+               border-left: 2px solid var(--khaki-strong); margin: 12px 0 12px 2px;
+               padding: 2px 0 2px 14px; background: none; }
+  blockquote cite { display: block; font-family: var(--serif); color: var(--muted);
+                    font-size: .82rem; font-style: italic; margin-top: 5px; }
+  .lang-section > h2 { font-family: var(--serif); font-weight: 600; font-size: 1rem;
+                       letter-spacing: .04em; color: var(--muted); margin: 30px 0 16px; }
   .empty, .error { text-align: center; padding: 28px; color: var(--muted); }
-  .error { color: #c0504d; }
-  footer { color: var(--muted); font-size: .8rem; margin-top: 30px; text-align: center; }
+  .error { color: #a04a3c; }
+  footer { color: var(--muted); font-size: .8rem; margin-top: 34px; text-align: center; }
   .spinner { text-align: center; padding: 30px; color: var(--muted); }
 </style>
 </head>
@@ -151,6 +210,15 @@ function render(data) {
   if (data.language_detected) parts.push(
     `<div class="banner info">Detected language: <strong>${escapeHtml(data.input_language)}</strong>
      — change it above if that's wrong.</div>`);
+  if (data.decade_match) parts.push(
+    `<div class="banner info"><strong>Closest style decade: ${escapeHtml(data.decade_match.decade)}.</strong>
+     Based on ${data.decade_match.n_sources} dated sources in ${escapeHtml(data.input_language)};
+     similarity ${data.decade_match.style_similarity.toFixed(2)} and not yet calibrated.</div>`);
+  else if (data.decade_matches && Object.keys(data.decade_matches).length) {
+    const decades = Object.values(data.decade_matches).map(match =>
+      `${escapeHtml(match.corpus)}: <strong>${escapeHtml(match.decade)}</strong>`).join(" · ");
+    parts.push(`<div class="banner info"><strong>Closest style decades (experimental).</strong> ${decades}</div>`);
+  }
 
   const languages = Object.keys(data.results);
   let any = false;
@@ -159,7 +227,7 @@ function render(data) {
     if (!matches.length) continue;
     any = true;
     if (data.mode === "cross") parts.push(`<div class="lang-section"><h2>Closest voices writing in ${escapeHtml(lang)}</h2></div>`);
-    matches.forEach((m, i) => parts.push(matchCard(m, i === 0)));
+    matches.forEach((m, i) => parts.push(matchRow(m, i + 1)));
   }
   if (!any) parts.push(
     `<div class="empty">No authors in our library write in <strong>${escapeHtml(data.input_language)}</strong> yet.
@@ -180,31 +248,42 @@ function topMatch(data) {
   return null;
 }
 
-function matchCard(m, isTop) {
+function matchRow(m, rank) {
   const passages = m.representative_passages.map(p =>
     `<blockquote>${escapeHtml(p.text)}<cite>${escapeHtml(p.title || p.source_id)}</cite></blockquote>`).join("");
   const why = (m.why || []).map(w => `<li>${escapeHtml(w)}</li>`).join("");
+  const traits = m.style_traits ? `<div class="traits">${escapeHtml(m.style_traits)}</div>` : "";
+  const profile = m.profile ? `<p>${escapeHtml(m.profile)}</p>` : "";
+  const photo = /^https?:\/\//.test(m.photo_url || "")
+    ? `<img src="${escapeHtml(m.photo_url)}" alt="Portrait of ${escapeHtml(m.author_or_speaker)}" loading="lazy">`
+    : "";
   return `
-  <div class="card${isTop ? " top" : ""}">
-    <div class="match-head">
-      <h3>${escapeHtml(m.author_or_speaker)}</h3>
-      <span class="chip">${escapeHtml(m.target_language)}</span>
-      <span class="affinity" title="Composite affinity (uncalibrated)">${m.affinity_score.toFixed(2)}</span>
+  <div class="match rank-${rank}">
+    <div class="rank-num">${rank}</div>
+    <div class="match-body">
+      <div class="match-head">
+        <h3>${escapeHtml(m.author_or_speaker)}</h3>
+        <span class="chip">${escapeHtml(m.target_language)}</span>
+        <span class="chip">${escapeHtml(m.admission_tier || "exploratory")}</span>
+        <span class="affinity" title="Composite affinity (uncalibrated)">${m.affinity_score.toFixed(2)}</span>
+      </div>
+      ${photo}${profile}${traits}
+      <div class="scores">
+        ${scoreRow("Style", m.style_similarity, "style")}
+        ${m.topic_similarity != null ? scoreRow("Topic", m.topic_similarity, "topic") : ""}
+      </div>
+      ${why ? `<ul class="why">${why}</ul>` : ""}
+      <details><summary>Representative passages (original language)</summary>${passages}</details>
     </div>
-    <div class="bars">
-      ${bar("Style", m.style_similarity, "var(--style-bar)")}
-      ${m.topic_similarity != null ? bar("Topic", m.topic_similarity, "var(--topic-bar)") : ""}
-    </div>
-    ${why ? `<strong>Why this match</strong><ul class="why">${why}</ul>` : ""}
-    <details><summary>Representative passages (original language)</summary>${passages}</details>
   </div>`;
 }
 
-function bar(label, value, color) {
-  const width = Math.max(0, Math.min(1, value)) * 100;
-  return `<div class="bar-row"><span>${label}</span>
-    <div class="bar-track"><div class="bar-fill" style="width:${width}%;background:${color}"></div></div>
-    <span>${value.toFixed(2)}</span></div>`;
+function scoreRow(label, value, kind) {
+  const filled = Math.round(Math.max(0, Math.min(1, value)) * 10);
+  const dots = Array.from({ length: 10 }, (_, i) => `<i${i < filled ? ' class="on"' : ""}></i>`).join("");
+  return `<div class="score-row"><span class="lbl">${label}</span>
+    <span class="dots ${kind}">${dots}</span>
+    <span class="val">${value.toFixed(2)}</span></div>`;
 }
 
 function escapeHtml(s) {

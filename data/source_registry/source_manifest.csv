@@ -1,31 +1,31 @@
-corpus,name,original_language,title,source_id,source_url,local_text_path
-literary,Virginia Woolf,en,Mrs. Dalloway,gutenberg_71865,https://www.gutenberg.org/ebooks/71865.txt.utf-8,raw_inputs/virginia_woolf_gutenberg_71865.txt
-literary,Virginia Woolf,en,Night and Day,gutenberg_1245,https://www.gutenberg.org/ebooks/1245.txt.utf-8,raw_inputs/virginia_woolf_gutenberg_1245.txt
-literary,Virginia Woolf,en,The Voyage Out,gutenberg_144,https://www.gutenberg.org/ebooks/144.txt.utf-8,raw_inputs/virginia_woolf_gutenberg_144.txt
-literary,James Joyce,en,Ulysses,gutenberg_4300,https://www.gutenberg.org/ebooks/4300.txt.utf-8,raw_inputs/james_joyce_gutenberg_4300.txt
-literary,James Joyce,en,A Portrait of the Artist as a Young Man,gutenberg_4217,https://www.gutenberg.org/ebooks/4217.txt.utf-8,raw_inputs/james_joyce_gutenberg_4217.txt
-literary,James Joyce,en,Dubliners,gutenberg_2814,https://www.gutenberg.org/ebooks/2814.txt.utf-8,raw_inputs/james_joyce_gutenberg_2814.txt
-literary,D. H. Lawrence,en,Lady Chatterley's lover,gutenberg_73144,https://www.gutenberg.org/ebooks/73144.txt.utf-8,raw_inputs/d_h_lawrence_gutenberg_73144.txt
-literary,D. H. Lawrence,en,Sons and Lovers,gutenberg_217,https://www.gutenberg.org/ebooks/217.txt.utf-8,raw_inputs/d_h_lawrence_gutenberg_217.txt
-literary,D. H. Lawrence,en,Women in Love,gutenberg_4240,https://www.gutenberg.org/ebooks/4240.txt.utf-8,raw_inputs/d_h_lawrence_gutenberg_4240.txt
-literary,E. M. Forster,en,A Room with a View,gutenberg_2641,https://www.gutenberg.org/ebooks/2641.txt.utf-8,raw_inputs/e_m_forster_gutenberg_2641.txt
-literary,E. M. Forster,en,Howards End,gutenberg_2891,https://www.gutenberg.org/ebooks/2891.txt.utf-8,raw_inputs/e_m_forster_gutenberg_2891.txt
-literary,E. M. Forster,en,Aspects of the novel,gutenberg_70492,https://www.gutenberg.org/ebooks/70492.txt.utf-8,raw_inputs/e_m_forster_gutenberg_70492.txt
-literary,Katherine Mansfield,en,"The Garden Party, and Other Stories",gutenberg_1429,https://www.gutenberg.org/ebooks/1429.txt.utf-8,raw_inputs/katherine_mansfield_gutenberg_1429.txt
-literary,Katherine Mansfield,en,"Bliss, and other stories",gutenberg_44385,https://www.gutenberg.org/ebooks/44385.txt.utf-8,raw_inputs/katherine_mansfield_gutenberg_44385.txt
-literary,W. E. B. Du Bois,en,The Souls of Black Folk,gutenberg_408,https://www.gutenberg.org/ebooks/408.txt.utf-8,raw_inputs/w_e_b_du_bois_gutenberg_408.txt
-literary,W. E. B. Du Bois,en,Darkwater: Voices from Within the Veil,gutenberg_15210,https://www.gutenberg.org/ebooks/15210.txt.utf-8,raw_inputs/w_e_b_du_bois_gutenberg_15210.txt
-literary,Zora Neale Hurston,en,How it feels to be colored me,gutenberg_73549,https://www.gutenberg.org/ebooks/73549.txt.utf-8,raw_inputs/zora_neale_hurston_gutenberg_73549.txt
-literary,Zora Neale Hurston,en,The mule-bone : $b a comedy of Negro life in three acts,gutenberg_19435,https://www.gutenberg.org/ebooks/19435.txt.utf-8,raw_inputs/zora_neale_hurston_gutenberg_19435.txt
-literary,Zora Neale Hurston,en,The Eatonville anthology,gutenberg_75183,https://www.gutenberg.org/ebooks/75183.txt.utf-8,raw_inputs/zora_neale_hurston_gutenberg_75183.txt
-literary,F. Scott Fitzgerald,en,The Great Gatsby,gutenberg_64317,https://www.gutenberg.org/ebooks/64317.txt.utf-8,raw_inputs/f_scott_fitzgerald_gutenberg_64317.txt
-literary,F. Scott Fitzgerald,en,This Side of Paradise,gutenberg_805,https://www.gutenberg.org/files/805/805-8.txt,raw_inputs/f_scott_fitzgerald_gutenberg_805.txt
-literary,F. Scott Fitzgerald,en,The Beautiful and Damned,gutenberg_9830,https://www.gutenberg.org/ebooks/9830.txt.utf-8,raw_inputs/f_scott_fitzgerald_gutenberg_9830.txt
-literary,Ernest Hemingway,en,A farewell to arms,gutenberg_75201,https://www.gutenberg.org/ebooks/75201.txt.utf-8,raw_inputs/ernest_hemingway_gutenberg_75201.txt
-literary,Ernest Hemingway,en,The Sun Also Rises,gutenberg_67138,https://www.gutenberg.org/ebooks/67138.txt.utf-8,raw_inputs/ernest_hemingway_gutenberg_67138.txt
-literary,Ernest Hemingway,en,Men without women,gutenberg_69683,https://www.gutenberg.org/ebooks/69683.txt.utf-8,raw_inputs/ernest_hemingway_gutenberg_69683.txt
-literary,William Faulkner,en,The sound and the fury,gutenberg_75170,https://www.gutenberg.org/ebooks/75170.txt.utf-8,raw_inputs/william_faulkner_gutenberg_75170.txt
-literary,Kurt Vonnegut,en,2 B R 0 2 B,gutenberg_21279,https://www.gutenberg.org/ebooks/21279.txt.utf-8,raw_inputs/kurt_vonnegut_gutenberg_21279.txt
-literary,Kurt Vonnegut,en,The Big Trip Up Yonder,gutenberg_30240,https://www.gutenberg.org/ebooks/30240.txt.utf-8,raw_inputs/kurt_vonnegut_gutenberg_30240.txt
-literary,Katherine Mansfield,en,In a German Pension,gutenberg_1472,https://www.gutenberg.org/ebooks/1472.txt.utf-8,raw_inputs/katherine_mansfield_gutenberg_1472.txt
-literary,W. E. B. Du Bois,en,The Suppression of the African Slave Trade to the United States of America: 1638-1870,gutenberg_17700,https://www.gutenberg.org/ebooks/17700.txt.utf-8,raw_inputs/w_e_b_du_bois_gutenberg_17700.txt
+corpus,name,original_language,year,title,source_id,source_url,local_text_path
+literary,Virginia Woolf,en,1925,Mrs. Dalloway,gutenberg_71865,https://www.gutenberg.org/ebooks/71865.txt.utf-8,raw_inputs/virginia_woolf_gutenberg_71865.txt
+literary,Virginia Woolf,en,1919,Night and Day,gutenberg_1245,https://www.gutenberg.org/ebooks/1245.txt.utf-8,raw_inputs/virginia_woolf_gutenberg_1245.txt
+literary,Virginia Woolf,en,1915,The Voyage Out,gutenberg_144,https://www.gutenberg.org/ebooks/144.txt.utf-8,raw_inputs/virginia_woolf_gutenberg_144.txt
+literary,James Joyce,en,1922,Ulysses,gutenberg_4300,https://www.gutenberg.org/ebooks/4300.txt.utf-8,raw_inputs/james_joyce_gutenberg_4300.txt
+literary,James Joyce,en,1916,A Portrait of the Artist as a Young Man,gutenberg_4217,https://www.gutenberg.org/ebooks/4217.txt.utf-8,raw_inputs/james_joyce_gutenberg_4217.txt
+literary,James Joyce,en,1914,Dubliners,gutenberg_2814,https://www.gutenberg.org/ebooks/2814.txt.utf-8,raw_inputs/james_joyce_gutenberg_2814.txt
+literary,D. H. Lawrence,en,1928,Lady Chatterley's lover,gutenberg_73144,https://www.gutenberg.org/ebooks/73144.txt.utf-8,raw_inputs/d_h_lawrence_gutenberg_73144.txt
+literary,D. H. Lawrence,en,1913,Sons and Lovers,gutenberg_217,https://www.gutenberg.org/ebooks/217.txt.utf-8,raw_inputs/d_h_lawrence_gutenberg_217.txt
+literary,D. H. Lawrence,en,1920,Women in Love,gutenberg_4240,https://www.gutenberg.org/ebooks/4240.txt.utf-8,raw_inputs/d_h_lawrence_gutenberg_4240.txt
+literary,E. M. Forster,en,1908,A Room with a View,gutenberg_2641,https://www.gutenberg.org/ebooks/2641.txt.utf-8,raw_inputs/e_m_forster_gutenberg_2641.txt
+literary,E. M. Forster,en,1910,Howards End,gutenberg_2891,https://www.gutenberg.org/ebooks/2891.txt.utf-8,raw_inputs/e_m_forster_gutenberg_2891.txt
+literary,E. M. Forster,en,1927,Aspects of the novel,gutenberg_70492,https://www.gutenberg.org/ebooks/70492.txt.utf-8,raw_inputs/e_m_forster_gutenberg_70492.txt
+literary,Katherine Mansfield,en,1922,"The Garden Party, and Other Stories",gutenberg_1429,https://www.gutenberg.org/ebooks/1429.txt.utf-8,raw_inputs/katherine_mansfield_gutenberg_1429.txt
+literary,Katherine Mansfield,en,1920,"Bliss, and other stories",gutenberg_44385,https://www.gutenberg.org/ebooks/44385.txt.utf-8,raw_inputs/katherine_mansfield_gutenberg_44385.txt
+literary,W. E. B. Du Bois,en,1903,The Souls of Black Folk,gutenberg_408,https://www.gutenberg.org/ebooks/408.txt.utf-8,raw_inputs/w_e_b_du_bois_gutenberg_408.txt
+literary,W. E. B. Du Bois,en,1920,Darkwater: Voices from Within the Veil,gutenberg_15210,https://www.gutenberg.org/ebooks/15210.txt.utf-8,raw_inputs/w_e_b_du_bois_gutenberg_15210.txt
+literary,Zora Neale Hurston,en,1928,How it feels to be colored me,gutenberg_73549,https://www.gutenberg.org/ebooks/73549.txt.utf-8,raw_inputs/zora_neale_hurston_gutenberg_73549.txt
+literary,Zora Neale Hurston,en,1930,The mule-bone : $b a comedy of Negro life in three acts,gutenberg_19435,https://www.gutenberg.org/ebooks/19435.txt.utf-8,raw_inputs/zora_neale_hurston_gutenberg_19435.txt
+literary,Zora Neale Hurston,en,1926,The Eatonville anthology,gutenberg_75183,https://www.gutenberg.org/ebooks/75183.txt.utf-8,raw_inputs/zora_neale_hurston_gutenberg_75183.txt
+literary,F. Scott Fitzgerald,en,1925,The Great Gatsby,gutenberg_64317,https://www.gutenberg.org/ebooks/64317.txt.utf-8,raw_inputs/f_scott_fitzgerald_gutenberg_64317.txt
+literary,F. Scott Fitzgerald,en,1920,This Side of Paradise,gutenberg_805,https://www.gutenberg.org/files/805/805-8.txt,raw_inputs/f_scott_fitzgerald_gutenberg_805.txt
+literary,F. Scott Fitzgerald,en,1922,The Beautiful and Damned,gutenberg_9830,https://www.gutenberg.org/ebooks/9830.txt.utf-8,raw_inputs/f_scott_fitzgerald_gutenberg_9830.txt
+literary,Ernest Hemingway,en,1929,A farewell to arms,gutenberg_75201,https://www.gutenberg.org/ebooks/75201.txt.utf-8,raw_inputs/ernest_hemingway_gutenberg_75201.txt
+literary,Ernest Hemingway,en,1926,The Sun Also Rises,gutenberg_67138,https://www.gutenberg.org/ebooks/67138.txt.utf-8,raw_inputs/ernest_hemingway_gutenberg_67138.txt
+literary,Ernest Hemingway,en,1927,Men without women,gutenberg_69683,https://www.gutenberg.org/ebooks/69683.txt.utf-8,raw_inputs/ernest_hemingway_gutenberg_69683.txt
+literary,William Faulkner,en,1929,The sound and the fury,gutenberg_75170,https://www.gutenberg.org/ebooks/75170.txt.utf-8,raw_inputs/william_faulkner_gutenberg_75170.txt
+literary,Kurt Vonnegut,en,1962,2 B R 0 2 B,gutenberg_21279,https://www.gutenberg.org/ebooks/21279.txt.utf-8,raw_inputs/kurt_vonnegut_gutenberg_21279.txt
+literary,Kurt Vonnegut,en,1954,The Big Trip Up Yonder,gutenberg_30240,https://www.gutenberg.org/ebooks/30240.txt.utf-8,raw_inputs/kurt_vonnegut_gutenberg_30240.txt
+literary,Katherine Mansfield,en,1911,In a German Pension,gutenberg_1472,https://www.gutenberg.org/ebooks/1472.txt.utf-8,raw_inputs/katherine_mansfield_gutenberg_1472.txt
+literary,W. E. B. Du Bois,en,1896,The Suppression of the African Slave Trade to the United States of America: 1638-1870,gutenberg_17700,https://www.gutenberg.org/ebooks/17700.txt.utf-8,raw_inputs/w_e_b_du_bois_gutenberg_17700.txt

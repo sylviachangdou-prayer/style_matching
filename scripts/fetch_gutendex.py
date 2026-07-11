@@ -159,10 +159,20 @@ def fetch_for_name(name: str, corpus: str, max_works: int, existing_ids: set[str
                 "author_or_speaker": name,
                 "title": book.get("title", ""),
                 "source_id": source_id,
+                "independent_source_id": slug(book.get("title", "")) or source_id,
                 "gutenberg_id": str(book["id"]),
                 "source_url": download_url,
                 "source_text_rule": "original-language source text only",
                 "language": "en",
+                "year": "",
+                "topic": "",
+                "domain": "literature" if corpus == "literary" else "public_rhetoric",
+                "register": "literary_prose" if corpus == "literary" else "formal_public_address",
+                "source_type": "work" if corpus == "literary" else "speech_or_document",
+                "delivered_language": "en",
+                "license_status": "public_domain",
+                "display_allowed": "true",
+                "canonical_url": f"https://www.gutenberg.org/ebooks/{book['id']}",
                 "raw_text_path": str(text_path.relative_to(ROOT)),
             }
             meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
@@ -187,7 +197,7 @@ def write_metadata(corpus: str, rows: list[dict[str, str]]) -> None:
     meta_dir = ROOT / "data" / corpus / "meta"
     meta_dir.mkdir(parents=True, exist_ok=True)
     path = meta_dir / "sources.csv"
-    fields = ["corpus", "author_or_speaker", "title", "source_id", "gutenberg_id", "source_url", "source_text_rule", "language", "word_count", "raw_text_path"]
+    fields = ["corpus", "author_or_speaker", "title", "source_id", "independent_source_id", "gutenberg_id", "source_url", "source_text_rule", "language", "year", "topic", "domain", "register", "source_type", "delivered_language", "license_status", "display_allowed", "canonical_url", "word_count", "raw_text_path"]
     existing = []
     if path.exists():
         with path.open(encoding="utf-8") as handle:
@@ -195,6 +205,17 @@ def write_metadata(corpus: str, rows: list[dict[str, str]]) -> None:
     merged = []
     seen = set()
     for row in existing + rows:
+        for field in fields:
+            row.setdefault(field, "")
+        row["domain"] = row["domain"] or ("literature" if corpus == "literary" else "public_rhetoric")
+        row["register"] = row["register"] or ("literary_prose" if corpus == "literary" else "formal_public_address")
+        row["independent_source_id"] = row["independent_source_id"] or slug(row.get("title", "")) or row.get("source_id", "")
+        row["source_type"] = row["source_type"] or ("work" if corpus == "literary" else "speech_or_document")
+        row["delivered_language"] = row["delivered_language"] or row.get("language", "en")
+        row["license_status"] = row["license_status"] or "public_domain"
+        row["display_allowed"] = row["display_allowed"] or "true"
+        gutenberg_id = row.get("gutenberg_id") or str(row.get("source_id", "")).removeprefix("gutenberg_")
+        row["canonical_url"] = row["canonical_url"] or f"https://www.gutenberg.org/ebooks/{gutenberg_id}"
         key = (row.get("corpus", corpus), row.get("author_or_speaker", ""), row.get("language", ""), row.get("source_id", ""))
         if key in seen:
             continue

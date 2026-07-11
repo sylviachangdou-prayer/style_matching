@@ -103,6 +103,15 @@ def build_rows(corpus: str, args: argparse.Namespace) -> list[dict[str, str | in
         if not raw_path.exists():
             raise FileNotFoundError(raw_path)
         text = normalize_source_text(raw_path.read_text(encoding="utf-8", errors="replace"))
+        year = str(source.get("year", "")).strip()
+        decade = f"{int(year) // 10 * 10}s" if year.isdigit() else ""
+        independent_source_id = str(source.get("independent_source_id", "")).strip()
+        if not independent_source_id:
+            title_key = re.sub(
+                r"[^\w]+", "_", source.get("title", "").casefold(), flags=re.UNICODE
+            ).strip("_")
+            date_key = year if corpus == "rhetorical" else ""
+            independent_source_id = f"{date_key}_{title_key}".strip("_") or str(source_id)
         for index, chunk in enumerate(chunk_text(text, language, args), start=1):
             rows.append({
                 "chunk_id": f"{corpus}_{safe_id(source_id)}_{index:04d}",
@@ -110,7 +119,18 @@ def build_rows(corpus: str, args: argparse.Namespace) -> list[dict[str, str | in
                 "author_or_speaker": source["author_or_speaker"],
                 "title": source.get("title", ""),
                 "source_id": source_id,
+                "independent_source_id": independent_source_id,
                 "language": language,
+                "year": int(year) if year.isdigit() else None,
+                "decade": decade,
+                "topic": source.get("topic", ""),
+                "domain": source.get("domain", ""),
+                "register": source.get("register", ""),
+                "source_type": source.get("source_type", ""),
+                "delivered_language": source.get("delivered_language", language),
+                "license_status": source.get("license_status", "unknown"),
+                "display_allowed": str(source.get("display_allowed", "false")).lower() == "true",
+                "canonical_url": source.get("canonical_url") or source.get("source_url", ""),
                 "word_count": len(chunk.split()),
                 "char_count": len(chunk),
                 "text": chunk,
@@ -124,7 +144,9 @@ def coverage(rows: list[dict[str, str | int]], args: argparse.Namespace) -> dict
     source_corpora: dict[tuple[str, str, str], set[str]] = defaultdict(set)
     for row in rows:
         key = (str(row["language"]), str(row["author_or_speaker"]), "profile")
-        source_ids[key].add(f"{row['corpus']}::{row['source_id']}")
+        source_ids[key].add(
+            f"{row['corpus']}::{row.get('independent_source_id') or row['source_id']}"
+        )
         chunk_counts[key] += 1
         source_corpora[key].add(str(row["corpus"]))
 
@@ -144,7 +166,11 @@ def coverage(rows: list[dict[str, str | int]], args: argparse.Namespace) -> dict
         })
     people.sort(key=lambda row: (row["source_heldout_ready"], row["language"], row["author_or_speaker"]))
     source_keys = {
-        (str(row["language"]), str(row["corpus"]), str(row["source_id"]))
+        (
+            str(row["language"]),
+            str(row["corpus"]),
+            str(row.get("independent_source_id") or row["source_id"]),
+        )
         for row in rows
     }
     source_count_by_language = defaultdict(int)

@@ -13,9 +13,19 @@ FIELDS = [
     "author_or_speaker",
     "title",
     "source_id",
+    "independent_source_id",
     "source_url",
     "source_text_rule",
     "language",
+    "year",
+    "topic",
+    "domain",
+    "register",
+    "source_type",
+    "delivered_language",
+    "license_status",
+    "display_allowed",
+    "canonical_url",
     "word_count",
     "raw_text_path",
 ]
@@ -27,6 +37,12 @@ def slug(value: str) -> str:
     value = value.lower().replace("&", "and")
     value = re.sub(r"[^a-z0-9]+", "_", value)
     return value.strip("_")
+
+
+def source_identity(corpus: str, title: str, year: str, fallback: str) -> str:
+    title_key = re.sub(r"[^\w]+", "_", title.casefold(), flags=re.UNICODE).strip("_")
+    date_key = year.strip() if corpus == "rhetorical" else ""
+    return f"{date_key}_{title_key}".strip("_") or fallback
 
 
 def read_manifest(path: Path) -> list[dict[str, str]]:
@@ -58,6 +74,11 @@ def import_rows(rows: list[dict[str, str]], manifest_dir: Path, dry_run: bool) -
         if allowed and (corpus, name, language) not in allowed:
             raise ValueError(f"manifest row not in source registry: {corpus} | {name} | {language}")
         source_id = row["source_id"]
+        independent_source_id = row.get("independent_source_id", "").strip()
+        if not independent_source_id:
+            independent_source_id = source_identity(
+                corpus, row["title"], row.get("year", ""), source_id
+            )
         local_path = Path(row["local_text_path"])
         if not local_path.is_absolute():
             local_path = manifest_dir / local_path
@@ -72,14 +93,28 @@ def import_rows(rows: list[dict[str, str]], manifest_dir: Path, dry_run: bool) -
             out_dir.mkdir(parents=True, exist_ok=True)
             shutil.copy2(local_path, out_path)
 
+        source_url = row.get("source_url", "")
+        public_archive = any(
+            domain in source_url for domain in ("gutenberg.org", "aozora.gr.jp", "wikisource.org")
+        )
         by_corpus.setdefault(corpus, []).append({
             "corpus": corpus,
             "author_or_speaker": name,
             "title": row["title"],
             "source_id": source_id,
-            "source_url": row.get("source_url", ""),
+            "independent_source_id": independent_source_id,
+            "source_url": source_url,
             "source_text_rule": "original-language source text only",
             "language": language,
+            "year": row.get("year", ""),
+            "topic": row.get("topic", ""),
+            "domain": row.get("domain") or ("literature" if corpus == "literary" else "public_rhetoric"),
+            "register": row.get("register") or ("literary_prose" if corpus == "literary" else "formal_public_address"),
+            "source_type": row.get("source_type") or ("work" if corpus == "literary" else "speech_or_document"),
+            "delivered_language": row.get("delivered_language", language),
+            "license_status": row.get("license_status") or ("public_domain" if public_archive else "unknown"),
+            "display_allowed": row.get("display_allowed") or ("true" if public_archive else "false"),
+            "canonical_url": row.get("canonical_url") or source_url,
             "word_count": str(word_count),
             "raw_text_path": str(out_path.relative_to(ROOT)),
         })
@@ -96,15 +131,18 @@ def write_sources(corpus: str, rows: list[dict[str, str]], append: bool) -> None
             for row in csv.DictReader(handle):
                 row["source_id"] = row.get("source_id") or row.get("gutenberg_id", "")
                 existing.append({field: row.get(field, "") for field in FIELDS})
-    merged = existing + rows
-    seen = set()
-    deduped = []
-    for row in merged:
+    merged: dict[tuple[str, str, str, str], dict[str, str]] = {}
+    order: list[tuple[str, str, str, str]] = []
+    for row in existing + rows:
         key = (row["corpus"], row["author_or_speaker"], row["language"], row["source_id"])
-        if key in seen:
-            continue
-        seen.add(key)
-        deduped.append(row)
+        if key not in merged:
+            merged[key] = {field: row.get(field, "") for field in FIELDS}
+            order.append(key)
+        else:
+            merged[key].update({
+                field: value for field, value in row.items() if field in FIELDS and str(value).strip()
+            })
+    deduped = [merged[key] for key in order]
     with out_path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=FIELDS)
         writer.writeheader()

@@ -1,228 +1,115 @@
 # CLAUDE.md — StyleMatch
 
-A web app for the general public that takes a passage of text and returns the author/speaker
-whose writing style + thematic register it most resembles, with a transparent, defensible
-breakdown of *why*. Fun on the surface, academically rigorous underneath.
+StyleMatch is a public-facing, open-set style-profile retrieval system. Given a passage, it
+returns the closest author profiles, separate style and topic scores, and evidence for the
+match. It is not a closed-set authorship classifier and must allow “no strong match.”
 
-The core promise: every match is a *real* style match, not a topic-leakage artifact. We would
-rather show an honest "low confidence / not much like anyone" than a fake-precise label.
+## Hard requirements
 
----
+- Use only original-language primary texts. Exclude translations, adaptations, subtitles,
+  summaries, paraphrases, and generated imitation.
+- Keep style and topic physically separate through encoding, indexing, scoring, and display.
+- Never call an uncalibrated cosine a probability or percentage.
+- Never force a match below the calibrated rejection threshold.
+- Never use random-split accuracy as headline evidence. Split complete sources, not chunks.
+- Label cross-language retrieval as reduced-confidence. Do not imply parity with
+  within-language retrieval.
+- Do not add scientific text, per-author language models, online translation fan-out, or video
+  to v1.
 
-## 1. Product goals (read first, these constrain everything)
+## Product output
 
-1. **Mass-appeal, playful UX** — "Which famous voice do you write like?" Result is a ranked
-   top-3 with a headline match, a similarity score, and a human-readable explanation.
-2. **Frontier-accurate underneath** — contrastive authorship embeddings (LUAR / StyleDistance
-   family) for recall, classical stylometry + verification for rerank, strict cross-topic
-   evaluation so the numbers are real.
-3. **Two corpora at launch** (scientific/report corpus is explicitly CUT):
-   - `rhetorical` — speeches & first-hand spoken/written rhetoric from major figures
-     (presidents, popes, Nobel lectures, famous TED scripts). PRIMARY corpus: cleanest data,
-     strongest style signal, highest public resonance, mostly public domain.
-   - `literary` — prose by manually approved authors, stored only in the author's original language.
-4. **Two matching modes**, surfaced honestly in the UI:
-   - `within-language` (default, the headline experience): real style matching. We *do* claim
-     "your writing style resembles X."
-   - `cross-language` (exploratory): we claim "your themes & tone — and, more weakly, your
-     style — most resemble X." Style signal is real but weaker across languages; the UI must
-     show reduced confidence, never pretend parity with within-language.
+Return a ranked top three when confidence permits. For each result show:
 
-NON-GOALS for v1: scientific-text corpus, per-author ALM/perplexity scoring, video. Keep these
-out of v1 scope; leave clean extension points.
+- composite Affinity score;
+- separate StyleSim and TopicSim;
+- 2–4 distinguishing stylometric features in plain language;
+- up to three representative passages in the author’s original language, only when display is
+  explicitly allowed;
+- calibration status and reduced-confidence status where applicable.
 
----
+Use `0.7 * StyleSim + 0.3 * TopicSim` within language. Use `0.5 * StyleSim + 0.5 *
+TopicSim` across languages only as the current product rule, not as an empirically established
+optimum. Tune weights and rejection thresholds on held-out development data.
 
-## 2. The output: a composite Affinity Score that is always decomposable
+## Model and retrieval strategy
 
-Never collapse everything into one opaque number. Compute a weighted composite but ALWAYS
-expose the sub-scores and the explanation underneath.
+Treat the task as open-set author-profile ranking plus verification.
 
-```
-AffinityScore = w_style * StyleSim + w_topic * TopicSim
-```
+### Offline
 
-- **within-language:** `w_style = 0.7, w_topic = 0.3` (style leads — this is the real promise)
-- **cross-language:** `w_style = 0.5, w_topic = 0.5` AND attach a `confidence` flag = "reduced"
-  because cross-lingual style signal is known to decay. Do not hide this.
+1. Detect language, remove boilerplate/markup/quoted contamination, and create
+   register-consistent chunks of roughly 75–150 words.
+2. Build source-heldout, topic/domain-heldout, and, where possible, time-heldout splits.
+3. Encode original-language chunks with `StyleDistance/mstyledistance`. This is the current
+   multilingual backbone. Compare the 2025 multilingual authorship-representation model as the
+   main challenger for within-language and cross-domain recall; do not silently replace the
+   reproducible baseline.
+4. If adapting the backbone, use same-author, different-source positive pairs and in-batch
+   negatives. Authors with fewer than two independent sources cannot enter fine-tuning.
+5. Build both a normalized author centroid and source/work prototypes. Select single-centroid,
+   prototype, or learned fusion only from identical held-out comparisons. Literary and rhetorical
+   texts may be pooled while corpus provenance remains stored.
+6. Encode topic separately with `intfloat/multilingual-e5-base`.
+7. Cache chunk embeddings and representative original-language passages. At the current scale,
+   use normalized NumPy matrix multiplication; add ANN/FAISS only after measured need.
 
-UI must render, for the top match and on-demand for runners-up:
-- the composite Affinity Score,
-- the StyleSim and TopicSim sub-scores separately,
-- the interpretable "why" features (see §5),
-- 1–3 passages of the matched author **in their original language**, chosen as the most
-  representative of the matched style (highest per-chunk style similarity).
+### Online
 
-If top-1 AffinityScore is below a calibrated threshold, show an honest low-confidence state
-("Your writing doesn't strongly resemble anyone in our library yet") rather than forcing a label.
+1. Validate language and minimum length, then encode the query once per channel.
+2. Retrieve profiles by exact matrix multiplication. Do not encode profiles or download models
+   inside the request handler.
+3. Within-language mode ranks profiles in the query language.
+4. Cross-language mode compares original query text directly with original-language profiles.
+   Do not translate the query by default. Return separate rankings by target language until
+   ordered language-pair calibration makes a global ranking defensible.
+5. Rerank only a small top-K with character n-grams, compression distance, function words,
+   sentence-length distribution, punctuation, lexical diversity, hedging, and related
+   interpretable features. These features complement rather than replace the encoder.
 
----
+## Evaluation gates
 
-## 3. Architecture: two-stage recall → rerank (this is the spine)
+The system is not production-ready until it reports:
 
-Framed as open-world authorship verification, NOT closed-set classification. Underlying logic is
-pairwise "same-author probability"; the UI presents a friendly top-3 ranking on top of it.
+- source-heldout Recall@3/5/20 and MRR overall and by language/corpus;
+- cross-topic and cross-domain performance by language;
+- open-set AUROC, equal-error rate, rejection thresholds, calibration, and selective risk;
+- cross-language results by ordered language pair, without hiding failures in a macro average;
+- a direct-original versus translation-mediated ablation, kept outside the headline score;
+- warm p50/p95 latency on deployment hardware after at least 30 timed requests.
 
-### Stage 0 — Preprocessing
-- language ID (per chunk),
-- strip boilerplate / quotes / code blocks / markup,
-- chunk into short, register-consistent passages (target ~75–150 words/chunk),
-- discard chunks too short to carry style signal.
+Source-heldout evaluation is necessary but insufficient: author and topic can remain correlated
+across sources. Character models are topic-leakage ceilings, not production style models.
+Translation is an experimental condition because translationese changes syntax, punctuation,
+register, and language-specific distinctions. Raw multilingual cosine scores are not assumed
+comparable across language pairs.
 
-### Stage 1 — Recall (style embeddings)
-- Backbone: **LUAR** (HF pretrained authorship-representation weights) for within-language.
-  Evaluate **StyleDistance / mStyleDistance** as an alternative / for cross-language (9 langs).
-  Do NOT use a generic semantic embedding as the style backbone — it leaks topic.
-- Build each author a **profile centroid** from many multi-topic chunks.
-- Encode user input, nearest-neighbor recall **top-K = 20** author candidates by style.
+Latency targets: warm GPU p50 ≤ 500 ms and p95 ≤ 1.5 s for 75–500 word-equivalent inputs; CPU
+fallback p95 ≤ 4 s. Measure model load separately. Use ONNX/quantization only when benchmarks
+show an improvement on the deployment target.
 
-### Stage 2 — Rerank (ensemble, conservative)
-Fuse, per candidate:
-- LUAR / style-embedding cosine similarity,
-- char n-gram (tetragram) TF-IDF similarity,
-- compression / PPM distance,
-- a handful of interpretable stylometric features (see §5),
-- TopicSim from a **separate semantic channel** (see §4).
+## Corpus requirements
 
-Output calibrated top-3 with composite + sub-scores. Keep the ensemble weights in a config file
-so they're tunable without code changes.
+The registry is the author universe; source rows determine usable coverage. Keep author,
+language, title, date, topic/domain, corpus, source URL/ID, independent-source ID, and
+original-text status. Different mirrors or editions of one work must share an
+`independent_source_id`. Every author
+with a source may enter exploratory retrieval, but profiles with fewer than three independent
+sources must be flagged as not source-heldout-ready and excluded from headline evaluation.
+Only licence-approved sources may expose representative passages. Decade results require verified
+source years, author-heldout validation, five authors and twenty sources per language/register/class.
 
-**v2 hooks (build the seam, don't implement):** per-author ALM perplexity reranker; LLM as
-reranker/explanation-generator (never as sole scorer — LLMs get pulled off by semantics).
+The current multilingual expansion contains 45 primary literary texts: three authors × three
+works in Chinese, Japanese, French, German, and Russian. It validates the pipeline, not broad
+cross-language generalization. Modern rhetorical expansion requires separate verification of
+speech authorship and delivered language.
 
----
+## Implementation priorities
 
-## 4. Two channels: STYLE vs TOPIC must stay physically separate
+Must do: run the canonical multilingual notebook from source collection; preserve artifact hashes,
+coverage tiers, model comparison, open-set calibration, ordered-pair evaluation, CPU/GPU latency,
+and release-gate outputs. Do not publish when `private_beta_ready` is false.
 
-This separation is the whole reason the product is honest. Do not let one model produce both.
-
-- **Style channel:** LUAR / StyleDistance embeddings → `StyleSim`.
-- **Topic channel:** a multilingual *semantic* embedding (e.g. multilingual-e5 or LaBSE) →
-  `TopicSim`. Captures subject matter & tonal register, language-agnostic.
-
-Within-language: both channels run in-language.
-Cross-language: topic channel is naturally multilingual; style channel uses mStyleDistance and is
-flagged reduced-confidence. Always store and display the two numbers independently before combining.
-
----
-
-## 5. Interpretable explanation layer (the soul of the mass-market UX)
-
-A black-box "you're like Churchill" convinces no one. Every match ships with concrete, readable
-reasons computed from classical features, e.g.:
-- average sentence length / sentence-length variance,
-- passive-voice rate,
-- abstract-noun / nominalization density,
-- function-word profile (the Burrows'-Delta family signal),
-- hedging density, punctuation habits, type-token ratio.
-
-Render 2–4 of the most *distinguishing* features as plain sentences:
-"Like Obama: long sentences, frequent first-person plural, low hedging."
-Pick the features where the user deviates most from the global mean toward the matched author.
-
----
-
-## 6. Evaluation: cross-topic is mandatory and non-negotiable
-
-Topic leakage is the #1 way this kind of system lies. A model that looks 90% accurate is often
-secretly matching *subject*, not *style* — and mass users will catch it ("I wrote about food and
-it said I write like a food writer").
-
-- **Splits:** cross-topic, cross-domain, and cross-time. Never random split.
-- **Metrics:** top-1 accuracy, MRR, calibration (reliability curve), and robustness across the
-  splits above. Report all, not a single accuracy number.
-- Maintain a held-out cross-topic test set per corpus from day one.
-- Cross-language eval needs genuinely multilingual+multi-domain data (cf. MAC-style benchmarks);
-  do not let topic masquerade as author across languages.
-
-A drop in accuracy under cross-topic splitting is EXPECTED and CORRECT. Honest lower numbers are
-the moat. Do not tune against random-split accuracy.
-
----
-
-## 7. Corpora: purity over coverage
-
-Do NOT chase "every author in the world." Each author needs MULTIPLE multi-topic samples or they
-can't be evaluated cross-topic.
-
-- `rhetorical`: start 30–50 figures with abundant first-hand originals (presidents, popes, Nobel
-  lectures, famous TED scripts). Mostly public domain.
-- `literary`: start 20–30 manually approved authors.
-- Store raw text + metadata (author, original language, date, topic-tag, source, original-text flag) so cross-topic
-  and cross-time splits are constructible.
-- Per-language buckets. A user writing in language L matches authors who wrote in L (within-lang).
-
-Source hygiene: ingest only original-language source text. Do not ingest translations, adapted
-transcripts, subtitles, paraphrases, summaries, or LLM-generated imitation text.
-
----
-
-## 8. Cross-language mode (do build it, but label it honestly)
-
-- Style: mStyleDistance (multilingual style embeddings, ~9 langs). Real but weaker across langs.
-- Topic: multilingual-e5 / LaBSE.
-- UI copy switches from "your style resembles X" to "your themes & tone — and more weakly your
-  style — most resemble X," with a visible reduced-confidence indicator and the 0.5/0.5 weights.
-- Matched passages still shown in the author's ORIGINAL language.
-
----
-
-## 9. GPU budget (≈10h, single Colab/M5-class GPU)
-
-NOT for from-scratch training. Spend it on, in priority order:
-1. Encode all corpus chunks and build per-author profile centroids.
-2. Light **contrastive domain-adaptation** of the style backbone on our two corpora (adapt LUAR/
-   StyleDistance to speech-register and literary-register) — the highest-value few hours.
-3. Fit & calibrate the rerank ensemble + decision thresholds on the cross-topic dev set.
-
-Translation models / per-author ALMs are the LOWEST-value use of this budget. Skip in v1.
-
----
-
-## 10. Suggested stack & layout
-
-- Python backend (FastAPI). HF `transformers` + `sentence-transformers`. PyTorch.
-- Vector recall: FAISS (or in-memory cosine at this scale).
-- Frontend: lightweight (React or plain). Mobile-friendly. Show score + sub-scores + why +
-  original-language passages.
-- Config-driven ensemble weights & thresholds (YAML).
-
-```
-/data/{rhetorical,literary}/{raw,chunks,meta}/
-/src/preprocess/      # langID, boilerplate strip, chunking
-/src/embed/           # luar, styledistance, semantic (topic) channels
-/src/recall/          # centroids, FAISS knn
-/src/rerank/          # char-ngram, compression, feature ensemble, calibration
-/src/explain/         # interpretable stylometric features -> sentences
-/src/score/           # composite Affinity (weights, confidence flag)
-/src/eval/            # cross-topic/-domain/-time splits, metrics
-/api/                 # FastAPI
-/web/                 # frontend
-/config/weights.yaml
-```
-
----
-
-## 11. Build order (validate experience before scaling)
-
-1. **Rhetorical, within-language (English), recall-only.** LUAR pretrained → centroids → top-3 +
-   show matched passages. Get the *feel* right first.
-2. Add interpretable explanation layer (§5) — biggest perceived-quality jump for users.
-3. Add rerank ensemble (§3 Stage 2) + topic channel (§4) + composite Affinity (§2).
-4. Add cross-topic evaluation harness (§6); tune thresholds; add honest low-confidence state.
-5. Add literary corpus. Then cross-language mode (§8) as exploratory.
-
-Prefer running a real version early over speccing further — many tuning decisions only make sense
-once you can see actual matches.
-
----
-
-## 12. Hard rules
-
-- Style channel and topic channel stay separate; never derive both from one generic embedding.
-- Always expose sub-scores + reasons; never ship a lone opaque number.
-- Evaluate cross-topic only; never report random-split accuracy as the headline.
-- Cross-language results are reduced-confidence and must be labeled as such.
-- Original-language corpora only; do not train on translations or adapted transcripts.
-- LLMs (if used later) are rerankers/explainers, never the sole scorer.
-- Honest "no strong match" beats a fake-precise label.
+Do not implement speculative v2 components. Explicit disentanglement models, interpretable
+embedding objectives, per-author language models, and LLM reranking remain research directions;
+LLMs may later explain or rerank but may never be the sole scorer.

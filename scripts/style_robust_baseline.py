@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import zlib
 from pathlib import Path
 
 import numpy as np
@@ -28,6 +29,11 @@ FUNCTION_WORDS = {
     "very", "was", "we", "were", "what", "when", "where", "which", "while", "who", "whom",
     "why", "will", "with", "would", "you", "your", "yours", "yourself", "yourselves",
 }
+HEDGES = {"apparently", "perhaps", "possibly", "probably", "seem", "seems", "suggest", "suggests"}
+MODALS = {"can", "could", "may", "might", "must", "shall", "should", "will", "would"}
+FIRST_PERSON = {"i", "me", "my", "mine", "we", "us", "our", "ours"}
+SECOND_PERSON = {"you", "your", "yours"}
+THIRD_PERSON = {"he", "him", "his", "she", "her", "hers", "they", "them", "their", "theirs"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -40,7 +46,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def validate(df: pd.DataFrame) -> None:
-    required = {"chunk_id", "author_or_speaker", "split", "text"}
+    required = {"chunk_id", "author_or_speaker", "language", "split", "text"}
     missing = required - set(df.columns)
     if missing:
         raise ValueError(f"Missing required columns: {sorted(missing)}")
@@ -94,6 +100,12 @@ def stylometric_features(texts: pd.Series) -> pd.DataFrame:
             if re.findall(r"[A-Za-z']+", sentence)
         ]
         counts = pd.Series(words).value_counts() if words else pd.Series(dtype=int)
+        sentence_openings = [
+            match.group(0).lower()
+            for sentence in sentences
+            if (match := re.search(r"[A-Za-z']+", sentence))
+        ]
+        repeated_openings = len(sentence_openings) - len(set(sentence_openings))
         row = {
             "word_count": len(words),
             "type_token_ratio": len(set(words)) / word_count,
@@ -108,6 +120,13 @@ def stylometric_features(texts: pd.Series) -> pd.DataFrame:
             "exclamation_rate": text.count("!") / word_count,
             "dash_rate": (text.count("-") + text.count("—")) / word_count,
             "paren_rate": (text.count("(") + text.count(")")) / word_count,
+            "hedge_rate": sum(int(counts.get(word, 0)) for word in HEDGES) / word_count,
+            "modal_rate": sum(int(counts.get(word, 0)) for word in MODALS) / word_count,
+            "first_person_rate": sum(int(counts.get(word, 0)) for word in FIRST_PERSON) / word_count,
+            "second_person_rate": sum(int(counts.get(word, 0)) for word in SECOND_PERSON) / word_count,
+            "third_person_rate": sum(int(counts.get(word, 0)) for word in THIRD_PERSON) / word_count,
+            "parallel_opening_rate": repeated_openings / max(len(sentence_openings), 1),
+            "compression_ratio": len(zlib.compress(text.encode("utf-8"))) / max(len(text.encode("utf-8")), 1),
         }
         for word in sorted(FUNCTION_WORDS):
             row[f"fw_{word}"] = int(counts.get(word, 0)) / word_count
@@ -128,6 +147,7 @@ def evaluate_scores(scores: np.ndarray, y_true: np.ndarray) -> dict[str, float]:
         "top1_accuracy": float(np.mean([rank <= 1 for rank in ranks])),
         "top3_accuracy": float(np.mean([rank <= 3 for rank in ranks])),
         "top5_accuracy": float(np.mean([rank <= 5 for rank in ranks])),
+        "top20_accuracy": float(np.mean([rank <= 20 for rank in ranks])),
         "mrr": float(np.mean([1.0 / rank for rank in ranks])),
     }
 
@@ -137,22 +157,41 @@ def prediction_frame(eval_df: pd.DataFrame, label_encoder: LabelEncoder, scores:
     top3 = np.argsort(scores, axis=1)[:, -3:][:, ::-1]
     output = eval_df[["chunk_id", "author_or_speaker", "split"]].copy()
     output["model"] = model_name
-    output["predicted_author"] = label_encoder.inverse_transform(pred)
+    output["predicted_profile"] = label_encoder.inverse_transform(pred)
+    output["predicted_author"] = output["predicted_profile"].str.split("::", n=1).str[-1]
     output["top1_score"] = np.max(scores, axis=1)
     for idx in range(3):
-        output[f"rank{idx + 1}_author"] = label_encoder.inverse_transform(top3[:, idx])
+        output[f"rank{idx + 1}_profile"] = label_encoder.inverse_transform(top3[:, idx])
+        output[f"rank{idx + 1}_author"] = output[f"rank{idx + 1}_profile"].str.split("::", n=1).str[-1]
         output[f"rank{idx + 1}_score"] = scores[np.arange(scores.shape[0]), top3[:, idx]]
     return output
 
 
 def classification_summary(y_true: np.ndarray, scores: np.ndarray, labels: list[str]) -> dict[str, float]:
     pred = np.argmax(scores, axis=1)
-    report = classification_report(y_true, pred, target_names=labels, output_dict=True, zero_division=0)
+    report = classification_report(
+        y_true,
+        pred,
+        labels=np.arange(len(labels)),
+        target_names=labels,
+        output_dict=True,
+        zero_division=0,
+    )
     return {
         "accuracy": float(accuracy_score(y_true, pred)),
         "macro_f1": float(report["macro avg"]["f1-score"]),
         "weighted_f1": float(report["weighted avg"]["f1-score"]),
     }
+
+
+def mask_cross_language_candidates(
+    scores: np.ndarray, query_languages: pd.Series, profiles: np.ndarray
+) -> np.ndarray:
+    masked = scores.copy()
+    profile_languages = np.asarray([str(profile).split("::", 1)[0] for profile in profiles])
+    for position, language in enumerate(query_languages.astype(str)):
+        masked[position, profile_languages != language] = -1e9
+    return masked
 
 
 def train_text_svc(train_text: pd.Series, eval_text: pd.Series, y_train: np.ndarray, max_features: int) -> np.ndarray:
@@ -176,6 +215,30 @@ def train_stylometric(train: pd.DataFrame, eval_df: pd.DataFrame, y_train: np.nd
     return model.predict_proba(stylometric_features(eval_df["text"]))
 
 
+def compression_distance_scores(
+    train: pd.DataFrame,
+    eval_df: pd.DataFrame,
+    y_train: np.ndarray,
+    n_profiles: int,
+    reference_char_cap: int = 12_000,
+) -> np.ndarray:
+    references = []
+    for label in range(n_profiles):
+        reference = "\n".join(train.iloc[y_train == label]["text"].fillna("").astype(str))
+        references.append(reference[:reference_char_cap].encode("utf-8"))
+    reference_sizes = np.asarray([len(zlib.compress(value)) for value in references], dtype=float)
+    scores = np.empty((len(eval_df), n_profiles), dtype=float)
+    for row_index, text in enumerate(eval_df["text"].fillna("").astype(str)):
+        query = text.encode("utf-8")
+        query_size = float(len(zlib.compress(query)))
+        for label, reference in enumerate(references):
+            combined_size = float(len(zlib.compress(reference + b"\n" + query)))
+            denominator = max(reference_sizes[label], query_size, 1.0)
+            distance = (combined_size - min(reference_sizes[label], query_size)) / denominator
+            scores[row_index, label] = 1.0 - distance
+    return scores
+
+
 def main() -> None:
     args = parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -189,9 +252,12 @@ def main() -> None:
         raise ValueError("train/eval split is empty")
 
     label_encoder = LabelEncoder()
-    label_encoder.fit(df["author_or_speaker"])
-    y_train = label_encoder.transform(train["author_or_speaker"])
-    y_eval = label_encoder.transform(eval_df["author_or_speaker"])
+    df["profile_key"] = df["language"].astype(str) + "::" + df["author_or_speaker"].astype(str)
+    train["profile_key"] = train["language"].astype(str) + "::" + train["author_or_speaker"].astype(str)
+    eval_df["profile_key"] = eval_df["language"].astype(str) + "::" + eval_df["author_or_speaker"].astype(str)
+    label_encoder.fit(df["profile_key"])
+    y_train = label_encoder.transform(train["profile_key"])
+    y_eval = label_encoder.transform(eval_df["profile_key"])
 
     train_delex = train["text"].map(delexicalize)
     eval_delex = eval_df["text"].map(delexicalize)
@@ -203,12 +269,20 @@ def main() -> None:
         "delex_char_svc": train_text_svc(train_delex, eval_delex, y_train, args.max_features),
         "function_word_char_svc": train_text_svc(train_fw, eval_fw, y_train, args.max_features),
         "stylometric_logreg": train_stylometric(train, eval_df, y_train),
+        "compression_distance": compression_distance_scores(
+            train, eval_df, y_train, len(label_encoder.classes_)
+        ),
+    }
+    model_scores = {
+        name: mask_cross_language_candidates(scores, eval_df["language"], label_encoder.classes_)
+        for name, scores in model_scores.items()
     }
     model_scores["style_only_fusion"] = (
         softmax(model_scores["delex_char_svc"])
         + softmax(model_scores["function_word_char_svc"])
         + softmax(model_scores["stylometric_logreg"])
-    ) / 3.0
+        + softmax(model_scores["compression_distance"])
+    ) / 4.0
 
     metrics = {
         "input": str(args.input),
@@ -216,11 +290,12 @@ def main() -> None:
         "n_train": int(len(train)),
         "n_eval": int(len(eval_df)),
         "n_authors": int(df["author_or_speaker"].nunique()),
+        "n_author_language_profiles": int(df["profile_key"].nunique()),
         "eval_splits": sorted(eval_splits),
         "models": {},
         "interpretation": {
             "raw_char_svc_topic_leakage_ceiling": "High score here may reflect lexical/topic overlap, not only style.",
-            "style_only_fusion": "Primary v1 robustness score: delexicalized character patterns + function-word stream + stylometric rhythm/punctuation.",
+            "style_only_fusion": "Primary v1 robustness score: delexicalized character patterns + function-word stream + stylometric rhythm/discourse + compression distance.",
         },
     }
     predictions = []
@@ -236,6 +311,16 @@ def main() -> None:
     metrics_path = args.out_dir / "style_robust_metrics.json"
     pred_df.to_parquet(pred_path, index=False)
     metrics_path.write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+    np.savez_compressed(
+        args.out_dir / "style_robust_scores.npz",
+        chunk_ids=eval_df["chunk_id"].astype(str).to_numpy(),
+        splits=eval_df["split"].astype(str).to_numpy(),
+        query_languages=eval_df["language"].astype(str).to_numpy(),
+        query_corpora=eval_df["corpus"].astype(str).to_numpy(),
+        profiles=label_encoder.classes_,
+        y_true=y_eval,
+        **{name: scores.astype("float32") for name, scores in model_scores.items()},
+    )
     print(json.dumps(metrics, indent=2))
     print(f"Wrote {metrics_path}")
     print(f"Wrote {pred_path}")
