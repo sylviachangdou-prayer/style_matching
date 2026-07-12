@@ -35,7 +35,13 @@ MANIFEST_FIELDS = [
     "canonical_url",
     "local_text_path",
 ]
-USER_AGENT = "StyleMatch academic corpus builder; contact via repository"
+# Wikimedia's robot policy degrades service for generic user agents; a
+# descriptive UA with a contact address gets normal treatment.
+USER_AGENT = (
+    "StyleMatchCorpusBuilder/0.2 "
+    "(https://github.com/sylviachangdou-prayer/style_matching; sylvia.chang.dou@gmail.com) "
+    "python-requests"
+)
 
 
 def slug(value: str) -> str:
@@ -55,7 +61,10 @@ def fetch_bytes(url: str) -> bytes:
     total_length: int | None = None
     last_error: Exception | None = None
     for attempt in range(12):
-        headers = {"User-Agent": USER_AGENT}
+        # Force identity encoding: with gzip, Content-Length counts compressed
+        # bytes while iter_content yields decompressed ones, which both broke
+        # the completeness check and truncated returned bodies.
+        headers = {"User-Agent": USER_AGENT, "Accept-Encoding": "identity"}
         if data:
             headers["Range"] = f"bytes={len(data)}-"
         try:
@@ -63,8 +72,11 @@ def fetch_bytes(url: str) -> bytes:
             response.raise_for_status()
             if data and response.status_code == 200:
                 data.clear()
+            compressed = response.headers.get("Content-Encoding", "") not in ("", "identity")
             content_range = response.headers.get("Content-Range", "")
-            if "/" in content_range:
+            if compressed:
+                total_length = None
+            elif "/" in content_range:
                 total_length = int(content_range.rsplit("/", 1)[1])
             elif response.headers.get("Content-Length"):
                 total_length = len(data) + int(response.headers["Content-Length"])
@@ -87,14 +99,16 @@ def fetch_bytes(url: str) -> bytes:
 
 def fetch_json(url: str) -> dict:
     # Chunked API responses carry no Content-Length, so a truncated body looks
-    # complete to fetch_bytes; validate by parsing and retry on damage.
+    # complete to fetch_bytes; validate by parsing and retry on damage. The
+    # truncation is Wikimedia edge throttling, so back off for real between
+    # attempts instead of hammering.
     last_error: Exception | None = None
-    for attempt in range(5):
+    for attempt in range(7):
         try:
             return json.loads(fetch_bytes(url).decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError) as error:
             last_error = error
-            time.sleep(2 * (attempt + 1))
+            time.sleep(min(5 * 2 ** attempt, 120))
     raise RuntimeError(f"API response stayed truncated after retries: {url}") from last_error
 
 
@@ -128,19 +142,33 @@ def wikisource_title(url: str) -> str:
 
 
 def wikisource_api(language: str, params: dict[str, str]) -> dict:
-    query = urllib.parse.urlencode({**params, "format": "json", "formatversion": "2"})
-    return fetch_json(f"https://{language}.wikisource.org/w/api.php?{query}")
+    # Politeness per Wikimedia etiquette: pause between calls and send maxlag
+    # so overloaded replicas can ask us to wait instead of cutting us off.
+    query = urllib.parse.urlencode(
+        {**params, "maxlag": "5", "format": "json", "formatversion": "2"}
+    )
+    url = f"https://{language}.wikisource.org/w/api.php?{query}"
+    for attempt in range(6):
+        time.sleep(0.5)
+        payload = fetch_json(url)
+        if payload.get("error", {}).get("code") != "maxlag":
+            return payload
+        time.sleep(10 * (attempt + 1))
+    raise RuntimeError(f"Wikisource stayed lagged after retries: {url}")
 
 
 def wikisource_extract(language: str, title: str) -> str:
-    payload = wikisource_api(language, {
-        "action": "query",
-        "prop": "extracts",
-        "titles": title,
-        "explaintext": "1",
-    })
-    pages = payload.get("query", {}).get("pages", [])
-    return pages[0].get("extract", "") if pages else ""
+    # action=parse renders ProofreadPage transclusions (<pages index=...>),
+    # which TextExtracts returns as empty; most Wikisource novels use them.
+    payload = wikisource_api(language, {"action": "parse", "page": title, "prop": "text"})
+    html = payload.get("parse", {}).get("text", "")
+    if not html:
+        return ""
+    soup = BeautifulSoup(html, "html.parser")
+    for node in soup.select("table, style, script, sup.reference, .mw-editsection, .noprint, .printfooter"):
+        node.decompose()
+    text = soup.get_text("\n", strip=True)
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
 def wikisource_subpages(language: str, title: str) -> list[str]:
