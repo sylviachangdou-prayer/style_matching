@@ -38,14 +38,14 @@ def read_registry_names(path: Path, corpus: str, language: str, batches: set[str
 
 def fetch_json(url: str) -> dict:
     request = urllib.request.Request(url, headers={"User-Agent": "StyleMatch corpus builder (academic prototype)"})
-    for attempt in range(3):
+    for attempt in range(5):
         try:
             with urllib.request.urlopen(request, timeout=30) as response:
                 return json.loads(response.read().decode("utf-8"))
-        except (HTTPError, URLError, TimeoutError) as error:
-            if attempt == 2:
+        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
+            if attempt == 4:
                 raise error
-            time.sleep(1 + attempt)
+            time.sleep(2 ** (attempt + 1))
     raise RuntimeError(f"unreachable fetch_json retry state: {url}")
 
 
@@ -258,11 +258,19 @@ def main() -> None:
     literary_sources = read_existing_sources("literary")
     literary_existing = {row.get("source_id", "") for row in literary_sources}
     literary_covered = {row.get("author_or_speaker", "") for row in literary_sources}
+    unreachable: list[str] = []
     for name in literary:
         if args.skip_covered and name in literary_covered:
             print(f"skip covered: literary: {name}", flush=True)
             continue
-        literary_rows.extend(fetch_for_name(name, "literary", max_works=args.max_works, existing_ids=literary_existing))
+        try:
+            literary_rows.extend(fetch_for_name(name, "literary", max_works=args.max_works, existing_ids=literary_existing))
+        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
+            # A flaky gutendex query must not kill the batch; coverage audits
+            # downstream surface any author left without sources.
+            unreachable.append(f"literary: {name}")
+            print(f"WARNING query failed: literary: {name}: {error}", flush=True)
+            continue
         print(f"literary: {name}: {len([r for r in literary_rows if r['author_or_speaker'] == name])} works", flush=True)
 
     rhetorical_rows = []
@@ -273,12 +281,21 @@ def main() -> None:
         if args.skip_covered and name in rhetorical_covered:
             print(f"skip covered: rhetorical: {name}", flush=True)
             continue
-        rhetorical_rows.extend(fetch_for_name(name, "rhetorical", max_works=args.max_works, existing_ids=rhetorical_existing))
+        try:
+            rhetorical_rows.extend(fetch_for_name(name, "rhetorical", max_works=args.max_works, existing_ids=rhetorical_existing))
+        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
+            unreachable.append(f"rhetorical: {name}")
+            print(f"WARNING query failed: rhetorical: {name}: {error}", flush=True)
+            continue
         print(f"rhetorical: {name}: {len([r for r in rhetorical_rows if r['author_or_speaker'] == name])} works", flush=True)
 
     write_metadata("literary", literary_rows)
     write_metadata("rhetorical", rhetorical_rows)
     print(f"Wrote {len(literary_rows)} literary sources and {len(rhetorical_rows)} rhetorical sources")
+    if unreachable:
+        print(f"WARNING {len(unreachable)} author(s) could not be queried this run; rerun later to retry:")
+        for entry in unreachable:
+            print(f"  {entry}")
 
 
 if __name__ == "__main__":
