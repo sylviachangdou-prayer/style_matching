@@ -114,37 +114,89 @@ def make_pairs(df: pd.DataFrame, pairs_per_author: int, seed: int) -> list[tuple
 def make_hard_negative_examples(
     df: pd.DataFrame, pairs_per_author: int, seed: int
 ) -> tuple[dict[str, list[tuple[str, str, str]]], int]:
+    """Anchor/positive from two sources of one author; negative from another
+    author, narrowed corpus -> topic -> decade when a narrowing keeps candidates.
+
+    Implemented with precomputed positional indexes: the naive per-draw
+    DataFrame filtering was O(authors x pairs x corpus_size) and took hours
+    once the corpus grew past a few hundred sources.
+    """
+    import numpy as np
+
     rng = random.Random(seed)
     output: dict[str, list[tuple[str, str, str]]] = {}
     relaxed_negatives = 0
-    for (language, author), group in df.groupby(["language", "author_or_speaker"], sort=True):
-        source_key = independent_source_keys(group)
-        sources = {key: rows for key, rows in group.groupby(source_key)}
-        if len(sources) < 2:
-            continue
-        same_language = df[
-            df["language"].eq(language) & ~df["author_or_speaker"].eq(author)
-        ]
-        fallback = df[~df["author_or_speaker"].eq(author)]
-        if fallback.empty:
-            continue
-        examples = output.setdefault(str(language), [])
-        for _ in range(pairs_per_author):
-            left_source, right_source = rng.sample(list(sources), 2)
-            anchor = sources[left_source].sample(n=1, random_state=rng.randrange(2**31)).iloc[0]
-            positive = sources[right_source].sample(n=1, random_state=rng.randrange(2**31)).iloc[0]
-            candidates = same_language
-            for column in ("corpus", "topic", "decade"):
-                value = str(anchor.get(column, ""))
-                if value and column in candidates.columns:
-                    narrowed = candidates[candidates[column].fillna("").astype(str).eq(value)]
-                    if not narrowed.empty:
-                        candidates = narrowed
-            if candidates.empty:
-                candidates = fallback
-                relaxed_negatives += 1
-            negative = candidates.sample(n=1, random_state=rng.randrange(2**31)).iloc[0]
-            examples.append((str(anchor["text"]), str(positive["text"]), str(negative["text"])))
+    all_texts = df["text"].astype(str).to_numpy()
+    all_authors = df["author_or_speaker"].astype(str).to_numpy()
+    narrowing_columns = [c for c in ("corpus", "topic", "decade") if c in df.columns]
+
+    for language, lang_frame in df.groupby("language", sort=True):
+        lang = lang_frame.reset_index(drop=True)
+        authors = lang["author_or_speaker"].astype(str).to_numpy()
+        texts = lang["text"].astype(str).to_numpy()
+        col_values = {
+            c: lang[c].fillna("").astype(str).to_numpy() for c in narrowing_columns
+        }
+        # Positions per applied-column state, built lazily: state -> {values: ndarray}
+        index_cache: dict[tuple[str, ...], dict] = {(): {(): np.arange(len(lang))}}
+
+        def state_positions(cols: tuple[str, ...], values: tuple[str, ...]):
+            if cols not in index_cache:
+                grouped = lang.groupby(
+                    [lang[c].fillna("").astype(str) for c in cols]
+                ).indices
+                index_cache[cols] = {
+                    (key if isinstance(key, tuple) else (key,)): positions
+                    for key, positions in grouped.items()
+                }
+            return index_cache[cols].get(values)
+
+        excl_cache: dict[tuple, np.ndarray] = {}
+
+        def excluding_author(cols, values, author):
+            key = (cols, values, author)
+            if key not in excl_cache:
+                positions = state_positions(cols, values)
+                if positions is None:
+                    excl_cache[key] = np.empty(0, dtype=int)
+                else:
+                    excl_cache[key] = positions[authors[positions] != author]
+            return excl_cache[key]
+
+        for author, group in lang.groupby("author_or_speaker", sort=True):
+            source_key = independent_source_keys(group)
+            sources = {key: rows.index.to_numpy() for key, rows in group.groupby(source_key)}
+            if len(sources) < 2:
+                continue
+            global_other = np.flatnonzero(all_authors != str(author))
+            if not len(global_other):
+                continue
+            examples = output.setdefault(str(language), [])
+            source_names = list(sources)
+            for _ in range(pairs_per_author):
+                left_source, right_source = rng.sample(source_names, 2)
+                anchor_pos = sources[left_source][rng.randrange(len(sources[left_source]))]
+                positive_pos = sources[right_source][rng.randrange(len(sources[right_source]))]
+                cols: tuple[str, ...] = ()
+                values: tuple[str, ...] = ()
+                for column in narrowing_columns:
+                    value = col_values[column][anchor_pos]
+                    if not value:
+                        continue
+                    trial_cols, trial_values = cols + (column,), values + (value,)
+                    if len(excluding_author(trial_cols, trial_values, str(author))):
+                        cols, values = trial_cols, trial_values
+                candidates = excluding_author(cols, values, str(author))
+                if len(candidates):
+                    negative_text = texts[candidates[rng.randrange(len(candidates))]]
+                else:
+                    negative_text = all_texts[global_other[rng.randrange(len(global_other))]]
+                    relaxed_negatives += 1
+                examples.append((texts[anchor_pos], texts[positive_pos], negative_text))
+        print(
+            f"pairs built: {language}: {len(output.get(str(language), []))} examples",
+            flush=True,
+        )
     for examples in output.values():
         rng.shuffle(examples)
     return output, relaxed_negatives
@@ -161,6 +213,11 @@ def main() -> None:
         return
     if args.output_dir is None:
         raise ValueError("--output-dir is required unless --audit-only is used")
+    print(
+        f"loaded {len(df)} chunks; building pairs for "
+        f"{coverage['n_profiles_eligible_for_finetuning']} eligible profiles...",
+        flush=True,
+    )
     if args.hard_negatives:
         examples_by_language, relaxed_negatives = make_hard_negative_examples(
             df, args.pairs_per_author, args.seed
@@ -182,6 +239,7 @@ def main() -> None:
     from sentence_transformers import InputExample, SentenceTransformer, losses
     from sentence_transformers.datasets import NoDuplicatesDataLoader
 
+    print(f"{len(pairs)} pairs ready; loading {args.model_name} on {args.device}...", flush=True)
     model = SentenceTransformer(args.model_name, device=args.device)
     if args.language_aware_batches:
         loaders = [
