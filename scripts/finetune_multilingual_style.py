@@ -12,10 +12,15 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import random
 from pathlib import Path
 
 import pandas as pd
+
+# Set before torch is imported (via sentence_transformers inside main) so it
+# takes effect: reduces CUDA fragmentation that turns headroom into OOM.
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,6 +48,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--audit-only", action="store_true")
     parser.add_argument("--language-aware-batches", action="store_true")
     parser.add_argument("--hard-negatives", action="store_true")
+    parser.add_argument(
+        "--max-seq-length",
+        type=int,
+        default=256,
+        help="Hard cap on tokens per text; only ever lowers the model's native limit. Bounds attention memory so heavier challenger models fit.",
+    )
+    parser.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="Skip when output-dir already holds a finished model (training_config.json); lets a two-model batch resume without retraining the first.",
+    )
     return parser.parse_args()
 
 
@@ -204,6 +220,10 @@ def make_hard_negative_examples(
 
 def main() -> None:
     args = parse_args()
+    # Check before touching the parquet so a finished model is skipped instantly.
+    if args.skip_existing and args.output_dir and (args.output_dir / "training_config.json").exists():
+        print(f"skip existing model: {args.output_dir} already has training_config.json", flush=True)
+        return
     df = pd.read_parquet(args.input)
     if "split" in df.columns:
         df = df[df["split"].eq(args.split)].copy()
@@ -241,6 +261,11 @@ def main() -> None:
 
     print(f"{len(pairs)} pairs ready; loading {args.model_name} on {args.device}...", flush=True)
     model = SentenceTransformer(args.model_name, device=args.device)
+    # Only ever lower the limit. Some models report a huge sentinel
+    # max_seq_length, so an unbounded long chunk would OOM at train time; cap it.
+    native = getattr(model, "max_seq_length", None)
+    model.max_seq_length = min(native, args.max_seq_length) if native else args.max_seq_length
+    print(f"max_seq_length capped at {model.max_seq_length}", flush=True)
     if args.language_aware_batches:
         loaders = [
             NoDuplicatesDataLoader(
