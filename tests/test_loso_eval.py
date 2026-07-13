@@ -1,11 +1,19 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
 import unittest
 
 import numpy as np
 import pandas as pd
 
-from scripts.evaluate_loso_retrieval import compute_loso_metrics
+from scripts.evaluate_loso_retrieval import compute_loso_metrics, load_aligned_cache
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def synthetic_corpus(seed: int = 7):
@@ -61,6 +69,58 @@ class LosoEvaluationTests(unittest.TestCase):
             df[mask].reset_index(drop=True), embeddings[mask.to_numpy()]
         )
         self.assertEqual(metrics["n_folds"], 17)
+
+    def test_cache_alignment_filters_uncached_rows_and_reports_coverage(self) -> None:
+        df, embeddings = synthetic_corpus()
+        cached_rows = np.arange(len(df) - 6)
+        with tempfile.TemporaryDirectory() as directory:
+            cache = Path(directory) / "cache.npz"
+            np.savez_compressed(
+                cache,
+                model_name=np.asarray("test-model"),
+                chunk_ids=np.asarray(cached_rows, dtype=str),
+                embeddings=embeddings[cached_rows],
+            )
+            keyed = df.copy()
+            keyed["chunk_id"] = keyed.index.astype(str)
+            aligned, matrix, coverage = load_aligned_cache(keyed, cache, "test-model")
+        self.assertEqual(len(aligned), len(cached_rows))
+        self.assertEqual(matrix.shape[0], len(cached_rows))
+        self.assertLess(coverage["input_chunk_coverage"], 1.0)
+
+    def test_cli_runs_as_a_direct_script_with_cache_only(self) -> None:
+        df, embeddings = synthetic_corpus()
+        df["chunk_id"] = [f"chunk_{index}" for index in range(len(df))]
+        with tempfile.TemporaryDirectory() as directory:
+            directory = Path(directory)
+            parquet = directory / "chunks.parquet"
+            cache = directory / "cache.npz"
+            output = directory / "metrics.json"
+            df.to_parquet(parquet, index=False)
+            np.savez_compressed(
+                cache,
+                model_name=np.asarray("test-model"),
+                chunk_ids=np.asarray(df["chunk_id"].astype(str).tolist()),
+                embeddings=embeddings,
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/evaluate_loso_retrieval.py",
+                    "--input", str(parquet),
+                    "--model-name", "test-model",
+                    "--embedding-cache", str(cache),
+                    "--output", str(output),
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(report["n_folds"], 18)
+            self.assertEqual(report["cache_coverage"]["input_chunk_coverage"], 1.0)
 
 
 if __name__ == "__main__":

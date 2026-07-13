@@ -3,10 +3,10 @@
 Every author-language profile with at least two independent sources gets one
 fold per source: that source's chunks become queries while the profile
 centroid is rebuilt from the remaining sources. Other authors keep their full
-centroids. Compared with the single fixed source-heldout split, every chunk is
-used both as profile evidence and as a query, which tightens confidence
-intervals without any same-work leakage. Chunk embeddings are reused from the
-index build cache, so no extra GPU encoding is needed.
+centroids. Compared with the single fixed source-heldout split, every cached
+chunk is used as both profile evidence and a query, which tightens confidence
+intervals without any same-work leakage. The evaluated rows are aligned to the
+index build cache by ``chunk_id``; no model loading or extra encoding occurs.
 """
 
 from __future__ import annotations
@@ -17,9 +17,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
-ROOT = Path(__file__).resolve().parents[1]
-
 
 def independent_source_keys(df: pd.DataFrame) -> pd.Series:
     identity = df["independent_source_id"] if "independent_source_id" in df else df["source_id"]
@@ -42,6 +39,81 @@ def _rank_metrics(ranks: list[int]) -> dict[str, float]:
         "top20_accuracy": float((array <= 20).mean()),
         "mrr": float((1.0 / array).mean()),
     }
+
+
+def load_aligned_cache(
+    df: pd.DataFrame, cache_path: Path, model_name: str
+) -> tuple[pd.DataFrame, np.ndarray, dict[str, int | float]]:
+    required = {
+        "chunk_id", "language", "author_or_speaker", "corpus", "source_id", "text"
+    }
+    missing = required - set(df.columns)
+    if missing:
+        raise ValueError(f"Input is missing required columns: {sorted(missing)}")
+    if df["chunk_id"].astype(str).duplicated().any():
+        raise ValueError("Input chunk_id values must be unique")
+    if not cache_path.exists():
+        raise FileNotFoundError(f"Embedding cache not found: {cache_path}")
+
+    with np.load(cache_path, allow_pickle=False) as payload:
+        missing_cache_fields = {"model_name", "chunk_ids", "embeddings"} - set(payload.files)
+        if missing_cache_fields:
+            raise ValueError(
+                f"Embedding cache is missing fields: {sorted(missing_cache_fields)}"
+            )
+        cached_model_values = np.asarray(payload["model_name"]).reshape(-1)
+        if len(cached_model_values) != 1:
+            raise ValueError("Embedding cache model_name must contain exactly one value")
+        cached_model = str(cached_model_values[0])
+        if cached_model != model_name:
+            raise ValueError(
+                f"Embedding cache model mismatch: cache={cached_model!r}, requested={model_name!r}"
+            )
+        cache_ids = payload["chunk_ids"].astype(str)
+        embeddings = payload["embeddings"].astype("float32")
+
+    if embeddings.ndim != 2 or len(embeddings) != len(cache_ids):
+        raise ValueError("Embedding cache chunk_ids and embeddings are not row-aligned")
+    if pd.Series(cache_ids).duplicated().any():
+        raise ValueError("Embedding cache chunk_ids must be unique")
+    if not np.isfinite(embeddings).all():
+        raise ValueError("Embedding cache contains non-finite values")
+
+    input_ids = set(df["chunk_id"].astype(str))
+    keep = np.asarray([chunk_id in input_ids for chunk_id in cache_ids])
+    aligned_ids = cache_ids[keep]
+    if not len(aligned_ids):
+        raise ValueError("Embedding cache and input parquet have no chunk_id overlap")
+    aligned_embeddings = embeddings[keep]
+    norms = np.linalg.norm(aligned_embeddings, axis=1, keepdims=True)
+    if np.any(norms <= 1e-12):
+        raise ValueError("Embedding cache contains zero-length vectors")
+    aligned_embeddings = aligned_embeddings / norms
+
+    indexed = df.assign(chunk_id=df["chunk_id"].astype(str)).set_index("chunk_id", drop=False)
+    aligned_df = indexed.loc[aligned_ids].reset_index(drop=True)
+    def profile_source_count(frame: pd.DataFrame) -> int:
+        keys = independent_source_keys(frame)
+        return int(
+            frame.assign(_source_key=keys)[
+                ["language", "author_or_speaker", "_source_key"]
+            ].drop_duplicates().shape[0]
+        )
+
+    input_source_count = profile_source_count(df)
+    evaluated_source_count = profile_source_count(aligned_df)
+    coverage = {
+        "input_chunks": int(len(df)),
+        "cache_chunks": int(len(cache_ids)),
+        "evaluated_chunks": int(len(aligned_df)),
+        "input_chunk_coverage": float(len(aligned_df) / len(df)) if len(df) else 0.0,
+        "input_sources": int(input_source_count),
+        "evaluated_sources": int(evaluated_source_count),
+        "input_source_coverage": (
+            float(evaluated_source_count / input_source_count) if input_source_count else 0.0
+        ),
+    }
+    return aligned_df, aligned_embeddings.astype("float32"), coverage
 
 
 def compute_loso_metrics(
@@ -131,22 +203,27 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--embedding-cache", type=Path, required=True,
                         help="NPZ chunk-embedding cache; reuse the index build cache to avoid re-encoding.")
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--batch-size", type=int, default=128)
+    parser.add_argument(
+        "--batch-size", type=int, default=128,
+        help="Retained for command compatibility; cache-only LOSO never encodes.",
+    )
     parser.add_argument("--per-source-cap", type=int, default=50)
     parser.add_argument("--query-cap", type=int, default=50)
     parser.add_argument("--min-sources", type=int, default=2)
     parser.add_argument("--seed", type=int, default=20260710)
-    parser.add_argument("--device", default="auto")
+    parser.add_argument(
+        "--device", default="auto",
+        help="Retained for command compatibility; cache-only LOSO never loads a model.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    from scripts.multilingual_style_index import encode_cached, load_model
-
     df = pd.read_parquet(args.input).reset_index(drop=True)
-    model = load_model(args.model_name, None, args.device)
-    embeddings = encode_cached(model, df, args.embedding_cache, args.model_name, args.batch_size)
+    df, embeddings, cache_coverage = load_aligned_cache(
+        df, args.embedding_cache, args.model_name
+    )
     metrics = compute_loso_metrics(
         df, embeddings,
         per_source_cap=args.per_source_cap,
@@ -154,7 +231,10 @@ def main() -> None:
         min_sources=args.min_sources,
         seed=args.seed,
     )
+    if not metrics["n_folds"]:
+        raise ValueError("No author-language profile has enough cached independent sources for LOSO")
     metrics["model_name"] = args.model_name
+    metrics["cache_coverage"] = cache_coverage
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(metrics, indent=2, ensure_ascii=False), encoding="utf-8")
     print(json.dumps(metrics, indent=2, ensure_ascii=False))

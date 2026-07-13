@@ -151,7 +151,7 @@ The notebook also writes artifacts/source_heldout_eval_v1/; its metrics include 
 per-language, and per-corpus source-heldout results. The heldout split assigns complete
 sources to train, dev, or test, so chunks from one source never cross those splits.
 
-The notebook additionally runs a leave-one-source-out rotation (`scripts/evaluate_loso_retrieval.py`, output `artifacts/loso_eval_v1/`): every work of every author with at least two independent sources serves once as the query set while the profile is rebuilt from the remaining works. This uses each chunk as both evidence and query without same-work leakage and complements the fixed source-heldout split.
+The notebook additionally runs a leave-one-source-out rotation (`scripts/evaluate_loso_retrieval.py`, output `artifacts/loso_eval_v1/`): every cached work of every author with at least two independent sources serves once as the query set while the profile is rebuilt from the remaining works. It aligns the parquet and index cache by `chunk_id`, reports chunk/source coverage, performs no model loading or re-encoding, and complements the fixed source-heldout split without same-work leakage.
 
 The current notebook also produces four backbone evaluations, classical style scores,
 single-centroid versus source-prototype scores, a learned-fusion decision, open-set metrics,
