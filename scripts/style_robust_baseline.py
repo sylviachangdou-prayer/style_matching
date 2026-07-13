@@ -42,6 +42,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--eval-splits", default="dev,test")
     parser.add_argument("--max-features", type=int, default=250_000)
+    parser.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="Skip when this out-dir already holds scores and metrics; lets an interrupted eval batch resume.",
+    )
     return parser.parse_args()
 
 
@@ -242,6 +247,11 @@ def compression_distance_scores(
 def main() -> None:
     args = parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
+    if args.skip_existing and (args.out_dir / "style_robust_scores.npz").exists() and (
+        args.out_dir / "style_robust_metrics.json"
+    ).exists():
+        print(f"skip existing baseline: {args.out_dir} already has scores and metrics", flush=True)
+        return
     df = pd.read_parquet(args.input)
     validate(df)
 

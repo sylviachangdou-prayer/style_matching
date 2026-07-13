@@ -66,7 +66,10 @@ def main() -> None:
     reference = None
     for spec in args.scores:
         name, path, key = load_spec(spec)
-        payload = np.load(path, allow_pickle=False)
+        # String columns (chunk_ids, splits, languages, profiles) come from
+        # pandas .to_numpy(), which yields object dtype; those are stored
+        # pickled. These are our own trusted eval artifacts, so allow it.
+        payload = np.load(path, allow_pickle=True)
         if reference is None:
             reference = {
                 "chunk_ids": payload["chunk_ids"],

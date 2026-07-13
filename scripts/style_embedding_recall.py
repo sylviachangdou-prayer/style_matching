@@ -28,6 +28,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--eval-splits", default="dev,test")
     parser.add_argument("--seed", type=int, default=20260701)
     parser.add_argument("--device", default="auto", help="auto, cpu, cuda, or mps")
+    parser.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="Skip encoding when this out-dir already holds scores and metrics; lets an interrupted eval batch resume without re-running the GPU.",
+    )
     return parser.parse_args()
 
 
@@ -136,6 +141,11 @@ def prediction_frame(
 def main() -> None:
     args = parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
+    if args.skip_existing and (args.out_dir / "style_embedding_scores.npz").exists() and (
+        args.out_dir / "style_embedding_metrics.json"
+    ).exists():
+        print(f"skip existing eval: {args.out_dir} already has scores and metrics", flush=True)
+        return
     df = pd.read_parquet(args.input)
     validate(df)
 

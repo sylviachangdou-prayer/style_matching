@@ -26,7 +26,8 @@ def parse_args() -> argparse.Namespace:
 
 def load(spec: str) -> tuple[dict[str, np.ndarray], np.ndarray]:
     path, key = spec.rsplit(":", 1)
-    payload = np.load(path, allow_pickle=False)
+    # Same object-dtype string arrays as the recall score files; trusted artifacts.
+    payload = np.load(path, allow_pickle=True)
     reference = {field: payload[field] for field in ("chunk_ids", "profiles", "y_true", "splits")}
     return reference, payload[key]
 
