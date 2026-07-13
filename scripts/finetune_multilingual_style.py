@@ -14,6 +14,7 @@ import csv
 import json
 import os
 import random
+from collections import Counter
 from pathlib import Path
 
 import pandas as pd
@@ -36,6 +37,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input", type=Path, required=True, help="Chunk parquet with text, author, language, source_id.")
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--model-name", default="StyleDistance/mstyledistance")
+    parser.add_argument("--model-revision", help="Optional immutable Hugging Face commit hash.")
     parser.add_argument("--split", default="train")
     parser.add_argument("--pairs-per-author", type=int, default=500)
     parser.add_argument("--batch-size", type=int, default=16)
@@ -48,6 +50,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--audit-only", action="store_true")
     parser.add_argument("--language-aware-batches", action="store_true")
     parser.add_argument("--hard-negatives", action="store_true")
+    parser.add_argument(
+        "--pcm-mask-prob",
+        type=float,
+        default=0.0,
+        help="Probabilistic content masking rate; 0 disables PCM. Use 0.4 for the published challenger ablation.",
+    )
+    parser.add_argument(
+        "--pcm-num-tokens-not-to-mask",
+        type=int,
+        default=300,
+        help="Protect this many most frequent non-special subword tokens from PCM.",
+    )
     parser.add_argument(
         "--max-seq-length",
         type=int,
@@ -218,8 +232,86 @@ def make_hard_negative_examples(
     return output, relaxed_negatives
 
 
+def frequent_token_ids(
+    tokenizer: object,
+    texts: list[str],
+    max_length: int,
+    n_tokens: int,
+    batch_size: int = 256,
+) -> set[int]:
+    counter: Counter[int] = Counter()
+    for start in range(0, len(texts), batch_size):
+        tokenized = tokenizer(
+            texts[start:start + batch_size],
+            truncation=True,
+            max_length=max_length,
+            return_special_tokens_mask=True,
+        )
+        for input_ids, special_mask in zip(
+            tokenized["input_ids"], tokenized["special_tokens_mask"]
+        ):
+            counter.update(
+                token_id
+                for token_id, special in zip(input_ids, special_mask)
+                if not special
+            )
+    return {token_id for token_id, _ in counter.most_common(n_tokens)}
+
+
+def pcm_mask_examples(
+    examples_by_language: dict[str, list[tuple[str, ...]]],
+    tokenizer: object,
+    protected_token_ids: set[int],
+    mask_prob: float,
+    max_length: int,
+    seed: int,
+    batch_size: int = 256,
+) -> dict[str, list[tuple[str, ...]]]:
+    if tokenizer.mask_token_id is None:
+        raise ValueError("PCM requires a tokenizer with a mask token")
+    rng = random.Random(seed)
+    masked_by_language: dict[str, list[tuple[str, ...]]] = {}
+    for language, examples in examples_by_language.items():
+        widths = [len(example) for example in examples]
+        flat = [text for example in examples for text in example]
+        masked_flat: list[str] = []
+        for start in range(0, len(flat), batch_size):
+            tokenized = tokenizer(
+                flat[start:start + batch_size],
+                truncation=True,
+                max_length=max_length,
+                return_special_tokens_mask=True,
+            )
+            for input_ids, special_mask in zip(
+                tokenized["input_ids"], tokenized["special_tokens_mask"]
+            ):
+                masked_ids = [
+                    tokenizer.mask_token_id
+                    if not special and token_id not in protected_token_ids and rng.random() < mask_prob
+                    else token_id
+                    for token_id, special in zip(input_ids, special_mask)
+                ]
+                tokens = [
+                    tokenizer.convert_ids_to_tokens(token_id)
+                    for token_id, special in zip(masked_ids, special_mask)
+                    if not special
+                ]
+                masked_flat.append(tokenizer.convert_tokens_to_string(tokens))
+        rebuilt = []
+        offset = 0
+        for width in widths:
+            rebuilt.append(tuple(masked_flat[offset:offset + width]))
+            offset += width
+        masked_by_language[language] = rebuilt
+    return masked_by_language
+
+
 def main() -> None:
     args = parse_args()
+    if not 0.0 <= args.pcm_mask_prob < 1.0:
+        raise ValueError("--pcm-mask-prob must be in [0, 1)")
+    if args.pcm_mask_prob and args.epochs != 1:
+        raise ValueError("This sampled-occurrence PCM implementation requires --epochs 1")
     # Check before touching the parquet so a finished model is skipped instantly.
     if args.skip_existing and args.output_dir and (args.output_dir / "training_config.json").exists():
         print(f"skip existing model: {args.output_dir} already has training_config.json", flush=True)
@@ -260,12 +352,29 @@ def main() -> None:
     from sentence_transformers.datasets import NoDuplicatesDataLoader
 
     print(f"{len(pairs)} pairs ready; loading {args.model_name} on {args.device}...", flush=True)
-    model = SentenceTransformer(args.model_name, device=args.device)
+    model = SentenceTransformer(args.model_name, device=args.device, revision=args.model_revision)
     # Only ever lower the limit. Some models report a huge sentinel
     # max_seq_length, so an unbounded long chunk would OOM at train time; cap it.
     native = getattr(model, "max_seq_length", None)
     model.max_seq_length = min(native, args.max_seq_length) if native else args.max_seq_length
     print(f"max_seq_length capped at {model.max_seq_length}", flush=True)
+    protected_token_ids: set[int] = set()
+    if args.pcm_mask_prob:
+        protected_token_ids = frequent_token_ids(
+            model.tokenizer,
+            df["text"].fillna("").astype(str).tolist(),
+            model.max_seq_length,
+            args.pcm_num_tokens_not_to_mask,
+        )
+        examples_by_language = pcm_mask_examples(
+            examples_by_language,
+            model.tokenizer,
+            protected_token_ids,
+            args.pcm_mask_prob,
+            model.max_seq_length,
+            args.seed,
+        )
+        pairs = [pair for language_pairs in examples_by_language.values() for pair in language_pairs]
     if args.language_aware_batches:
         loaders = [
             NoDuplicatesDataLoader(
@@ -294,6 +403,7 @@ def main() -> None:
     report = {
         "input": str(args.input),
         "base_model": args.model_name,
+        "base_model_revision": args.model_revision,
         "output_dir": str(args.output_dir),
         "split": args.split,
         "n_rows": int(len(df)),
@@ -310,6 +420,10 @@ def main() -> None:
         "all_eligible_profiles_contributed_pairs": len(pairs) == expected_pairs,
         "language_aware_batches": args.language_aware_batches,
         "hard_negatives": args.hard_negatives,
+        "pcm_mask_prob": args.pcm_mask_prob,
+        "pcm_num_tokens_not_to_mask": args.pcm_num_tokens_not_to_mask,
+        "pcm_protected_token_count": len(protected_token_ids),
+        "pcm_sampling_unit": "each sampled training occurrence",
         "relaxed_hard_negatives": relaxed_negatives,
         "pairs_by_language": {language: len(values) for language, values in examples_by_language.items()},
         "epochs": args.epochs,

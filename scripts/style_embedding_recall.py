@@ -23,9 +23,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input", type=Path, required=True, help="Split parquet with text column.")
     parser.add_argument("--out-dir", type=Path, required=True, help="Output artifact directory.")
     parser.add_argument("--model-name", default="StyleDistance/styledistance")
+    parser.add_argument("--model-revision", help="Optional immutable Hugging Face commit hash.")
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--train-cap", type=int, default=300)
     parser.add_argument("--eval-splits", default="dev,test")
+    parser.add_argument(
+        "--language",
+        help="Optional single-language diagnostic; keeps its candidate universe separate from multilingual runs.",
+    )
     parser.add_argument("--seed", type=int, default=20260701)
     parser.add_argument("--device", default="auto", help="auto, cpu, cuda, or mps")
     parser.add_argument(
@@ -73,10 +78,16 @@ def balanced_train(df: pd.DataFrame, train_cap: int, seed: int) -> pd.DataFrame:
     )
 
 
-def encode_texts(model_name: str, texts: list[str], batch_size: int, device: str) -> np.ndarray:
+def encode_texts(
+    model_name: str,
+    texts: list[str],
+    batch_size: int,
+    device: str,
+    revision: str | None = None,
+) -> np.ndarray:
     from sentence_transformers import SentenceTransformer
 
-    model = SentenceTransformer(model_name, device=device)
+    model = SentenceTransformer(model_name, device=device, revision=revision)
     embeddings = model.encode(
         texts,
         batch_size=batch_size,
@@ -148,6 +159,12 @@ def main() -> None:
         return
     df = pd.read_parquet(args.input)
     validate(df)
+    if args.language:
+        if "language" not in df.columns:
+            raise ValueError("--language requires a language column")
+        df = df[df["language"].astype(str).eq(args.language)].copy()
+        if df.empty:
+            raise ValueError(f"No rows found for language: {args.language}")
 
     train = balanced_train(df, args.train_cap, args.seed)
     eval_splits = {split.strip() for split in args.eval_splits.split(",") if split.strip()}
@@ -163,8 +180,12 @@ def main() -> None:
     y_eval = label_encoder.transform(eval_df["profile_key"])
 
     device = resolve_device(args.device)
-    train_emb = encode_texts(args.model_name, train["text"].fillna("").tolist(), args.batch_size, device)
-    eval_emb = encode_texts(args.model_name, eval_df["text"].fillna("").tolist(), args.batch_size, device)
+    train_emb = encode_texts(
+        args.model_name, train["text"].fillna("").tolist(), args.batch_size, device, args.model_revision
+    )
+    eval_emb = encode_texts(
+        args.model_name, eval_df["text"].fillna("").tolist(), args.batch_size, device, args.model_revision
+    )
 
     centroids = []
     for label in range(len(label_encoder.classes_)):
@@ -203,6 +224,7 @@ def main() -> None:
     metrics = {
         "input": str(args.input),
         "model_name": args.model_name,
+        "model_revision": args.model_revision,
         "n_train": int(len(train)),
         "n_eval": int(len(eval_df)),
         "n_authors": int(df["author_or_speaker"].nunique()),

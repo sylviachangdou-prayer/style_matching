@@ -160,6 +160,35 @@ versioned `artifacts/baseline_v1/` readiness bundle. Critical collection, traini
 baseline-acceptance commands fail immediately; decade evaluation remains unavailable rather than
 blocking when dated support is insufficient.
 
+### Post-baseline method exploration
+
+After the canonical notebook finishes, run
+`colab_stylematch_method_exploration.ipynb`. It is isolated from production artifacts and does
+not overwrite the selected model or index. Its primary evaluation unit is an independent source,
+not a chunk. It implements:
+
+1. matched candidate-pool and chance-adjusted language comparisons, so a large English candidate
+   set is not mistaken for evidence that more English training text hurts the model;
+2. independent-source profile-evidence curves at a fixed encoder;
+3. pinned pretrained mStyleDistance and multilingual authorship-representation comparisons,
+   plus an English-only LUAR diagnostic;
+4. lexical-content-free UPOS/dependency features alongside delexicalized character, function-word,
+   rhythm/discourse, compression, centroid, and source-prototype views;
+5. an elastic-net candidate reranker trained on dev sources, with paired test bootstrap,
+   calibration gates, subgroup non-inferiority, and leave-one-view-out ablations;
+6. profile-heldout multi-view verification using score margins, concentration, and cross-view
+   agreement;
+7. optional fixed-seed pair-count and probabilistic-content-masking fine-tuning ablations.
+
+The PCM implementation follows the authors' released defaults: protect the 300 most frequent
+non-special subword tokens and independently mask remaining tokens with probability 0.4. It is
+restricted to one epoch because masking is drawn once per sampled training occurrence. Topic
+features and the raw lexical character ceiling are never eligible for Style Match fusion.
+
+Research outputs are written under `artifacts/method_exploration_v1/`. Fusion remains rejected
+unless its paired-bootstrap MRR interval is above zero and calibration, selective precision, and
+major language/corpus subgroups do not worsen.
+
 Key post-run checks are:
 
 ```bash
