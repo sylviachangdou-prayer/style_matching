@@ -70,7 +70,20 @@ def main() -> None:
     df["profile_key"] = profile_key(df)
     profiles = np.asarray(sorted(df["profile_key"].unique()))
     if len(profiles) < 10:
-        raise ValueError("Open-set evaluation requires at least 10 author-language profiles")
+        # Not enough source-heldout profiles for a meaningful known/unknown
+        # split. Skip this language (no calibration) rather than failing the
+        # whole run; downstream globs only pick up open_set_metrics.json.
+        args.out_dir.mkdir(parents=True, exist_ok=True)
+        (args.out_dir / "open_set_skipped.json").write_text(
+            json.dumps(
+                {"language": args.language, "n_profiles": int(len(profiles)),
+                 "reason": "fewer than 10 source-heldout profiles"},
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        print(f"skip open-set: {args.language}: only {len(profiles)} heldout profiles (<10)", flush=True)
+        return
     rng = np.random.default_rng(args.seed)
     shuffled = profiles.copy()
     rng.shuffle(shuffled)
@@ -88,7 +101,13 @@ def main() -> None:
     candidate_profiles = sorted(known)
     candidate_index = {profile: index for index, profile in enumerate(candidate_profiles)}
     if any(frame.empty for frame in (train, known_dev, known_test, unknown_dev_df, unknown_test_df)):
-        raise ValueError("Open-set train/dev/test partition is empty")
+        args.out_dir.mkdir(parents=True, exist_ok=True)
+        (args.out_dir / "open_set_skipped.json").write_text(
+            json.dumps({"language": args.language, "reason": "empty open-set partition"}, indent=2),
+            encoding="utf-8",
+        )
+        print(f"skip open-set: {args.language}: empty train/dev/test partition", flush=True)
+        return
 
     combined = pd.concat([train, known_dev, known_test, unknown_dev_df, unknown_test_df], ignore_index=True)
     embeddings = encode(args.model_name, combined["text"].fillna("").tolist(), args.batch_size, args.device)
