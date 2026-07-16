@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import sys
 from pathlib import Path
@@ -27,6 +28,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--eval-splits", default="dev,test")
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--download-missing", action="store_true")
+    parser.add_argument("--checkpoint-every", type=int, default=100)
     parser.add_argument("--skip-existing", action="store_true")
     return parser.parse_args()
 
@@ -61,7 +63,13 @@ def document_stream(document: object) -> str:
     return " ".join(tokens)
 
 
-def parse_syntax(df: pd.DataFrame, cache_path: Path, device: str, download_missing: bool) -> pd.DataFrame:
+def parse_syntax(
+    df: pd.DataFrame,
+    cache_path: Path,
+    device: str,
+    download_missing: bool,
+    checkpoint_every: int,
+) -> pd.DataFrame:
     if cache_path.exists():
         cache = pd.read_parquet(cache_path)
     else:
@@ -72,42 +80,85 @@ def parse_syntax(df: pd.DataFrame, cache_path: Path, device: str, download_missi
         return cache
     import stanza
 
-    cache_rows = [cache]
-    for language, group in missing.groupby("language", sort=True):
-        try:
-            pipeline = stanza.Pipeline(
-                lang=str(language),
+    def load_pipeline(language: str, use_gpu: bool):
+        def construct(gpu: bool):
+            return stanza.Pipeline(
+                lang=language,
                 processors="tokenize,pos,depparse",
-                use_gpu=device == "cuda",
+                use_gpu=gpu,
                 verbose=False,
             )
+
+        try:
+            return construct(use_gpu), use_gpu
         except Exception:
             if not download_missing:
                 raise
-            stanza.download(str(language), processors="tokenize,pos,depparse", verbose=False)
-            pipeline = stanza.Pipeline(
-                lang=str(language),
-                processors="tokenize,pos,depparse",
-                use_gpu=device == "cuda",
-                verbose=False,
-            )
+            stanza.download(language, processors="tokenize,pos,depparse", verbose=False)
+            try:
+                return construct(use_gpu), use_gpu
+            except RuntimeError:
+                if not use_gpu:
+                    raise
+                print(f"{language}: GPU pipeline initialization failed; using CPU", flush=True)
+                return construct(False), False
+
+    def flush(rows: list[dict[str, str]], current: pd.DataFrame) -> pd.DataFrame:
+        if not rows:
+            return current
+        updated = pd.concat([current, pd.DataFrame(rows)], ignore_index=True).drop_duplicates(
+            "chunk_id", keep="last"
+        )
+        updated.to_parquet(cache_path, index=False)
+        rows.clear()
+        return updated
+
+    for language, group in missing.groupby("language", sort=True):
+        language = str(language)
+        use_gpu = device == "cuda"
+        pipeline, use_gpu = load_pipeline(language, use_gpu)
         rows = []
-        for row in group.itertuples(index=False):
+        for position, row in enumerate(group.itertuples(index=False), start=1):
+            text = "" if pd.isna(row.text) else str(row.text)
+            try:
+                document = pipeline(text)
+            except RuntimeError as error:
+                if not use_gpu or not any(
+                    token in str(error).lower() for token in ("cuda", "cudnn", "out of memory")
+                ):
+                    raise
+                print(f"{language}: GPU parser failed; retrying remaining documents on CPU", flush=True)
+                del pipeline
+                gc.collect()
+                try:
+                    import torch
+
+                    torch.cuda.empty_cache()
+                except (ImportError, RuntimeError):
+                    pass
+                use_gpu = False
+                pipeline, use_gpu = load_pipeline(language, False)
+                document = pipeline(text)
             rows.append(
                 {
                     "chunk_id": str(row.chunk_id),
-                    "syntax_stream": document_stream(pipeline(str(row.text or ""))),
+                    "syntax_stream": document_stream(document),
                 }
             )
-        cache_rows.append(pd.DataFrame(rows))
-        cache = pd.concat(cache_rows, ignore_index=True).drop_duplicates("chunk_id", keep="last")
-        cache.to_parquet(cache_path, index=False)
-        cache_rows = [cache]
+            if position % checkpoint_every == 0:
+                cache = flush(rows, cache)
+                print(f"{language}: parsed {position}/{len(group)}", flush=True)
+        cache = flush(rows, cache)
+        print(f"{language}: parsed {len(group)}/{len(group)}", flush=True)
+        del pipeline
+        gc.collect()
     return cache
 
 
 def main() -> None:
     args = parse_args()
+    if args.checkpoint_every < 1:
+        raise ValueError("--checkpoint-every must be at least 1")
     args.out_dir.mkdir(parents=True, exist_ok=True)
     score_path = args.out_dir / "style_syntax_scores.npz"
     metrics_path = args.out_dir / "style_syntax_metrics.json"
@@ -120,7 +171,11 @@ def main() -> None:
     if missing:
         raise ValueError(f"Missing required columns: {sorted(missing)}")
     cache = parse_syntax(
-        df, args.out_dir / "syntax_streams.parquet", args.device, args.download_missing
+        df,
+        args.out_dir / "syntax_streams.parquet",
+        args.device,
+        args.download_missing,
+        args.checkpoint_every,
     )
     df = df.merge(cache, on="chunk_id", how="left", validate="one_to_one")
     if df["syntax_stream"].isna().any():

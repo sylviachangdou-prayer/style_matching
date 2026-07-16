@@ -63,9 +63,6 @@
   select, button { font: inherit; border-radius: var(--radius); padding: 8px 14px;
                    border: 1px solid var(--border); background: var(--field); color: var(--ink); }
   .counter { color: var(--muted); font: .82rem var(--mono); margin-left: auto; }
-  .mode { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  .mode button { border: 0; border-radius: 0; background: var(--field); cursor: pointer; }
-  .mode button.active { background: var(--navy); color: var(--bg); }
   #go { background: var(--navy); color: var(--bg); border: 0; padding: 10px 28px;
         font-weight: 600; letter-spacing: .02em; cursor: pointer; }
   #go:hover { background: var(--navy-deep); color: #fffdf8; }
@@ -116,8 +113,6 @@
                padding: 2px 0 2px 14px; background: none; }
   blockquote cite { display: block; font-family: var(--serif); color: var(--muted);
                     font-size: .82rem; font-style: italic; margin-top: 5px; }
-  .lang-section > h2 { font-family: var(--serif); font-weight: 600; font-size: 1rem;
-                       letter-spacing: .04em; color: var(--muted); margin: 30px 0 16px; }
   .empty, .error { text-align: center; padding: 28px; color: var(--muted); }
   .error { color: #a04a3c; }
   footer { color: var(--muted); font-size: .8rem; margin-top: 34px; text-align: center; }
@@ -127,9 +122,9 @@
 <body>
 <main>
   <h1>StyleMatch</h1>
-  <p class="tagline">Paste a passage you wrote. We compare <em>how</em> you write — not what you write about — with famous voices, and show our work.</p>
+  <p class="tagline"><strong>Who do you sound like?</strong> Paste a passage you wrote — we compare <em>how</em> you write, not what you write about, and show our work.</p>
 
-  <textarea id="text" placeholder="Paste at least ~40 words (or ~80 characters of Chinese/Japanese) of your own writing…"></textarea>
+  <textarea id="text" placeholder="Paste at least ~80 words (or ~160 characters of Chinese/Japanese) of your own writing…"></textarea>
 
   <div class="controls">
     <select id="language" title="Language">
@@ -140,10 +135,6 @@
       <option value="it">Italiano</option><option value="pl">Polski</option>
       <option value="ru">Русский</option>
     </select>
-    <span class="mode">
-      <button type="button" id="mode-within" class="active">Same language</button>
-      <button type="button" id="mode-cross">Across languages</button>
-    </span>
     <span class="counter" id="counter">0 words</span>
   </div>
   <button id="go">Find my match</button>
@@ -151,23 +142,16 @@
   <div id="output"></div>
 
   <footer>Similarity scores are uncalibrated cosine values — useful for ranking, not percentages.
-  Style and topic are scored by two separate models and always shown separately.</footer>
+  Style and topic are scored by two separate models and always shown separately.
+  Rankings pool every language in the library; cross-language similarities are not calibrated,
+  so same-language matches are usually the more reliable ones.</footer>
 </main>
 
 <script>
 const API = (window.STYLEMATCH_API || "").replace(/\/$/, "");
-let mode = "within";
 
 const $ = (id) => document.getElementById(id);
 const textEl = $("text"), output = $("output"), goBtn = $("go");
-
-$("mode-within").onclick = () => setMode("within");
-$("mode-cross").onclick = () => setMode("cross");
-function setMode(m) {
-  mode = m;
-  $("mode-within").classList.toggle("active", m === "within");
-  $("mode-cross").classList.toggle("active", m === "cross");
-}
 
 textEl.addEventListener("input", () => {
   const t = textEl.value.trim();
@@ -185,7 +169,7 @@ goBtn.onclick = async () => {
     const res = await fetch(`${API}/api/match`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, language: $("language").value || null, mode }),
+      body: JSON.stringify({ text, language: $("language").value || null }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || `Request failed (${res.status})`);
@@ -202,11 +186,6 @@ function render(data) {
   if (data.demo) parts.push(
     `<div class="banner warn"><strong>Demo data.</strong> The real style index is still training —
      these authors and scores are placeholder fixtures, not measurements.</div>`);
-  if (data.confidence === "reduced") parts.push(
-    `<div class="banner info"><strong>Cross-language mode (exploratory).</strong> We claim your
-     <em>themes &amp; tone</em> — and, more weakly, your style — resemble these authors
-     (style ${Math.round(topWeight(data) * 100)}% / topic ${Math.round((1 - topWeight(data)) * 100)}%).
-     Scores are ranked per target language and are not comparable across languages.</div>`);
   if (data.language_detected) parts.push(
     `<div class="banner info">Detected language: <strong>${escapeHtml(data.input_language)}</strong>
      — change it above if that's wrong.</div>`);
@@ -220,32 +199,12 @@ function render(data) {
     parts.push(`<div class="banner info"><strong>Closest style decades (experimental).</strong> ${decades}</div>`);
   }
 
-  const languages = Object.keys(data.results);
-  let any = false;
-  for (const lang of languages) {
-    const matches = data.results[lang];
-    if (!matches.length) continue;
-    any = true;
-    if (data.mode === "cross") parts.push(`<div class="lang-section"><h2>Closest voices writing in ${escapeHtml(lang)}</h2></div>`);
-    matches.forEach((m, i) => parts.push(matchRow(m, i + 1)));
-  }
-  if (!any) parts.push(
-    `<div class="empty">No authors in our library write in <strong>${escapeHtml(data.input_language)}</strong> yet.
-     Try cross-language mode, or another passage.</div>`);
-  else if (topMatch(data) && topMatch(data).low_confidence) parts.unshift(
-    `<div class="banner warn"><strong>Low confidence.</strong> Your writing doesn't strongly resemble
-     anyone in our library yet — the ranking below is weak and shown for transparency only.</div>`);
+  const matches = Object.values(data.results).flat();
+  matches.forEach((m, i) => parts.push(matchRow(m, i + 1)));
+  if (!matches.length) parts.push(
+    `<div class="empty">No match to show for this passage yet — try a longer or different passage.</div>`);
 
   output.innerHTML = parts.join("");
-}
-
-function topWeight(data) {
-  const m = topMatch(data);
-  return m ? m.style_weight : 0.5;
-}
-function topMatch(data) {
-  for (const lang of Object.keys(data.results)) if (data.results[lang].length) return data.results[lang][0];
-  return null;
 }
 
 function matchRow(m, rank) {
@@ -264,6 +223,7 @@ function matchRow(m, rank) {
       <div class="match-head">
         <h3>${escapeHtml(m.author_or_speaker)}</h3>
         <span class="chip">${escapeHtml(m.target_language)}</span>
+        ${m.cross_language ? '<span class="chip">cross-language</span>' : ""}
         <span class="chip">${escapeHtml(m.admission_tier || "exploratory")}</span>
         <span class="affinity" title="Composite affinity (uncalibrated)">${m.affinity_score.toFixed(2)}</span>
       </div>

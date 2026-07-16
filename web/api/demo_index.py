@@ -157,44 +157,61 @@ class DemoIndex:
         }
 
     def query(self, text: str, language: str, mode: str, top_k: int) -> dict:
-        style_weight = self.metadata[
-            "style_weight_within" if mode == "within" else "style_weight_cross"
-        ]
-        if mode == "within":
-            groups = {language: [p for p in _DEMO_PROFILES if p["language"] == language]}
-            confidence = "standard"
-            scope = "within_language"
-        else:
-            groups = {}
-            for profile in _DEMO_PROFILES:
-                groups.setdefault(profile["language"], []).append(profile)
-            confidence = "reduced"
-            scope = "per_target_language"
+        weight_within = self.metadata["style_weight_within"]
+        weight_cross = self.metadata["style_weight_cross"]
+
+        def build_match(profile: dict) -> dict:
+            author = profile["author_or_speaker"]
+            style_weight = weight_within if profile["language"] == language else weight_cross
+            if mode == "cross":
+                style_weight = weight_cross
+            style = _pseudo_score("style", author, text, 0.15, 0.60)
+            topic = _pseudo_score("topic", author, text, 0.20, 0.70)
+            return {
+                "author_or_speaker": author,
+                "source_corpora": [profile["corpus"]],
+                "target_language": profile["language"],
+                "cross_language": profile["language"] != language,
+                "style_similarity": style,
+                "topic_similarity": topic,
+                "affinity_score": style_weight * style + (1.0 - style_weight) * topic,
+                "style_weight": float(style_weight),
+                "calibrated": False,
+                "profile": "Demo profile; not a measured production result",
+                "style_traits": "illustrative, placeholder, uncalibrated",
+                "photo_url": "",
+                "admission_tier": "exploratory",
+                "representative_passages": profile["passages"],
+            }
 
         results: dict[str, list[dict]] = {}
-        for target_language, profiles in groups.items():
-            matches = []
-            for profile in profiles:
-                author = profile["author_or_speaker"]
-                style = _pseudo_score("style", author, text, 0.15, 0.60)
-                topic = _pseudo_score("topic", author, text, 0.20, 0.70)
-                matches.append({
-                    "author_or_speaker": author,
-                    "source_corpora": [profile["corpus"]],
-                    "target_language": target_language,
-                    "style_similarity": style,
-                    "topic_similarity": topic,
-                    "affinity_score": style_weight * style + (1.0 - style_weight) * topic,
-                    "style_weight": float(style_weight),
-                    "calibrated": False,
-                    "profile": "Demo profile; not a measured production result",
-                    "style_traits": "illustrative, placeholder, uncalibrated",
-                    "photo_url": "",
-                    "admission_tier": "exploratory",
-                    "representative_passages": profile["passages"],
-                })
-            matches.sort(key=lambda match: match["affinity_score"], reverse=True)
-            results[target_language] = matches[:top_k]
+        if mode == "all":
+            matches = sorted(
+                (build_match(profile) for profile in _DEMO_PROFILES),
+                key=lambda match: match["affinity_score"],
+                reverse=True,
+            )[:top_k]
+            results["all"] = matches
+            confidence = "standard" if all(not match["cross_language"] for match in matches) else "reduced"
+            scope = "global_all_languages"
+        else:
+            if mode == "within":
+                groups = {language: [p for p in _DEMO_PROFILES if p["language"] == language]}
+                confidence = "standard"
+                scope = "within_language"
+            else:
+                groups = {}
+                for profile in _DEMO_PROFILES:
+                    groups.setdefault(profile["language"], []).append(profile)
+                confidence = "reduced"
+                scope = "per_target_language"
+            for target_language, profiles in groups.items():
+                matches = sorted(
+                    (build_match(profile) for profile in profiles),
+                    key=lambda match: match["affinity_score"],
+                    reverse=True,
+                )
+                results[target_language] = matches[:top_k]
         return {
             "mode": mode,
             "input_language": language,
@@ -206,7 +223,7 @@ class DemoIndex:
             "profile_strategy": "single_centroid",
             "rejection": {
                 target_language: {"status": "uncalibrated", "accept": None}
-                for target_language in results
+                for target_language in self.metadata["languages"]
             },
             "decade_status": "demo_fixture",
             "decade_match": {

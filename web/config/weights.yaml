@@ -5,8 +5,10 @@ affinity:
   # treating this as anything more than a first honest cut-off.
   low_confidence_threshold: 0.25
 input:
-  min_words: 40        # space-delimited languages
-  min_cjk_chars: 80    # zh / ja
+  # Raised from 40/80: a longer sample gives a more stable style estimate, and the
+  # encoder (512-token capacity) and 75–150-word index chunks comfortably absorb it.
+  min_words: 80        # space-delimited languages
+  min_cjk_chars: 160   # zh / ja
   max_chars: 8000
 retrieval:
   top_k: 3

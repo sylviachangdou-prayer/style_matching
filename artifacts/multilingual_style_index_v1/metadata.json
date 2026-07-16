@@ -1,0 +1,69 @@
+{
+  "model_name": "artifacts/mstyledistance_stylematch_v1",
+  "backend": null,
+  "input": "/content/drive/MyDrive/style_matching/data/all/meta/all_sources_chunks.parquet",
+  "split": "train",
+  "profile_cap": 600,
+  "per_source_cap": 50,
+  "embedding_cache": "artifacts/multilingual_style_index_v1/chunk_embeddings.npz",
+  "device": "cuda",
+  "topic_model_name": "intfloat/multilingual-e5-base",
+  "topic_embedding_cache": "artifacts/multilingual_style_index_v1/topic_chunk_embeddings.npz",
+  "style_weight_within": 0.7,
+  "style_weight_cross": 0.5,
+  "n_profiles": 167,
+  "n_source_prototypes": 2084,
+  "n_chunks": 39756,
+  "n_decade_profiles": 0,
+  "decade_display_enabled": false,
+  "languages": [
+    "de",
+    "en",
+    "es",
+    "fr",
+    "it",
+    "ja",
+    "pl",
+    "ru",
+    "zh"
+  ],
+  "score_status": "uncalibrated_cosine",
+  "score_version": "stylematch_v1",
+  "artifact_version": "baseline_v1",
+  "profile_strategy": "single_centroid",
+  "prototype_top_k": 3,
+  "open_set_calibration": {
+    "de": {
+      "coefficient": 0.05898924575545804,
+      "intercept": 2.0133140821983186,
+      "similarity_threshold": 0.9972401857376099,
+      "auroc": 0.4325462962962963,
+      "ece": 0.00811136742959584
+    },
+    "en": {
+      "coefficient": -0.2834329353493229,
+      "intercept": 1.880415882593903,
+      "similarity_threshold": 0.9981247186660767,
+      "auroc": 0.5060218459152017,
+      "ece": 0.0030941629594061215
+    },
+    "fr": {
+      "coefficient": -0.014519281222702962,
+      "intercept": 1.6238868832336946,
+      "similarity_threshold": 0.9977523684501648,
+      "auroc": 0.46623999999999993,
+      "ece": 3.037297028996022e-06
+    },
+    "ru": {
+      "coefficient": 0.057514315843064094,
+      "intercept": 2.0147241995969667,
+      "similarity_threshold": 0.9980567693710327,
+      "auroc": 0.54544474393531,
+      "ece": 0.006926324935584538
+    }
+  },
+  "model_label": "mstyle_finetuned",
+  "selection_decision": "challenger_finetuned",
+  "fusion_adopted": false,
+  "deployment_matches_selection": false
+}

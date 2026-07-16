@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import types
 from pathlib import Path
 
 import numpy as np
@@ -21,6 +22,7 @@ from scripts.score_artifact_utils import (
     independent_source_keys,
     normalized_score_features,
 )
+from scripts.style_syntax_baseline import parse_syntax
 
 
 def test_source_aggregation_uses_independent_sources() -> None:
@@ -126,6 +128,45 @@ def test_pcm_protects_frequent_tokens_and_masks_content() -> None:
         seed=1,
     )
     assert masked["en"][0] == ("2 <mask>", "2 <mask>")
+
+
+def test_syntax_parser_checkpoints_without_real_stanza(tmp_path: Path, monkeypatch) -> None:
+    class Word:
+        def __init__(self, word_id, upos, deprel, head):
+            self.id = word_id
+            self.upos = upos
+            self.deprel = deprel
+            self.head = head
+
+    document = types.SimpleNamespace(
+        sentences=[
+            types.SimpleNamespace(
+                words=[Word(1, "PRON", "nsubj", 2), Word(2, "VERB", "root", 0)]
+            )
+        ]
+    )
+
+    class Pipeline:
+        def __init__(self, **kwargs):
+            pass
+
+        def __call__(self, text):
+            return document
+
+    fake_stanza = types.SimpleNamespace(Pipeline=Pipeline, download=lambda *args, **kwargs: None)
+    monkeypatch.setitem(sys.modules, "stanza", fake_stanza)
+    frame = pd.DataFrame(
+        {
+            "chunk_id": ["one", "two"],
+            "language": ["en", "en"],
+            "text": ["We write.", "They write."],
+        }
+    )
+    cache_path = tmp_path / "syntax.parquet"
+    parsed = parse_syntax(frame, cache_path, "cpu", False, 1)
+    assert cache_path.exists()
+    assert parsed["chunk_id"].tolist() == ["one", "two"]
+    assert parsed["syntax_stream"].str.contains("D_PRON_nsubj_VERB_R").all()
 
 
 def test_source_level_experiment_clis(tmp_path: Path) -> None:

@@ -1,0 +1,521 @@
+{
+  "input": "/content/drive/MyDrive/style_matching/data/all/meta/all_sources_chunks.parquet",
+  "base_model": "StyleDistance/mstyledistance",
+  "output_dir": "artifacts/mstyledistance_stylematch_v1",
+  "split": "train",
+  "n_rows": 1025669,
+  "n_pairs": 67500,
+  "n_author_language_profiles_with_cross_source_pairs": 135,
+  "n_registry_author_language_profiles": 240,
+  "n_profiles_with_chunks": 167,
+  "n_profiles_with_at_least_3_sources": 126,
+  "registry_profiles_without_chunks": [
+    {
+      "language": "de",
+      "author_or_speaker": "Adolf Hitler"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Angela Merkel"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Bertolt Brecht"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Hannah Arendt"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Olaf Scholz"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Pope Benedict XVI"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Alexandria Ocasio-Cortez"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Anne Bronte"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Anthony Albanese"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Bernie Sanders"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Bill Gates"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Boris Johnson"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Chester A. Arthur"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "David Cameron"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Eileen Chang"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Elizabeth Warren"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Elon Musk"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Emily Bronte"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Emmeline Pankhurst"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Flannery O'Connor"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "George H. W. Bush"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "George Orwell"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Gordon Brown"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Greta Thunberg"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Hannah Arendt"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Hillary Clinton"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Jacinda Ardern"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "James A. Garfield"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Joan Didion"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Joe Biden"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "John Major"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "John Quincy Adams"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "John Steinbeck"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Justin Trudeau"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Kamala Harris"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Keir Starmer"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Liz Truss"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Malala Yousafzai"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Margaret Thatcher"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Martin Luther King Jr."
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Nelson Mandela"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Rabindranath Tagore"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Ralph Ellison"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Rishi Sunak"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Robert G. Ingersoll"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Ron DeSantis"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Rutherford B. Hayes"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Steve Jobs"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Swami Vivekananda"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Theresa May"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Toni Morrison"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Tony Blair"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Ursula K. Le Guin"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Winston Churchill"
+    },
+    {
+      "language": "es",
+      "author_or_speaker": "Federico Garcia Lorca"
+    },
+    {
+      "language": "es",
+      "author_or_speaker": "Fidel Castro"
+    },
+    {
+      "language": "es",
+      "author_or_speaker": "Gabriel Garcia Marquez"
+    },
+    {
+      "language": "es",
+      "author_or_speaker": "Hugo Chavez"
+    },
+    {
+      "language": "es",
+      "author_or_speaker": "Jorge Luis Borges"
+    },
+    {
+      "language": "es",
+      "author_or_speaker": "Salvador Allende"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Albert Camus"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Charles de Gaulle"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Colette"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Emmanuel Macron"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Francois Mitterrand"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Jean-Paul Sartre"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Justin Trudeau"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Simone de Beauvoir"
+    },
+    {
+      "language": "it",
+      "author_or_speaker": "Italo Calvino"
+    },
+    {
+      "language": "it",
+      "author_or_speaker": "Pope Francis"
+    },
+    {
+      "language": "pl",
+      "author_or_speaker": "Pope John Paul II"
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Eileen Chang"
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Lao She"
+    }
+  ],
+  "profiles_with_one_source": [
+    {
+      "language": "en",
+      "author_or_speaker": "Andrew Jackson",
+      "n_sources": 1,
+      "n_chunks": 569
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Andrew Johnson",
+      "n_sources": 1,
+      "n_chunks": 255
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Booker T. Washington",
+      "n_sources": 1,
+      "n_chunks": 376
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Donald Trump",
+      "n_sources": 1,
+      "n_chunks": 10
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Dwight D. Eisenhower",
+      "n_sources": 1,
+      "n_chunks": 363
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Franklin Pierce",
+      "n_sources": 1,
+      "n_chunks": 279
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "George W. Bush",
+      "n_sources": 1,
+      "n_chunks": 273
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Gerald Ford",
+      "n_sources": 1,
+      "n_chunks": 92
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Harry S. Truman",
+      "n_sources": 1,
+      "n_chunks": 443
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Herbert Hoover",
+      "n_sources": 1,
+      "n_chunks": 149
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "James Buchanan",
+      "n_sources": 1,
+      "n_chunks": 376
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "James K. Polk",
+      "n_sources": 1,
+      "n_chunks": 481
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "James Madison",
+      "n_sources": 1,
+      "n_chunks": 146
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "James Monroe",
+      "n_sources": 1,
+      "n_chunks": 283
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Jimmy Carter",
+      "n_sources": 1,
+      "n_chunks": 299
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "John Tyler",
+      "n_sources": 1,
+      "n_chunks": 227
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Lyndon B. Johnson",
+      "n_sources": 1,
+      "n_chunks": 194
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Mahatma Gandhi",
+      "n_sources": 1,
+      "n_chunks": 520
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Martin Van Buren",
+      "n_sources": 1,
+      "n_chunks": 303
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Millard Fillmore",
+      "n_sources": 1,
+      "n_chunks": 210
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Richard Nixon",
+      "n_sources": 1,
+      "n_chunks": 132
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Ronald Reagan",
+      "n_sources": 1,
+      "n_chunks": 215
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Ulysses S. Grant",
+      "n_sources": 1,
+      "n_chunks": 435
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "William Faulkner",
+      "n_sources": 1,
+      "n_chunks": 646
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "William Howard Taft",
+      "n_sources": 1,
+      "n_chunks": 464
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Zachary Taylor",
+      "n_sources": 1,
+      "n_chunks": 51
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Maurice Leblanc",
+      "n_sources": 1,
+      "n_chunks": 364
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Cai Yuanpei",
+      "n_sources": 1,
+      "n_chunks": 7
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Su Manshu",
+      "n_sources": 1,
+      "n_chunks": 66
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Yu Dafu",
+      "n_sources": 1,
+      "n_chunks": 25
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Zeng Pu",
+      "n_sources": 1,
+      "n_chunks": 538
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Zhu Ziqing",
+      "n_sources": 1,
+      "n_chunks": 82
+    }
+  ],
+  "all_eligible_profiles_contributed_pairs": true,
+  "language_aware_batches": true,
+  "hard_negatives": true,
+  "relaxed_hard_negatives": 0,
+  "pairs_by_language": {
+    "de": 6000,
+    "en": 32000,
+    "es": 3500,
+    "fr": 7000,
+    "it": 2500,
+    "ja": 5500,
+    "pl": 2500,
+    "ru": 5000,
+    "zh": 3500
+  },
+  "epochs": 1,
+  "batch_size": 32,
+  "learning_rate": 2e-05,
+  "seed": 20260710,
+  "original_language_only": true,
+  "translation_used": false
+}

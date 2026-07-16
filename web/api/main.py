@@ -30,7 +30,7 @@ LOGGER = logging.getLogger("stylematch.metrics")
 
 _DEFAULT_CONFIG = {
     "affinity": {"low_confidence_threshold": 0.25},
-    "input": {"min_words": 40, "min_cjk_chars": 80, "max_chars": 8000},
+    "input": {"min_words": 80, "min_cjk_chars": 160, "max_chars": 8000},
     "retrieval": {"top_k": 3, "max_top_k": 5},
 }
 
@@ -83,7 +83,7 @@ app.add_middleware(
 class MatchRequest(BaseModel):
     text: str = Field(min_length=1)
     language: str | None = None
-    mode: Literal["within", "cross"] = "within"
+    mode: Literal["all", "within", "cross"] = "all"
     top_k: int | None = Field(default=None, ge=1)
 
 

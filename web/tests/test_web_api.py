@@ -15,12 +15,18 @@ EN_TEXT = (
     "We hold that the measure of a sentence is not its length but its aim, and that the "
     "aim of public speech is to move people toward what they already suspect is right. "
     "When we speak plainly, when we refuse ornament for its own sake, the listener hears "
-    "not the speaker but the argument itself, and the argument stands or falls on its merits."
+    "not the speaker but the argument itself, and the argument stands or falls on its merits. "
+    "A plain style is not a poor style; it is a discipline, a refusal to let decoration do "
+    "the work that reasoning should do. The writer who trusts the reader writes shorter "
+    "sentences, chooses common words, and lets the shape of the argument carry the feeling."
 )
 ZH_TEXT = (
     "我小的时候住在江南的一个小镇上，镇边有一条河，河水在夏天涨起来，淹没了半条街。"
     "大人们并不着急，只把门槛垫高，照旧做买卖，仿佛水与人早已讲好了规矩。"
     "多年以后我在北方想起这条河，才明白所谓故乡，不过是一套彼此忍让的旧约。"
+    "北方的冬天干燥而漫长，屋檐下挂着冰，街上的人缩着脖子走路，谁也不肯多说一句话。"
+    "我起初很不习惯，后来也学会了在沉默里过日子，把想说的话写在纸上，寄给远方的旧友。"
+    "信寄出去往往石沉大海，我却并不灰心，仿佛写下来这件事本身，已经把话说完了。"
 )
 
 
@@ -48,7 +54,7 @@ class ExplainFeatureTests(unittest.TestCase):
 
 
 class MatchEndpointTests(unittest.TestCase):
-    def test_demo_mode_health_and_within_language_match(self) -> None:
+    def test_demo_mode_health_and_default_global_match(self) -> None:
         with TestClient(app) as client:
             health = client.get("/api/health").json()
             self.assertTrue(health["demo"])
@@ -62,17 +68,20 @@ class MatchEndpointTests(unittest.TestCase):
             self.assertTrue(payload["demo"])
             self.assertEqual(payload["input_language"], "en")
             self.assertTrue(payload["language_detected"])
-            self.assertEqual(payload["confidence"], "standard")
+            self.assertEqual(payload["mode"], "all")
+            self.assertEqual(payload["ranking_scope"], "global_all_languages")
+            self.assertIn(payload["confidence"], {"standard", "reduced"})
             self.assertEqual(payload["style_match_status"], "demo_fixture")
             self.assertEqual(payload["affinity_status"], "provisional_uncalibrated")
             self.assertEqual(payload["decade_match"]["decade"], "1920s")
             self.assertEqual(payload["decade_status"], "demo_fixture")
-            matches = payload["results"]["en"]
+            self.assertEqual(list(payload["results"]), ["all"])
+            matches = payload["results"]["all"]
             self.assertEqual(len(matches), 3)
             top = matches[0]
             for field in ("style_similarity", "topic_similarity", "affinity_score",
                           "style_weight", "why", "representative_passages", "low_confidence",
-                          "profile", "style_traits", "photo_url"):
+                          "profile", "style_traits", "photo_url", "cross_language"):
                 self.assertIn(field, top)
             self.assertEqual(top["admission_tier"], "exploratory")
             self.assertNotIn("corpus", top)
@@ -82,9 +91,23 @@ class MatchEndpointTests(unittest.TestCase):
                 len(matches),
             )
             self.assertTrue(all("corpus" not in match for match in matches))
-            self.assertEqual(top["style_weight"], 0.7)
+            for match in matches:
+                self.assertEqual(match["cross_language"], match["target_language"] != "en")
+                self.assertEqual(match["style_weight"], 0.5 if match["cross_language"] else 0.7)
             affinities = [match["affinity_score"] for match in matches]
             self.assertEqual(affinities, sorted(affinities, reverse=True))
+
+    def test_within_mode_still_ranks_query_language_only(self) -> None:
+        with TestClient(app) as client:
+            payload = client.post(
+                "/api/match", json={"text": EN_TEXT, "mode": "within"}
+            ).json()
+            self.assertEqual(payload["confidence"], "standard")
+            self.assertEqual(payload["ranking_scope"], "within_language")
+            matches = payload["results"]["en"]
+            self.assertTrue(matches)
+            self.assertTrue(all(match["target_language"] == "en" for match in matches))
+            self.assertEqual(matches[0]["style_weight"], 0.7)
 
     def test_cross_mode_is_reduced_confidence_per_language(self) -> None:
         with TestClient(app) as client:

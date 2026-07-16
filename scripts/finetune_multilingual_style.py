@@ -51,6 +51,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--language-aware-batches", action="store_true")
     parser.add_argument("--hard-negatives", action="store_true")
     parser.add_argument(
+        "--use-amp",
+        action="store_true",
+        help="Use mixed precision during GPU fine-tuning to reduce challenger memory use.",
+    )
+    parser.add_argument(
+        "--gradient-checkpointing",
+        action="store_true",
+        help="Trade compute for lower activation memory during fine-tuning.",
+    )
+    parser.add_argument(
         "--pcm-mask-prob",
         type=float,
         default=0.0,
@@ -350,6 +360,7 @@ def main() -> None:
 
     from sentence_transformers import InputExample, SentenceTransformer, losses
     from sentence_transformers.datasets import NoDuplicatesDataLoader
+    import torch
 
     print(f"{len(pairs)} pairs ready; loading {args.model_name} on {args.device}...", flush=True)
     model = SentenceTransformer(args.model_name, device=args.device, revision=args.model_revision)
@@ -358,6 +369,9 @@ def main() -> None:
     native = getattr(model, "max_seq_length", None)
     model.max_seq_length = min(native, args.max_seq_length) if native else args.max_seq_length
     print(f"max_seq_length capped at {model.max_seq_length}", flush=True)
+    if args.gradient_checkpointing:
+        model[0].auto_model.gradient_checkpointing_enable()
+        print("gradient checkpointing enabled", flush=True)
     protected_token_ids: set[int] = set()
     if args.pcm_mask_prob:
         protected_token_ids = frequent_token_ids(
@@ -375,31 +389,43 @@ def main() -> None:
             args.seed,
         )
         pairs = [pair for language_pairs in examples_by_language.values() for pair in language_pairs]
+    input_examples_by_language = {
+        language: [InputExample(texts=list(example)) for example in language_pairs]
+        for language, language_pairs in examples_by_language.items()
+        if language_pairs
+    }
     if args.language_aware_batches:
         loaders = [
-            NoDuplicatesDataLoader(
-                [InputExample(texts=list(example)) for example in language_pairs],
-                batch_size=args.batch_size,
-            )
-            for language_pairs in examples_by_language.values()
-            if language_pairs
+            NoDuplicatesDataLoader(examples, batch_size=args.batch_size)
+            for examples in input_examples_by_language.values()
+            if len(examples) >= args.batch_size
         ]
+        if not loaders:
+            raise ValueError("No language has enough examples to form one training batch")
     else:
         loaders = [NoDuplicatesDataLoader(
             [InputExample(texts=list(example)) for example in pairs],
             batch_size=args.batch_size,
         )]
     train_objectives = [(loader, losses.MultipleNegativesRankingLoss(model)) for loader in loaders]
-    warmup_steps = max(1, int(sum(len(loader) for loader in loaders) * args.epochs * args.warmup_ratio))
+    effective_batches = min(len(loader) for loader in loaders) * len(loaders)
+    warmup_steps = max(1, int(effective_batches * args.epochs * args.warmup_ratio))
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    model.fit(
-        train_objectives=train_objectives,
-        epochs=args.epochs,
-        warmup_steps=warmup_steps,
-        optimizer_params={"lr": args.learning_rate},
-        output_path=str(args.output_dir),
-        show_progress_bar=True,
-    )
+    try:
+        model.fit(
+            train_objectives=train_objectives,
+            epochs=args.epochs,
+            warmup_steps=warmup_steps,
+            optimizer_params={"lr": args.learning_rate},
+            output_path=str(args.output_dir),
+            show_progress_bar=True,
+            use_amp=args.use_amp,
+        )
+    except torch.cuda.OutOfMemoryError as error:
+        raise RuntimeError(
+            f"CUDA OOM at batch_size={args.batch_size}, max_seq_length={model.max_seq_length}; "
+            "rerun with --batch-size 4 --max-seq-length 192 --use-amp --gradient-checkpointing"
+        ) from error
     report = {
         "input": str(args.input),
         "base_model": args.model_name,
@@ -419,7 +445,10 @@ def main() -> None:
         "profiles_with_one_source": coverage["profiles_with_one_source"],
         "all_eligible_profiles_contributed_pairs": len(pairs) == expected_pairs,
         "language_aware_batches": args.language_aware_batches,
+        "effective_training_batches": effective_batches,
         "hard_negatives": args.hard_negatives,
+        "use_amp": args.use_amp,
+        "gradient_checkpointing": args.gradient_checkpointing,
         "pcm_mask_prob": args.pcm_mask_prob,
         "pcm_num_tokens_not_to_mask": args.pcm_num_tokens_not_to_mask,
         "pcm_protected_token_count": len(protected_token_ids),

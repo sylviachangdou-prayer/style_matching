@@ -470,69 +470,103 @@ class StyleIndex:
             topic_query = encode_topic(self.topic_model, [text], 1, query=True)[0]
             topic_scores = self.topic_centroids @ topic_query
 
-        if mode == "within":
-            groups = [(language, self.profiles.index[self.profiles["language"].eq(language)].to_numpy())]
-            confidence = "standard"
-            scope = "within_language"
-        else:
-            groups = [
-                (target_language, indices.to_numpy())
-                for target_language, indices in self.profiles.groupby("language").groups.items()
-            ]
-            confidence = "reduced"
-            scope = "per_target_language"
+        style_weight_within = self.metadata.get("style_weight_within", 0.7)
+        style_weight_cross = self.metadata.get("style_weight_cross", 0.5)
 
-        results = {}
-        rejection = {}
-        style_weight = self.metadata.get(
-            "style_weight_within" if mode == "within" else "style_weight_cross",
-            0.7 if mode == "within" else 0.5,
-        )
-        for target_language, indices in groups:
-            ranking_scores = scores if topic_scores is None else (
-                style_weight * scores + (1.0 - style_weight) * topic_scores
-            )
-            ranked = indices[np.argsort(ranking_scores[indices])[::-1][:top_k]]
-            matches = []
-            for index in ranked:
-                profile = self.profiles.iloc[index]
-                profile_id = int(profile["profile_id"])
-                passages = self.passages[self.passages["profile_id"].eq(profile_id)]
-                source_corpora = profile["source_corpora"]
-                if isinstance(source_corpora, np.ndarray):
-                    source_corpora = source_corpora.tolist()
-                matches.append({
-                    "author_or_speaker": profile["author_or_speaker"],
-                    "target_language": profile["language"],
-                    "source_corpora": source_corpora,
-                    "n_sources": int(profile["n_sources"]),
-                    "style_similarity": float(scores[index]),
-                    "single_centroid_similarity": float(single_centroid_scores[index]),
-                    "topic_similarity": float(topic_scores[index]) if topic_scores is not None else None,
-                    "affinity_score": float(ranking_scores[index]),
-                    "style_weight": float(style_weight),
-                    "calibrated": False,
-                    "profile": profile.get("profile", ""),
-                    "style_traits": profile.get("style_traits", ""),
-                    "photo_url": profile.get("photo_url", ""),
-                    "admission_tier": profile.get("admission_tier", "exploratory"),
-                    "representative_passages": passages[["title", "source_id", "text"]].to_dict("records"),
-                })
-            results[target_language] = matches
+        def build_match(index: int, style_weight: float, affinity: float) -> dict:
+            profile = self.profiles.iloc[index]
+            profile_id = int(profile["profile_id"])
+            passages = self.passages[self.passages["profile_id"].eq(profile_id)]
+            source_corpora = profile["source_corpora"]
+            if isinstance(source_corpora, np.ndarray):
+                source_corpora = source_corpora.tolist()
+            return {
+                "author_or_speaker": profile["author_or_speaker"],
+                "target_language": profile["language"],
+                "cross_language": bool(profile["language"] != language),
+                "source_corpora": source_corpora,
+                "n_sources": int(profile["n_sources"]),
+                "style_similarity": float(scores[index]),
+                "single_centroid_similarity": float(single_centroid_scores[index]),
+                "topic_similarity": float(topic_scores[index]) if topic_scores is not None else None,
+                "affinity_score": float(affinity),
+                "style_weight": float(style_weight),
+                "calibrated": False,
+                "profile": profile.get("profile", ""),
+                "style_traits": profile.get("style_traits", ""),
+                "photo_url": profile.get("photo_url", ""),
+                "admission_tier": profile.get("admission_tier", "exploratory"),
+                "representative_passages": passages[["title", "source_id", "text"]].to_dict("records"),
+            }
+
+        def open_set_rejection(target_language: str, indices: np.ndarray) -> dict:
             calibration = self.metadata.get("open_set_calibration", {}).get(target_language)
-            if mode == "within" and calibration and len(indices):
+            if calibration and len(indices):
                 max_similarity = float(np.max(scores[indices]))
                 logit = calibration["coefficient"] * max_similarity + calibration["intercept"]
                 known_probability = float(1.0 / (1.0 + np.exp(-logit)))
-                rejection[target_language] = {
+                return {
                     "status": "calibrated_open_set",
                     "max_style_similarity": max_similarity,
                     "known_probability": known_probability,
                     "similarity_threshold": float(calibration["similarity_threshold"]),
                     "accept": max_similarity >= float(calibration["similarity_threshold"]),
                 }
+            return {"status": "uncalibrated", "accept": None}
+
+        results = {}
+        rejection = {}
+        if mode == "all":
+            # Single global ranking over every profile. Same-language candidates keep the
+            # within-language style/topic mix; cross-language candidates use the cross mix
+            # and stay flagged: raw cosines are not calibrated across language pairs, and
+            # in practice same-language matches dominate unless a cross-language profile
+            # is genuinely closer.
+            profile_languages = self.profiles["language"].astype(str).to_numpy()
+            weights = np.where(
+                profile_languages == str(language), style_weight_within, style_weight_cross
+            )
+            ranking_scores = weights * scores if topic_scores is None else (
+                weights * scores + (1.0 - weights) * topic_scores
+            )
+            ranked = np.argsort(ranking_scores)[::-1][:top_k]
+            matches = [
+                build_match(int(index), float(weights[int(index)]), float(ranking_scores[int(index)]))
+                for index in ranked
+            ]
+            results["all"] = matches
+            same_language_indices = self.profiles.index[self.profiles["language"].eq(language)].to_numpy()
+            rejection[language] = open_set_rejection(language, same_language_indices)
+            for target_language in np.unique(profile_languages):
+                rejection.setdefault(str(target_language), {"status": "uncalibrated", "accept": None})
+            confidence = "standard" if all(not match["cross_language"] for match in matches) else "reduced"
+            scope = "global_all_languages"
+        else:
+            if mode == "within":
+                groups = [(language, self.profiles.index[self.profiles["language"].eq(language)].to_numpy())]
+                confidence = "standard"
+                scope = "within_language"
             else:
-                rejection[target_language] = {"status": "uncalibrated", "accept": None}
+                groups = [
+                    (target_language, indices.to_numpy())
+                    for target_language, indices in self.profiles.groupby("language").groups.items()
+                ]
+                confidence = "reduced"
+                scope = "per_target_language"
+            style_weight = style_weight_within if mode == "within" else style_weight_cross
+            for target_language, indices in groups:
+                ranking_scores = scores if topic_scores is None else (
+                    style_weight * scores + (1.0 - style_weight) * topic_scores
+                )
+                ranked = indices[np.argsort(ranking_scores[indices])[::-1][:top_k]]
+                results[target_language] = [
+                    build_match(int(index), float(style_weight), float(ranking_scores[index]))
+                    for index in ranked
+                ]
+                if mode == "within":
+                    rejection[target_language] = open_set_rejection(target_language, indices)
+                else:
+                    rejection[target_language] = {"status": "uncalibrated", "accept": None}
         decade_match = None
         decade_matches = {}
         decade_status = "unavailable_not_validated"
@@ -606,7 +640,7 @@ def shared_query_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--index-dir", type=Path, required=True)
     parser.add_argument("--text", required=True)
     parser.add_argument("--language", required=True, choices=sorted(SUPPORTED_LANGUAGES))
-    parser.add_argument("--mode", choices=["within", "cross"], default="within")
+    parser.add_argument("--mode", choices=["all", "within", "cross"], default="within")
     parser.add_argument("--top-k", type=int, default=3)
     parser.add_argument("--backend", choices=["torch", "onnx", "openvino"])
     parser.add_argument("--device", default="auto", help="auto, cpu, cuda, or mps")
