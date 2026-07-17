@@ -127,14 +127,6 @@
   <textarea id="text" placeholder="Paste at least ~80 words (or ~160 characters of Chinese/Japanese) of your own writing…"></textarea>
 
   <div class="controls">
-    <select id="language" title="Language">
-      <option value="">Auto-detect language</option>
-      <option value="en">English</option><option value="zh">中文</option>
-      <option value="ja">日本語</option><option value="fr">Français</option>
-      <option value="de">Deutsch</option><option value="es">Español</option>
-      <option value="it">Italiano</option><option value="pl">Polski</option>
-      <option value="ru">Русский</option>
-    </select>
     <span class="counter" id="counter">0 words</span>
   </div>
   <button id="go">Find my match</button>
@@ -169,7 +161,7 @@ goBtn.onclick = async () => {
     const res = await fetch(`${API}/api/match`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, language: $("language").value || null }),
+      body: JSON.stringify({ text }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || `Request failed (${res.status})`);
@@ -187,8 +179,7 @@ function render(data) {
     `<div class="banner warn"><strong>Demo data.</strong> The real style index is still training —
      these authors and scores are placeholder fixtures, not measurements.</div>`);
   if (data.language_detected) parts.push(
-    `<div class="banner info">Detected language: <strong>${escapeHtml(data.input_language)}</strong>
-     — change it above if that's wrong.</div>`);
+    `<div class="banner info">Detected language: <strong>${escapeHtml(data.input_language)}</strong></div>`);
   if (data.decade_match) parts.push(
     `<div class="banner info"><strong>Closest style decade: ${escapeHtml(data.decade_match.decade)}.</strong>
      Based on ${data.decade_match.n_sources} dated sources in ${escapeHtml(data.input_language)};
@@ -233,7 +224,7 @@ function matchRow(m, rank) {
         ${m.topic_similarity != null ? scoreRow("Topic", m.topic_similarity, "topic") : ""}
       </div>
       ${why ? `<ul class="why">${why}</ul>` : ""}
-      <details><summary>Representative passages (original language)</summary>${passages}</details>
+      ${passages ? `<details open><summary>Their passage closest to yours (original language)</summary>${passages}</details>` : ""}
     </div>
   </div>`;
 }

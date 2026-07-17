@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 import time
 from pathlib import Path
 
@@ -412,6 +413,22 @@ def build_index(args: argparse.Namespace) -> None:
     print(json.dumps(metadata, indent=2))
 
 
+def truncate_to_length(passage: str, target_chars: int) -> str:
+    """Trim a representative passage to roughly the query length, preferring a
+    sentence boundary so the displayed evidence stays readable."""
+    limit = int(target_chars * 1.4)
+    if len(passage) <= limit:
+        return passage
+    cut = None
+    for match in re.finditer(r"[.!?。！？…]+[”’\"')】』」]*\s*", passage):
+        if match.end() > limit:
+            break
+        cut = match.end()
+    if cut and cut >= target_chars * 0.5:
+        return passage[:cut].rstrip()
+    return passage[:target_chars].rstrip() + "…"
+
+
 class StyleIndex:
     def __init__(self, index_dir: Path, backend: str | None = None, device: str = "auto") -> None:
         self.index_dir = index_dir
@@ -442,6 +459,36 @@ class StyleIndex:
             self.topic_model = load_model(
                 self.metadata["topic_model_name"], None, device
             )
+        # Style embeddings for the licence-approved representative passages, so the
+        # API can show each matched author's passage closest to the query. Encoded
+        # once at startup (never in a request handler) and cached beside the index.
+        self.passage_style_embeddings = None
+        if len(self.passages) and "text" in self.passages.columns:
+            self.passage_style_embeddings = self._load_or_encode_passages()
+
+    def _load_or_encode_passages(self) -> np.ndarray:
+        cache_path = self.index_dir / "passage_style_embeddings.npz"
+        texts = self.passages["text"].fillna("").tolist()
+        if cache_path.exists():
+            payload = np.load(cache_path, allow_pickle=False)
+            if str(payload["model_name"]) == str(self.metadata["model_name"]) and len(
+                payload["embeddings"]
+            ) == len(texts):
+                return payload["embeddings"]
+        embeddings = self.model.encode(
+            texts,
+            batch_size=32,
+            convert_to_numpy=True,
+            normalize_embeddings=True,
+            show_progress_bar=False,
+        ).astype("float32")
+        try:
+            np.savez_compressed(
+                cache_path, model_name=str(self.metadata["model_name"]), embeddings=embeddings
+            )
+        except OSError:
+            pass
+        return embeddings
 
     def query(self, text: str, language: str, mode: str, top_k: int) -> dict:
         if language not in SUPPORTED_LANGUAGES:
@@ -477,6 +524,16 @@ class StyleIndex:
             profile = self.profiles.iloc[index]
             profile_id = int(profile["profile_id"])
             passages = self.passages[self.passages["profile_id"].eq(profile_id)]
+            passage_records = passages[["title", "source_id", "text"]].to_dict("records")
+            if passage_records and self.passage_style_embeddings is not None:
+                similarities = (
+                    self.passage_style_embeddings[passages.index.to_numpy()] @ query_embedding
+                )
+                best = int(np.argmax(similarities))
+                record = dict(passage_records[best])
+                record["text"] = truncate_to_length(record["text"], max(len(text), 200))
+                record["passage_style_similarity"] = float(similarities[best])
+                passage_records = [record]
             source_corpora = profile["source_corpora"]
             if isinstance(source_corpora, np.ndarray):
                 source_corpora = source_corpora.tolist()
@@ -496,7 +553,7 @@ class StyleIndex:
                 "style_traits": profile.get("style_traits", ""),
                 "photo_url": profile.get("photo_url", ""),
                 "admission_tier": profile.get("admission_tier", "exploratory"),
-                "representative_passages": passages[["title", "source_id", "text"]].to_dict("records"),
+                "representative_passages": passage_records,
             }
 
         def open_set_rejection(target_language: str, indices: np.ndarray) -> dict:

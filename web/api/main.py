@@ -149,7 +149,7 @@ def match(request: MatchRequest) -> dict:
     if language is None:
         raise HTTPException(
             status_code=400,
-            detail="Could not detect the language reliably; please select one explicitly.",
+            detail="Could not detect the language reliably; please paste a longer passage in its original language.",
         )
     if language not in SUPPORTED_LANGUAGES:
         raise HTTPException(status_code=400, detail=f"Unsupported language: {language}")

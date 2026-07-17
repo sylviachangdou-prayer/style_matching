@@ -181,7 +181,9 @@ class DemoIndex:
                 "style_traits": "illustrative, placeholder, uncalibrated",
                 "photo_url": "",
                 "admission_tier": "exploratory",
-                "representative_passages": profile["passages"],
+                # Real index returns the single passage closest to the query,
+                # trimmed to roughly the query length; demo mimics the shape.
+                "representative_passages": profile["passages"][:1],
             }
 
         results: dict[str, list[dict]] = {}
