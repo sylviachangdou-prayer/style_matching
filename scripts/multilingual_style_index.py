@@ -364,15 +364,7 @@ def build_index(args: argparse.Namespace) -> None:
         pd.DataFrame(decade_rows).to_parquet(args.out_dir / "decades.parquet", index=False)
     open_set_calibration = {}
     if args.open_set_calibration_dir and args.open_set_calibration_dir.exists():
-        for path in sorted(args.open_set_calibration_dir.glob("*/open_set_metrics.json")):
-            report = json.loads(path.read_text(encoding="utf-8"))
-            open_set_calibration[str(report["language"])] = {
-                "coefficient": float(report["calibrator"]["coefficient"]),
-                "intercept": float(report["calibrator"]["intercept"]),
-                "similarity_threshold": float(report["open_set"]["equal_error_threshold"]),
-                "auroc": float(report["open_set"]["auroc"]),
-                "ece": float(report["open_set"]["ece"]),
-            }
+        open_set_calibration, _ = load_open_set_calibration(args.open_set_calibration_dir)
     selection_decision = args.model_label
     fusion_adopted = False
     if args.model_comparison and args.model_comparison.exists():
@@ -664,6 +656,54 @@ class StyleIndex:
         }
 
 
+def load_open_set_calibration(calibration_dir: Path) -> tuple[dict, dict[str, str]]:
+    """Read per-language open-set calibrators; also return which encoder each
+    report was fitted on, so callers can refuse cross-model calibration."""
+    calibration: dict = {}
+    source_models: dict[str, str] = {}
+    for path in sorted(calibration_dir.glob("*/open_set_metrics.json")):
+        report = json.loads(path.read_text(encoding="utf-8"))
+        language = str(report["language"])
+        calibration[language] = {
+            "coefficient": float(report["calibrator"]["coefficient"]),
+            "intercept": float(report["calibrator"]["intercept"]),
+            "similarity_threshold": float(report["open_set"]["equal_error_threshold"]),
+            "auroc": float(report["open_set"]["auroc"]),
+            "ece": float(report["open_set"]["ece"]),
+        }
+        source_models[language] = str(report.get("model_name", ""))
+    return calibration, source_models
+
+
+def calibrate_index(args: argparse.Namespace) -> None:
+    """Refit metadata.open_set_calibration from a directory of per-language
+    open-set reports without rebuilding centroids or re-encoding anything."""
+    metadata_path = args.index_dir / "metadata.json"
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    calibration, source_models = load_open_set_calibration(args.open_set_calibration_dir)
+    if not calibration:
+        raise SystemExit(f"No */open_set_metrics.json found under {args.open_set_calibration_dir}")
+    mismatched = {
+        language: model
+        for language, model in source_models.items()
+        if model and model != metadata["model_name"]
+    }
+    if mismatched and not args.allow_model_mismatch:
+        raise SystemExit(
+            "Refusing to install calibration fitted on a different encoder than the index "
+            f"({metadata['model_name']}): {json.dumps(mismatched)}. Re-run evaluate_open_set.py "
+            "with the index's model, or pass --allow-model-mismatch if this is deliberate."
+        )
+    metadata["open_set_calibration"] = calibration
+    metadata["open_set_calibration_source"] = str(args.open_set_calibration_dir)
+    metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+    print(json.dumps({
+        "index_dir": str(args.index_dir),
+        "calibrated_languages": sorted(calibration),
+        "auroc": {language: values["auroc"] for language, values in calibration.items()},
+    }, indent=2))
+
+
 def query_index(args: argparse.Namespace) -> None:
     index = StyleIndex(args.index_dir, args.backend, args.device)
     print(json.dumps(index.query(args.text, args.language, args.mode, args.top_k), ensure_ascii=False, indent=2))
@@ -740,6 +780,14 @@ def parse_args() -> argparse.Namespace:
     build.add_argument("--decade-min-authors", type=int, default=5)
     build.add_argument("--decade-min-sources", type=int, default=20)
     build.set_defaults(function=build_index)
+
+    calibrate = subparsers.add_parser(
+        "calibrate", help="Install per-language open-set calibration into an existing index's metadata."
+    )
+    calibrate.add_argument("--index-dir", type=Path, required=True)
+    calibrate.add_argument("--open-set-calibration-dir", type=Path, required=True)
+    calibrate.add_argument("--allow-model-mismatch", action="store_true")
+    calibrate.set_defaults(function=calibrate_index)
 
     query = subparsers.add_parser("query")
     shared_query_args(query)

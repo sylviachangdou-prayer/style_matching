@@ -22,10 +22,12 @@ uvicorn web.api.main:app --reload --port 8000
 # open http://127.0.0.1:8000
 ```
 
-Without `artifacts/multilingual_style_index_v1/` present, the app serves a clearly
-flagged **demo fixture** (`"demo": true`, banner in the UI) so frontend work can
-proceed while the Colab training run finishes. Point `STYLEMATCH_INDEX_DIR` at the
-real index directory once it exists.
+The app looks for `artifacts/multilingual_style_index_challenger_v1/` first (the index
+built from the model selected in `artifacts/model_comparison_v1.json`), then falls back
+to the retired `artifacts/multilingual_style_index_v1/` baseline index. When neither is
+present it serves a clearly flagged **demo fixture** (`"demo": true`, banner in the UI)
+so frontend work can proceed while the Colab training run finishes. Set
+`STYLEMATCH_INDEX_DIR` to override the search entirely.
 
 Tests: `python -m pytest web/tests -q` (runs in demo mode, no downloads).
 
@@ -72,7 +74,7 @@ as the root directory).
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `STYLEMATCH_INDEX_DIR` | `artifacts/multilingual_style_index_v1` | Prebuilt index directory |
+| `STYLEMATCH_INDEX_DIR` | challenger index, then baseline index | Prebuilt index directory (overrides the search order) |
 | `STYLEMATCH_HUB_REPO` | unset | HF repo to download the index from when the dir is missing |
 | `STYLEMATCH_HUB_REPO_TYPE` | `dataset` | Repo type for the download |
 | `STYLEMATCH_DEVICE` | `auto` | `cpu`, `cuda`, `mps`, or `auto` |
@@ -93,3 +95,21 @@ as the root directory).
   and decade status. Decade results remain absent until support and author-heldout gates pass.
 - Application logs contain only language, mode, latency, confidence state, returned labels, and
   decade label. User text is never written to monitoring logs.
+
+## Frontend extras
+
+- **Test a new passage / Clear**: after a match the results end with a "Test a new
+  passage" button (and the counter row gains a "Clear" button) that resets the input
+  and results in one click.
+- **Export**: "Export as PDF" opens the browser print dialog on a dedicated white
+  result sheet (input passage, all scores, evidence, representative passages in navy,
+  the site URL, and a QR code); "Save as image" renders the same sheet to a PNG.
+  The PNG renderer (`html2canvas`) and QR generator (`qrcode-generator`) are lazy-loaded
+  from jsDelivr only when an export button is pressed; if the CDN is unreachable the
+  PDF path still works and the QR silently degrades to the plain URL. Author portraits
+  are intentionally excluded from exports so cross-origin images can never taint the
+  canvas. Set `window.STYLEMATCH_SHARE_URL` in `config.js` to control the URL/QR
+  printed on exports.
+- The page footer carries the system abstract (open-set retrieval, dual-channel
+  architecture, uncalibrated-score and cross-language caveats) — keep it in sync with
+  the honesty contract above if scoring semantics change.

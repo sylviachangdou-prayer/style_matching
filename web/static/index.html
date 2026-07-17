@@ -63,6 +63,9 @@
   select, button { font: inherit; border-radius: var(--radius); padding: 8px 14px;
                    border: 1px solid var(--border); background: var(--field); color: var(--ink); }
   .counter { color: var(--muted); font: .82rem var(--mono); margin-left: auto; }
+  #clear { background: none; border: 0; padding: 2px 4px; color: var(--muted);
+           font-size: .82rem; text-decoration: underline; cursor: pointer; }
+  #clear:hover { color: var(--navy); }
   #go { background: var(--navy); color: var(--bg); border: 0; padding: 10px 28px;
         font-weight: 600; letter-spacing: .02em; cursor: pointer; }
   #go:hover { background: var(--navy-deep); color: #fffdf8; }
@@ -115,8 +118,66 @@
                     font-size: .82rem; font-style: italic; margin-top: 5px; }
   .empty, .error { text-align: center; padding: 28px; color: var(--muted); }
   .error { color: #a04a3c; }
-  footer { color: var(--muted); font-size: .8rem; margin-top: 34px; text-align: center; }
+
+  /* Post-result actions: retry + export. */
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 34px;
+             padding-top: 18px; border-top: 1px solid var(--border); }
+  .actions button { cursor: pointer; }
+  .actions .primary { background: var(--navy); color: var(--bg); border: 0; font-weight: 600; }
+  .actions .primary:hover { background: var(--navy-deep); color: #fffdf8; }
+  .actions button:disabled { opacity: .5; cursor: wait; }
+
+  footer { color: var(--muted); font-size: .82rem; margin-top: 40px; text-align: left;
+           border-top: 1px solid var(--border); padding-top: 18px; }
+  footer h2 { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
+              color: var(--muted); margin: 0 0 8px; }
+  footer p { margin: 0; line-height: 1.65; }
   .spinner { text-align: center; padding: 30px; color: var(--muted); }
+
+  /* Export sheet: fixed light palette independent of the site theme — white
+     background, dark gray text, representative passages in navy blue. */
+  #export-sheet { display: none; background: #ffffff; color: #2b2b2b; width: 720px;
+                  padding: 42px 46px; font: 15px/1.6 -apple-system, "Segoe UI", Roboto,
+                  "Noto Sans", "Noto Sans SC", sans-serif;
+                  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #export-sheet h1 { font-family: var(--serif); color: #1f3a5f; font-size: 1.7rem; margin: 0; }
+  #export-sheet .xsub { color: #6b6b6b; font-size: .78rem; margin: 2px 0 20px; }
+  #export-sheet h2 { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
+                     color: #6b6b6b; margin: 20px 0 6px; }
+  #export-sheet .xuser { border: 1px solid #d9d9d9; border-radius: 2px; padding: 12px 14px;
+                         font: .85rem/1.65 var(--mono); white-space: pre-wrap;
+                         word-wrap: break-word; color: #222; margin: 0 0 6px; }
+  #export-sheet .xbanner { font-size: .85rem; color: #444; margin: 3px 0; }
+  #export-sheet .xmatch { margin: 0 0 20px; page-break-inside: avoid; }
+  #export-sheet .xhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 9px; }
+  #export-sheet .xrank { font-family: var(--serif); font-size: 1.15rem; color: #9a9a9a; }
+  #export-sheet .xname { font-family: var(--serif); font-weight: 600; font-size: 1.2rem;
+                         color: #1f3a5f; }
+  #export-sheet .xchip { font-size: .62rem; letter-spacing: .08em; text-transform: uppercase;
+                         border: 1px solid #c9bb95; border-radius: 2px; color: #7d715a;
+                         padding: 0 6px; }
+  #export-sheet .xaff { margin-left: auto; font: 600 1rem var(--mono); color: #1f3a5f; }
+  #export-sheet .xscores { font: .8rem var(--mono); color: #444; margin: 3px 0 0; }
+  #export-sheet .xprofile { font-size: .85rem; color: #555; margin: 4px 0 0; }
+  #export-sheet .xtraits { font: .76rem var(--mono); color: #1f3a5f; margin: 3px 0 0; }
+  #export-sheet .xwhy { margin: 5px 0 0; padding-left: 18px; font-size: .85rem; color: #333; }
+  #export-sheet .xwhy li { margin: 2px 0; }
+  #export-sheet blockquote { font-family: var(--serif); color: #1f3a5f;
+                             border-left: 2px solid #1f3a5f; font-size: .98rem; line-height: 1.7;
+                             margin: 10px 0 10px 2px; padding: 2px 0 2px 13px; }
+  #export-sheet blockquote cite { display: block; font-family: var(--serif); color: #7d715a;
+                                  font-size: .74rem; font-style: italic; margin-top: 4px; }
+  #export-sheet .xfoot { display: flex; gap: 18px; align-items: center;
+                         border-top: 1px solid #d9d9d9; margin-top: 28px; padding-top: 16px; }
+  #export-sheet .xfoot img { width: 86px; height: 86px; image-rendering: pixelated; }
+  #export-sheet .xurl { font: .8rem var(--mono); color: #1f3a5f; word-break: break-all; }
+  #export-sheet .xnote { font-size: .72rem; color: #6b6b6b; margin-top: 5px; line-height: 1.5; }
+
+  @media print {
+    body.printing { background: #ffffff; }
+    body.printing main { display: none !important; }
+    body.printing #export-sheet { display: block; width: auto; padding: 0; }
+  }
 </style>
 </head>
 <body>
@@ -128,29 +189,64 @@
 
   <div class="controls">
     <span class="counter" id="counter">0 words</span>
+    <button id="clear" type="button" hidden>Clear</button>
   </div>
   <button id="go">Find my match</button>
 
   <div id="output"></div>
 
-  <footer>Similarity scores are uncalibrated cosine values — useful for ranking, not percentages.
-  Style and topic are scored by two separate models and always shown separately.
-  Rankings pool every language in the library; cross-language similarities are not calibrated,
-  so same-language matches are usually the more reliable ones.</footer>
+  <footer>
+    <h2>Abstract</h2>
+    <p>StyleMatch is an open-set, multilingual author-style retrieval system: it treats
+    attribution as profile ranking plus verification rather than closed-set classification,
+    and it may return no match. A query passage is encoded once per channel by two physically
+    separate models — a contrastively fine-tuned multilingual authorship-representation
+    encoder for style, selected over an mStyleDistance baseline on identical source-heldout
+    comparisons, and a multilingual E5 encoder for topic — and compared against precomputed
+    author centroids and source prototypes by exact inner product. Style and topic
+    similarities are always reported separately; the composite affinity is a declared product
+    rule, and all scores are uncalibrated cosine values used for ranking, never probabilities.
+    Profiles are built solely from original-language primary texts — translations are
+    excluded because translationese distorts syntax, punctuation, and register — and
+    cross-language retrieval is served as a reduced-confidence mode ranked per target
+    language, since raw multilingual cosines are not comparable across language pairs.
+    Matches are returned with interpretable stylometric evidence and, where licensing
+    permits, representative original-language passages.</p>
+  </footer>
 </main>
+
+<div id="export-sheet" aria-hidden="true"></div>
 
 <script>
 const API = (window.STYLEMATCH_API || "").replace(/\/$/, "");
+const SHARE_URL = window.STYLEMATCH_SHARE_URL || location.href;
+const QR_LIB = "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js";
+const H2C_LIB = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
 
 const $ = (id) => document.getElementById(id);
-const textEl = $("text"), output = $("output"), goBtn = $("go");
+const textEl = $("text"), output = $("output"), goBtn = $("go"),
+      clearBtn = $("clear"), sheet = $("export-sheet");
 
-textEl.addEventListener("input", () => {
+let lastData = null, lastText = "";
+
+function updateCounter() {
   const t = textEl.value.trim();
   const cjk = (t.match(/[぀-ヿ一-鿿]/g) || []).length;
   $("counter").textContent = cjk > t.length / 4
     ? `${cjk} CJK characters` : `${t ? t.split(/\s+/).length : 0} words`;
-});
+  clearBtn.hidden = !t;
+}
+textEl.addEventListener("input", updateCounter);
+
+function resetAll() {
+  textEl.value = "";
+  output.innerHTML = "";
+  lastData = null; lastText = "";
+  updateCounter();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  textEl.focus();
+}
+clearBtn.onclick = resetAll;
 
 goBtn.onclick = async () => {
   const text = textEl.value.trim();
@@ -165,6 +261,7 @@ goBtn.onclick = async () => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || `Request failed (${res.status})`);
+    lastData = data; lastText = text;
     render(data);
   } catch (err) {
     output.innerHTML = `<div class="error">${escapeHtml(err.message)}</div>`;
@@ -195,7 +292,19 @@ function render(data) {
   if (!matches.length) parts.push(
     `<div class="empty">No match to show for this passage yet — try a longer or different passage.</div>`);
 
+  parts.push(`
+  <div class="actions">
+    <button id="retry" class="primary" type="button">Test a new passage</button>
+    ${matches.length ? `
+    <button id="export-pdf" type="button">Export as PDF</button>
+    <button id="export-png" type="button">Save as image</button>` : ""}
+  </div>`);
+
   output.innerHTML = parts.join("");
+  $("retry").onclick = resetAll;
+  const pdfBtn = $("export-pdf"), pngBtn = $("export-png");
+  if (pdfBtn) pdfBtn.onclick = exportPdf;
+  if (pngBtn) pngBtn.onclick = () => exportPng(pngBtn);
 }
 
 function matchRow(m, rank) {
@@ -235,6 +344,116 @@ function scoreRow(label, value, kind) {
   return `<div class="score-row"><span class="lbl">${label}</span>
     <span class="dots ${kind}">${dots}</span>
     <span class="val">${value.toFixed(2)}</span></div>`;
+}
+
+/* ---------- export ---------- */
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = () => reject(new Error(`Could not load ${src}`));
+    document.head.appendChild(s);
+  });
+}
+
+async function qrDataUrl(url) {
+  try {
+    if (typeof qrcode === "undefined") await loadScript(QR_LIB);
+    const qr = qrcode(0, "M");
+    qr.addData(url);
+    qr.make();
+    return qr.createDataURL(4, 8);
+  } catch {
+    return null; /* offline or CDN blocked: fall back to the plain URL */
+  }
+}
+
+async function buildExportSheet() {
+  if (!lastData) return false;
+  const matches = Object.values(lastData.results).flat();
+  const banners = [];
+  if (lastData.input_language)
+    banners.push(`Input language: <strong>${escapeHtml(lastData.input_language)}</strong>`);
+  if (lastData.decade_match)
+    banners.push(`Closest style decade: <strong>${escapeHtml(lastData.decade_match.decade)}</strong>
+      (similarity ${lastData.decade_match.style_similarity.toFixed(2)}, uncalibrated)`);
+  const qr = await qrDataUrl(SHARE_URL);
+  const generated = new Date().toISOString().slice(0, 16).replace("T", " ");
+  sheet.innerHTML = `
+    <h1>StyleMatch</h1>
+    <div class="xsub">Open-set style-profile retrieval · generated ${escapeHtml(generated)}
+      ${lastData.demo ? " · DEMO DATA (placeholder fixtures, not measurements)" : ""}</div>
+    <h2>Your passage</h2>
+    <div class="xuser">${escapeHtml(lastText)}</div>
+    ${banners.map(b => `<div class="xbanner">${b}</div>`).join("")}
+    <h2>Closest style profiles</h2>
+    ${matches.map((m, i) => exportMatch(m, i + 1)).join("")}
+    <div class="xfoot">
+      ${qr ? `<img src="${qr}" alt="QR code for ${escapeHtml(SHARE_URL)}">` : ""}
+      <div>
+        <div class="xurl">${escapeHtml(SHARE_URL)}</div>
+        <div class="xnote">Similarity scores are uncalibrated cosine values, used for ranking,
+        never probabilities. Style and topic are scored by two separate models and shown
+        separately; cross-language matches are reduced-confidence.</div>
+      </div>
+    </div>`;
+  return true;
+}
+
+function exportMatch(m, rank) {
+  const passages = m.representative_passages.map(p =>
+    `<blockquote>${escapeHtml(p.text)}<cite>${escapeHtml(p.title || p.source_id)}</cite></blockquote>`).join("");
+  const why = (m.why || []).map(w => `<li>${escapeHtml(w)}</li>`).join("");
+  const scores = [`Affinity ${m.affinity_score.toFixed(2)}`, `Style ${m.style_similarity.toFixed(2)}`];
+  if (m.topic_similarity != null) scores.push(`Topic ${m.topic_similarity.toFixed(2)}`);
+  return `
+  <div class="xmatch">
+    <div class="xhead">
+      <span class="xrank">${rank}</span>
+      <span class="xname">${escapeHtml(m.author_or_speaker)}</span>
+      <span class="xchip">${escapeHtml(m.target_language)}</span>
+      ${m.cross_language ? '<span class="xchip">cross-language</span>' : ""}
+      <span class="xchip">${escapeHtml(m.admission_tier || "exploratory")}</span>
+      <span class="xaff">${m.affinity_score.toFixed(2)}</span>
+    </div>
+    <div class="xscores">${scores.join(" &nbsp;·&nbsp; ")}</div>
+    ${m.profile ? `<div class="xprofile">${escapeHtml(m.profile)}</div>` : ""}
+    ${m.style_traits ? `<div class="xtraits">${escapeHtml(m.style_traits)}</div>` : ""}
+    ${why ? `<ul class="xwhy">${why}</ul>` : ""}
+    ${passages}
+  </div>`;
+}
+
+async function exportPdf() {
+  if (!(await buildExportSheet())) return;
+  document.body.classList.add("printing");
+  const cleanup = () => document.body.classList.remove("printing");
+  window.addEventListener("afterprint", cleanup, { once: true });
+  window.print();
+  setTimeout(cleanup, 2000); /* afterprint is unreliable on some mobile browsers */
+}
+
+async function exportPng(button) {
+  if (!(await buildExportSheet())) return;
+  button.disabled = true;
+  const previous = { display: sheet.style.display, position: sheet.style.position,
+                     left: sheet.style.left, top: sheet.style.top };
+  try {
+    if (typeof html2canvas === "undefined") await loadScript(H2C_LIB);
+    Object.assign(sheet.style, { display: "block", position: "absolute", left: "-10000px", top: "0" });
+    const canvas = await html2canvas(sheet, { backgroundColor: "#ffffff", scale: 2 });
+    const link = document.createElement("a");
+    link.download = `stylematch-${new Date().toISOString().slice(0, 10)}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  } catch {
+    alert("Could not render the image (the renderer failed to load). Please use “Export as PDF” instead.");
+  } finally {
+    Object.assign(sheet.style, previous);
+    button.disabled = false;
+  }
 }
 
 function escapeHtml(s) {

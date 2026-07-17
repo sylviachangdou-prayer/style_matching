@@ -174,6 +174,43 @@ LITERARY_EXPANSION = [
     ("Wladyslaw Reymont", "pl", "19c_20c", "expand_multilingual_2026_07", "Polish Wikisource", "work", 3, "Polish originals only"),
     ("Stefan Zeromski", "pl", "20c", "expand_multilingual_2026_07", "Polish Wikisource", "work", 3, "Polish originals only"),
     ("Eliza Orzeszkowa", "pl", "19c", "expand_multilingual_2026_07", "Polish Wikisource", "work", 3, "Polish originals only"),
+    # 2026-07b expansion (Nobel laureates, canonical prose, rights-cleared contemporary).
+    # Every fetchable source below was verified against live gutendex/Wikisource
+    # holdings on 2026-07-17 before entry; rights-cleared authors use local_text
+    # rows in the multilingual catalog and are never fetched from the network.
+    ("Oscar Wilde", "en", "19c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "original English prose and essays"),
+    ("W. B. Yeats", "en", "19c_20c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "Nobel 1923; original English prose and verse"),
+    ("George Bernard Shaw", "en", "20c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "Nobel 1925; original English plays and prefaces"),
+    ("John Galsworthy", "en", "20c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "Nobel 1932; original English prose; US-PD early works only"),
+    ("Sherwood Anderson", "en", "20c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "original English prose; US-PD early works only"),
+    ("Theodore Dreiser", "en", "20c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "original English prose; US-PD early works only"),
+    ("Gertrude Stein", "en", "20c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "original English prose; US-PD early works only"),
+    ("Jonathan Swift", "en", "18c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "original English prose and satire"),
+    ("Daniel Defoe", "en", "18c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "original English prose"),
+    ("Ralph Waldo Emerson", "en", "19c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "original English essays"),
+    ("Henry David Thoreau", "en", "19c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "original English essays and prose"),
+    ("Walt Whitman", "en", "19c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "original English prose and verse"),
+    ("Romain Rolland", "fr", "20c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "Nobel 1915; French originals only"),
+    ("Andre Gide", "fr", "20c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "Nobel 1947; French originals; US-PD early works only"),
+    ("Charles Baudelaire", "fr", "19c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "French originals only"),
+    ("Prosper Merimee", "fr", "19c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "French originals only"),
+    ("Annie Ernaux", "fr", "20c_21c", "expand_literary_2026_07b", "rights-cleared private texts", "work", 3, "Nobel 2022; in-copyright French originals supplied locally; passages not displayed"),
+    ("Gerhart Hauptmann", "de", "19c_20c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "Nobel 1912; German originals only"),
+    ("Gottfried Keller", "de", "19c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "German originals only; two independent PG volumes so exploratory"),
+    ("Adalbert Stifter", "de", "19c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "German originals only"),
+    ("Ivan Bunin", "ru", "19c_20c", "expand_literary_2026_07b", "Russian Wikisource", "work", 3, "Nobel 1933; Russian originals only"),
+    ("Leonid Andreyev", "ru", "20c", "expand_literary_2026_07b", "Russian Wikisource", "work", 3, "Russian originals only"),
+    ("Mikhail Saltykov-Shchedrin", "ru", "19c", "expand_literary_2026_07b", "Russian Wikisource", "work", 3, "Russian originals only; two verified sources so exploratory"),
+    ("Jacinto Benavente", "es", "20c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "Nobel 1922; Spanish originals only"),
+    ("Ruben Dario", "es", "19c_20c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "Spanish originals only; modernist prose and verse"),
+    ("Grazia Deledda", "it", "20c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "Nobel 1926; Italian originals only; single PG source so exploratory"),
+    ("Gabriele D'Annunzio", "it", "19c_20c", "expand_literary_2026_07b", "Project Gutenberg", "work", 3, "Italian originals only"),
+    ("Maria Konopnicka", "pl", "19c", "expand_literary_2026_07b", "Polish Wikisource", "work", 3, "Polish originals only"),
+    ("Xiao Hong", "zh", "20c", "expand_literary_2026_07b", "Chinese Wikisource", "work", 3, "Chinese originals only; two verified sources so exploratory"),
+    ("Xu Zhimo", "zh", "20c", "expand_literary_2026_07b", "Chinese Wikisource", "work", 3, "Chinese originals only; essays and verse"),
+    ("Jian Zhen", "zh", "20c_21c", "expand_literary_2026_07b", "rights-cleared private texts", "work", 3, "in-copyright Chinese originals supplied locally; passages not displayed"),
+    ("Qiu Miaojin", "zh", "20c", "expand_literary_2026_07b", "rights-cleared private texts", "work", 3, "in-copyright Chinese originals supplied locally; passages not displayed"),
+    ("J. K. Rowling", "en", "20c_21c", "expand_literary_2026_07b", "rights-cleared private texts", "work", 3, "in-copyright English originals supplied locally; passages not displayed"),
 ]
 
 

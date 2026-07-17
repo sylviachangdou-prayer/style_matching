@@ -24,7 +24,12 @@ from web.api.explain import cohort_feature_mean, passage_features, shared_style_
 from web.api.language import SUPPORTED_LANGUAGES, detect_language
 
 CJK_LANGUAGES = {"zh", "ja"}
-DEFAULT_INDEX_DIR = ROOT / "artifacts" / "multilingual_style_index_v1"
+# Held-out model selection (artifacts/model_comparison_v1.json) picked the fine-tuned
+# challenger; prefer its index and keep the mStyleDistance baseline index as fallback.
+INDEX_DIR_CANDIDATES = (
+    ROOT / "artifacts" / "multilingual_style_index_challenger_v1",
+    ROOT / "artifacts" / "multilingual_style_index_v1",
+)
 CONFIG_PATH = Path(__file__).resolve().parents[1] / "config" / "weights.yaml"
 LOGGER = logging.getLogger("stylematch.metrics")
 
@@ -45,7 +50,14 @@ def load_config() -> dict:
 def load_index() -> tuple[object, bool]:
     """Load the real StyleIndex once at process start; fall back to the demo
     fixture when the Colab-built artifacts are not present yet."""
-    index_dir = Path(os.environ.get("STYLEMATCH_INDEX_DIR", DEFAULT_INDEX_DIR))
+    env_dir = os.environ.get("STYLEMATCH_INDEX_DIR")
+    if env_dir:
+        index_dir = Path(env_dir)
+    else:
+        index_dir = next(
+            (candidate for candidate in INDEX_DIR_CANDIDATES if (candidate / "metadata.json").exists()),
+            INDEX_DIR_CANDIDATES[0],
+        )
     hub_repo = os.environ.get("STYLEMATCH_HUB_REPO")
     if not (index_dir / "metadata.json").exists() and hub_repo:
         from huggingface_hub import snapshot_download

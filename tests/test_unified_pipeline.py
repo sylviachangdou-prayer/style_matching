@@ -85,6 +85,7 @@ def test_query_result_is_json_serializable_when_parquet_returns_array() -> None:
         "n_chunks": 6,
     }])
     index.model = FakeModel()
+    index.passage_style_embeddings = None
 
     result = index.query("Test text.", "en", "within", 1)
 

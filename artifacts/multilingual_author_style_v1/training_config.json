@@ -1,14 +1,14 @@
 {
   "input": "/content/drive/MyDrive/style_matching/data/all/meta/all_sources_chunks.parquet",
-  "base_model": "StyleDistance/mstyledistance",
-  "output_dir": "artifacts/mstyledistance_stylematch_v1",
+  "base_model": "Blablablab/multilingual-style-representation",
+  "output_dir": "artifacts/multilingual_author_style_v1",
   "split": "train",
-  "n_rows": 1025669,
-  "n_pairs": 67500,
-  "n_author_language_profiles_with_cross_source_pairs": 135,
+  "n_rows": 786007,
+  "n_pairs": 27000,
+  "n_author_language_profiles_with_cross_source_pairs": 54,
   "n_registry_author_language_profiles": 240,
-  "n_profiles_with_chunks": 167,
-  "n_profiles_with_at_least_3_sources": 126,
+  "n_profiles_with_chunks": 78,
+  "n_profiles_with_at_least_3_sources": 49,
   "registry_profiles_without_chunks": [
     {
       "language": "de",
@@ -20,11 +20,39 @@
     },
     {
       "language": "de",
+      "author_or_speaker": "Arthur Schnitzler"
+    },
+    {
+      "language": "de",
       "author_or_speaker": "Bertolt Brecht"
     },
     {
       "language": "de",
+      "author_or_speaker": "E. T. A. Hoffmann"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Franz Kafka"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Friedrich Nietzsche"
+    },
+    {
+      "language": "de",
       "author_or_speaker": "Hannah Arendt"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Heinrich Heine"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Hermann Hesse"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Johann Wolfgang von Goethe"
     },
     {
       "language": "de",
@@ -33,6 +61,30 @@
     {
       "language": "de",
       "author_or_speaker": "Pope Benedict XVI"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Rainer Maria Rilke"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Stefan Zweig"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Theodor Fontane"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Theodor Storm"
+    },
+    {
+      "language": "de",
+      "author_or_speaker": "Thomas Mann"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Agatha Christie"
     },
     {
       "language": "en",
@@ -56,7 +108,15 @@
     },
     {
       "language": "en",
+      "author_or_speaker": "Booker T. Washington"
+    },
+    {
+      "language": "en",
       "author_or_speaker": "Boris Johnson"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Bram Stoker"
     },
     {
       "language": "en",
@@ -65,6 +125,10 @@
     {
       "language": "en",
       "author_or_speaker": "David Cameron"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "E. Nesbit"
     },
     {
       "language": "en",
@@ -89,6 +153,14 @@
     {
       "language": "en",
       "author_or_speaker": "Flannery O'Connor"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Frederick Douglass"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "G. K. Chesterton"
     },
     {
       "language": "en",
@@ -160,6 +232,14 @@
     },
     {
       "language": "en",
+      "author_or_speaker": "Lord Dunsany"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Mahatma Gandhi"
+    },
+    {
+      "language": "en",
       "author_or_speaker": "Malala Yousafzai"
     },
     {
@@ -173,6 +253,10 @@
     {
       "language": "en",
       "author_or_speaker": "Nelson Mandela"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "P. G. Wodehouse"
     },
     {
       "language": "en",
@@ -196,7 +280,15 @@
     },
     {
       "language": "en",
+      "author_or_speaker": "Rudyard Kipling"
+    },
+    {
+      "language": "en",
       "author_or_speaker": "Rutherford B. Hayes"
+    },
+    {
+      "language": "en",
+      "author_or_speaker": "Sinclair Lewis"
     },
     {
       "language": "en",
@@ -224,7 +316,19 @@
     },
     {
       "language": "en",
+      "author_or_speaker": "William Morris"
+    },
+    {
+      "language": "en",
       "author_or_speaker": "Winston Churchill"
+    },
+    {
+      "language": "es",
+      "author_or_speaker": "Benito Perez Galdos"
+    },
+    {
+      "language": "es",
+      "author_or_speaker": "Emilia Pardo Bazan"
     },
     {
       "language": "es",
@@ -248,11 +352,43 @@
     },
     {
       "language": "es",
+      "author_or_speaker": "Juan Valera"
+    },
+    {
+      "language": "es",
+      "author_or_speaker": "Leopoldo Alas"
+    },
+    {
+      "language": "es",
+      "author_or_speaker": "Miguel de Unamuno"
+    },
+    {
+      "language": "es",
+      "author_or_speaker": "Pio Baroja"
+    },
+    {
+      "language": "es",
       "author_or_speaker": "Salvador Allende"
+    },
+    {
+      "language": "es",
+      "author_or_speaker": "Vicente Blasco Ibanez"
     },
     {
       "language": "fr",
       "author_or_speaker": "Albert Camus"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Alexandre Dumas"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Alphonse Daudet"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Anatole France"
     },
     {
       "language": "fr",
@@ -264,6 +400,14 @@
     },
     {
       "language": "fr",
+      "author_or_speaker": "Emile Gaboriau"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Emile Zola"
+    },
+    {
+      "language": "fr",
       "author_or_speaker": "Emmanuel Macron"
     },
     {
@@ -272,7 +416,31 @@
     },
     {
       "language": "fr",
+      "author_or_speaker": "Gaston Leroux"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "George Sand"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Gustave Flaubert"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Guy de Maupassant"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Honore de Balzac"
+    },
+    {
+      "language": "fr",
       "author_or_speaker": "Jean-Paul Sartre"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Jules Verne"
     },
     {
       "language": "fr",
@@ -280,7 +448,35 @@
     },
     {
       "language": "fr",
+      "author_or_speaker": "Marcel Proust"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Maurice Leblanc"
+    },
+    {
+      "language": "fr",
       "author_or_speaker": "Simone de Beauvoir"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Stendhal"
+    },
+    {
+      "language": "fr",
+      "author_or_speaker": "Victor Hugo"
+    },
+    {
+      "language": "it",
+      "author_or_speaker": "Antonio Fogazzaro"
+    },
+    {
+      "language": "it",
+      "author_or_speaker": "Edmondo De Amicis"
+    },
+    {
+      "language": "it",
+      "author_or_speaker": "Giovanni Verga"
     },
     {
       "language": "it",
@@ -288,11 +484,127 @@
     },
     {
       "language": "it",
+      "author_or_speaker": "Italo Svevo"
+    },
+    {
+      "language": "it",
+      "author_or_speaker": "Luigi Pirandello"
+    },
+    {
+      "language": "it",
       "author_or_speaker": "Pope Francis"
+    },
+    {
+      "language": "ja",
+      "author_or_speaker": "Arishima Takeo"
+    },
+    {
+      "language": "ja",
+      "author_or_speaker": "Higuchi Ichiyo"
+    },
+    {
+      "language": "ja",
+      "author_or_speaker": "Izumi Kyoka"
+    },
+    {
+      "language": "ja",
+      "author_or_speaker": "Kunikida Doppo"
+    },
+    {
+      "language": "ja",
+      "author_or_speaker": "Miyazawa Kenji"
+    },
+    {
+      "language": "ja",
+      "author_or_speaker": "Mori Ogai"
+    },
+    {
+      "language": "ja",
+      "author_or_speaker": "Natsume Soseki"
+    },
+    {
+      "language": "ja",
+      "author_or_speaker": "Okamoto Kido"
+    },
+    {
+      "language": "ja",
+      "author_or_speaker": "Osamu Dazai"
+    },
+    {
+      "language": "ja",
+      "author_or_speaker": "Ryunosuke Akutagawa"
+    },
+    {
+      "language": "ja",
+      "author_or_speaker": "Shimazaki Toson"
+    },
+    {
+      "language": "pl",
+      "author_or_speaker": "Boleslaw Prus"
+    },
+    {
+      "language": "pl",
+      "author_or_speaker": "Eliza Orzeszkowa"
+    },
+    {
+      "language": "pl",
+      "author_or_speaker": "Henryk Sienkiewicz"
     },
     {
       "language": "pl",
       "author_or_speaker": "Pope John Paul II"
+    },
+    {
+      "language": "pl",
+      "author_or_speaker": "Stefan Zeromski"
+    },
+    {
+      "language": "pl",
+      "author_or_speaker": "Wladyslaw Reymont"
+    },
+    {
+      "language": "ru",
+      "author_or_speaker": "Alexander Kuprin"
+    },
+    {
+      "language": "ru",
+      "author_or_speaker": "Alexander Pushkin"
+    },
+    {
+      "language": "ru",
+      "author_or_speaker": "Anton Chekhov"
+    },
+    {
+      "language": "ru",
+      "author_or_speaker": "Fyodor Dostoevsky"
+    },
+    {
+      "language": "ru",
+      "author_or_speaker": "Ivan Goncharov"
+    },
+    {
+      "language": "ru",
+      "author_or_speaker": "Ivan Turgenev"
+    },
+    {
+      "language": "ru",
+      "author_or_speaker": "Leo Tolstoy"
+    },
+    {
+      "language": "ru",
+      "author_or_speaker": "Maxim Gorky"
+    },
+    {
+      "language": "ru",
+      "author_or_speaker": "Nikolai Gogol"
+    },
+    {
+      "language": "ru",
+      "author_or_speaker": "Nikolai Leskov"
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Cai Yuanpei"
     },
     {
       "language": "zh",
@@ -300,7 +612,51 @@
     },
     {
       "language": "zh",
+      "author_or_speaker": "Feng Menglong"
+    },
+    {
+      "language": "zh",
       "author_or_speaker": "Lao She"
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Li Boyuan"
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Liang Qichao"
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Liu E"
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Lu Xun"
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Su Manshu"
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Sun Yat-sen"
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Wu Jianren"
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Yu Dafu"
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Zeng Pu"
+    },
+    {
+      "language": "zh",
+      "author_or_speaker": "Zhu Ziqing"
     }
   ],
   "profiles_with_one_source": [
@@ -315,12 +671,6 @@
       "author_or_speaker": "Andrew Johnson",
       "n_sources": 1,
       "n_chunks": 255
-    },
-    {
-      "language": "en",
-      "author_or_speaker": "Booker T. Washington",
-      "n_sources": 1,
-      "n_chunks": 376
     },
     {
       "language": "en",
@@ -408,12 +758,6 @@
     },
     {
       "language": "en",
-      "author_or_speaker": "Mahatma Gandhi",
-      "n_sources": 1,
-      "n_chunks": 520
-    },
-    {
-      "language": "en",
       "author_or_speaker": "Martin Van Buren",
       "n_sources": 1,
       "n_chunks": 303
@@ -459,42 +803,6 @@
       "author_or_speaker": "Zachary Taylor",
       "n_sources": 1,
       "n_chunks": 51
-    },
-    {
-      "language": "fr",
-      "author_or_speaker": "Maurice Leblanc",
-      "n_sources": 1,
-      "n_chunks": 364
-    },
-    {
-      "language": "zh",
-      "author_or_speaker": "Cai Yuanpei",
-      "n_sources": 1,
-      "n_chunks": 7
-    },
-    {
-      "language": "zh",
-      "author_or_speaker": "Su Manshu",
-      "n_sources": 1,
-      "n_chunks": 66
-    },
-    {
-      "language": "zh",
-      "author_or_speaker": "Yu Dafu",
-      "n_sources": 1,
-      "n_chunks": 25
-    },
-    {
-      "language": "zh",
-      "author_or_speaker": "Zeng Pu",
-      "n_sources": 1,
-      "n_chunks": 538
-    },
-    {
-      "language": "zh",
-      "author_or_speaker": "Zhu Ziqing",
-      "n_sources": 1,
-      "n_chunks": 82
     }
   ],
   "all_eligible_profiles_contributed_pairs": true,
@@ -502,15 +810,7 @@
   "hard_negatives": true,
   "relaxed_hard_negatives": 0,
   "pairs_by_language": {
-    "de": 6000,
-    "en": 32000,
-    "es": 3500,
-    "fr": 7000,
-    "it": 2500,
-    "ja": 5500,
-    "pl": 2500,
-    "ru": 5000,
-    "zh": 3500
+    "en": 27000
   },
   "epochs": 1,
   "batch_size": 32,

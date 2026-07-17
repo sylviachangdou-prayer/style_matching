@@ -261,6 +261,15 @@ def fetch_row(row: dict[str, str]) -> dict[str, str]:
         text = extract_aozora(fetch_bytes(row["source_url"]))
     elif source_format == "wikisource_subpages":
         text = extract_wikisource(row["original_language"], row["source_url"])
+    elif source_format == "local_text":
+        # Rights-cleared, in-copyright works the owner supplies herself: the file
+        # must already sit in raw_inputs/ under the standard name. Never fetched.
+        local_path = REGISTRY_DIR / "raw_inputs" / f"{slug(row['name'])}_{slug(row['source_id'])}.txt"
+        if not local_path.exists():
+            raise FileNotFoundError(
+                f"rights-cleared text missing: put the file at {local_path} and rerun"
+            )
+        text = local_path.read_text(encoding="utf-8")
     else:
         raise ValueError(f"Unsupported source_format: {source_format}")
 
@@ -268,7 +277,14 @@ def fetch_row(row: dict[str, str]) -> dict[str, str]:
     filename = f"{slug(row['name'])}_{slug(row['source_id'])}.txt"
     relative_path = Path("raw_inputs") / filename
     output_path = REGISTRY_DIR / relative_path
-    output_path.write_text(text + "\n", encoding="utf-8")
+    output_path.write_text(text.rstrip("\n") + "\n", encoding="utf-8")
+    return row_manifest_metadata(row) | {"local_text_path": str(relative_path)}
+
+
+def row_manifest_metadata(row: dict[str, str]) -> dict[str, str]:
+    # local_text rows are privately cleared for research/indexing, not for
+    # public passage display, unless the catalog row explicitly overrides.
+    local = row.get("source_format") == "local_text"
     metadata = {field: row.get(field, "") for field in MANIFEST_FIELDS[:-1]}
     metadata.update({
         "independent_source_id": source_identity(row),
@@ -276,11 +292,11 @@ def fetch_row(row: dict[str, str]) -> dict[str, str]:
         "register": row.get("register", "literary_prose"),
         "source_type": row.get("source_type", "work"),
         "delivered_language": row["original_language"],
-        "license_status": row.get("license_status", "public_domain"),
-        "display_allowed": row.get("display_allowed", "true"),
+        "license_status": row.get("license_status") or ("rights_cleared_private" if local else "public_domain"),
+        "display_allowed": row.get("display_allowed") or ("false" if local else "true"),
         "canonical_url": row.get("canonical_url", row["source_url"]),
     })
-    return metadata | {"local_text_path": str(relative_path)}
+    return metadata
 
 
 def parse_args() -> argparse.Namespace:
@@ -306,20 +322,12 @@ def main() -> None:
     for row in rows:
         print(f"fetch {row['original_language']} | {row['name']} | {row['title']}", flush=True)
         existing_path = REGISTRY_DIR / "raw_inputs" / f"{slug(row['name'])}_{slug(row['source_id'])}.txt"
-        if args.skip_existing and existing_path.exists():
+        if args.skip_existing and existing_path.exists() and row["source_format"] != "local_text":
             print(f"skip existing {existing_path.name}", flush=True)
-            metadata = {field: row.get(field, "") for field in MANIFEST_FIELDS[:-1]}
-            metadata.update({
-                "independent_source_id": source_identity(row),
-                "domain": row.get("domain", "literature"),
-                "register": row.get("register", "literary_prose"),
-                "source_type": row.get("source_type", "work"),
-                "delivered_language": row["original_language"],
-                "license_status": row.get("license_status", "public_domain"),
-                "display_allowed": row.get("display_allowed", "true"),
-                "canonical_url": row.get("canonical_url", row["source_url"]),
-            })
-            manifest_rows.append(metadata | {"local_text_path": str(existing_path.relative_to(REGISTRY_DIR))})
+            manifest_rows.append(
+                row_manifest_metadata(row)
+                | {"local_text_path": str(existing_path.relative_to(REGISTRY_DIR))}
+            )
             continue
         try:
             manifest_rows.append(fetch_row(row))
