@@ -1,0 +1,24 @@
+%% source of truth: docs/architecture/schema.yaml
+%% 这是 README/GitHub 自渲染的 fallback view。改架构改 schema.yaml,本块同步抄过来。
+%% 预览: 整块粘到 https://mermaid.live,或 VS Code 装 Markdown Preview Mermaid Support。
+flowchart TB
+    %% ── Nodes ──
+    %% 每个节点写一行: <ID>["<label><br/>(可选副行)"]:::<category>
+    %% category key 跟 schema.yaml 的 categories 一一对应。
+    %% shape: cylinder 用 ID[("...")];page 用 ID[/"..."/]
+    %% groups/callouts 通常不进 Mermaid fallback; Mermaid 只保留主节点和主边。
+    <NODE_ID>["<label><br/>(signature)<br/>(note)"]:::<category>
+
+    %% ── Edges ──
+    %% data_flow / config_input:    A --> B   或   A -- label --> B
+    %% orchestration:               A --> B
+    %% calibration(虚线):           A -. label .-> B
+    <FROM_ID> -- <label> --> <TO_ID>
+
+    %% ── ClassDef(颜色,跟 schema.categories 同步)──
+    classDef config  fill:#fef3c7,stroke:#f59e0b,color:#000
+    classDef scraper fill:#dbeafe,stroke:#3b82f6,color:#000
+    classDef ai      fill:#fce7f3,stroke:#ec4899,color:#000
+    classDef data    fill:#d1fae5,stroke:#10b981,color:#000
+    classDef front   fill:#e0e7ff,stroke:#6366f1,color:#000
+    classDef orch    fill:#f3f4f6,stroke:#6b7280,color:#000

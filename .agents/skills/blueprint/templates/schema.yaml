@@ -1,0 +1,166 @@
+# <PROJECT> 架构图 schema —— Source of Truth
+#
+# 这是架构图的真值数据。下游 view 都从这里同步:
+#   1. diagram.mmd  —— Mermaid fallback,粘到 mermaid.live 看,或 GitHub README 复用
+#   2. diagram.svg / diagram.html —— 确定性 renderer 生成的可编辑维护图
+#   3. diagram.render.png          —— render 轨道的位图候选
+#   4. diagram.generated.png       —— image-gen 轨道的展示候选(能力可用时)
+#   5. diagram.png                 —— 两个候选审阅后选定的人类展示图
+#
+# 编辑规则:
+#   - 改这里 = 改架构。改完同步 diagram.mmd,再并行更新 render/image-gen 轨道。
+#   - image-gen 候选必须标注为 presentation,不能替代 schema/render。
+#   - 字段含义见 § meta / § categories / § nodes / § edges 各段的注释。
+#   - 默认字段保持平铺;如需高质量 render,可加 composition/groups/callouts/insets/layout/icon 等 renderer hint。
+#   - 主节点必须是架构边界,不是文件夹清单。文件、函数、表名放到 signature/note 里当证据。
+#   - 先定 4-7 个宏观分工/数据面,再用边校准;不要从局部组件聚类出架构。
+
+meta:
+  title: "<PROJECT> 项目架构图"
+  subtitle: "<一句话定位,例如:对小红书指定 ticker 的帖子进行情绪监测>"
+  updated: "<YYYY-MM-DD>"
+  version: "0.1"
+  # 渲染方向提示(top_to_bottom / left_to_right)。各 renderer 可参考。
+  direction: top_to_bottom
+
+# ─────────────────────────────────────────────────────────────────────
+# categories: 节点的视觉/语义分类
+# ─────────────────────────────────────────────────────────────────────
+# 每个节点必须挂在一个 category 上。category 决定:
+#   - renderer / mermaid 的节点填色和边框色(fill / stroke)
+#   - presentation prompt 里给模型的角色描述(role)
+# 改色要同步改 diagram.mmd 的 classDef 行。
+#
+# These categories are examples. Rename them to match the project semantics.
+
+categories:
+  config:
+    role: "配置文件 / 系统输入"
+    fill: "#fef3c7"   # 浅黄
+    stroke: "#f59e0b"
+  scraper:
+    role: "数据采集"
+    fill: "#dbeafe"   # 浅蓝
+    stroke: "#3b82f6"
+  ai:
+    role: "LLM / AI 任务"
+    fill: "#fce7f3"   # 浅粉
+    stroke: "#ec4899"
+  data:
+    role: "数据处理 / 存储"
+    fill: "#d1fae5"   # 浅绿
+    stroke: "#10b981"
+  front:
+    role: "前端 / 输出"
+    fill: "#e0e7ff"   # 浅紫
+    stroke: "#6366f1"
+  orch:
+    role: "调度 / Orchestration"
+    fill: "#f3f4f6"   # 浅灰
+    stroke: "#6b7280"
+
+# ─────────────────────────────────────────────────────────────────────
+# nodes: 节点列表
+# ─────────────────────────────────────────────────────────────────────
+# 必填: id / label / category
+# 选填: signature / note / shape / style / layer / align / expand / layout / icon / insets
+#
+# id        —— 稳定标识符,被 edges.from/to 引用。小写 + 下划线,不重复。
+# label     —— 框内主标题
+# category  —— 引用上面 categories 的 key
+# signature —— 接口签名(函数/SQL/调用形式),框内副行
+# note      —— 框内底行(产物文件、技术细节、说明等)
+# shape     —— 默认 rect。可选:cylinder(数据库) / page(配置文件)
+# style     —— 默认 solid。可选:dashed(虚框,例如 planned/评测态/旁路节点)
+# layer     —— 布局提示:top / middle / bottom。renderer 可忽略。
+# align     —— 单节点的粗粒度 adapter 提示。跨层相对排布优先使用 composition.lanes。
+# expand    —— 下钻指针,例如 "./m1/"。表示该节点有子图在指定目录。
+# layout    —— renderer 精细布局覆盖,例如 {x: 120, y: 240, w: 320, h: 130}
+# icon      —— renderer 图标提示,例如 terminal / database / cloud / file / chart
+# insets    —— 卡片内部小图/子步骤,用于解释宏观块,但不把子步骤升成顶层节点
+
+nodes:
+  - id: <node_id>
+    label: "<节点标题>"
+    category: <category_key>
+    signature: "<可选,接口/调用>"
+    note: "<可选,副行>"
+    # shape: cylinder
+    # style: dashed
+    # icon: file
+    # insets: ["scan/hash", "EXIF/GPS", "WebP"]
+    layer: top
+    align: left
+    # layout: {x: 120, y: 180, w: 300, h: 120}
+    # expand: ./<node_id>/
+
+  # ... 继续加节点
+
+# ─────────────────────────────────────────────────────────────────────
+# composition: 可选,先表达构图意图,再让 renderer 计算坐标
+# ─────────────────────────────────────────────────────────────────────
+# paths 说明哪条语义链是 primary / context / secondary / feedback。
+# 每对相邻 node 必须有同方向 edge。renderer 会让 primary 关系拥有更强的排序权重。
+# lanes 说明跨层的相对空间关系:left / center / right。它控制相对顺序和列一致性,
+# 不保存像素坐标;需要项目级精调时才使用 node.layout。
+# 同一 node 只能属于一个 lane。
+
+# composition:
+#   paths:
+#     - id: primary_flow
+#       role: primary
+#       nodes: [<entry_id>, <core_id>, <review_id>]
+#     - id: context_flow
+#       role: context
+#       nodes: [<source_id>, <context_id>, <core_id>]
+#   lanes:
+#     - id: primary_lane
+#       position: center
+#       nodes: [<entry_id>, <core_id>, <review_id>]
+#     - id: context_lane
+#       position: right
+#       nodes: [<source_id>, <context_id>]
+
+# ─────────────────────────────────────────────────────────────────────
+# groups: 可选,给 renderer 使用的视觉分区
+# ─────────────────────────────────────────────────────────────────────
+# 适合 arxiv-marker 那种"前端入口 / 核心 Pipeline / 外部源 / 产物"的大框。
+# Mermaid fallback 可忽略 groups。
+
+# groups:
+#   - id: core_pipeline
+#     label: "核心 Pipeline"
+#     nodes: [<node_id>, <node_id_2>]
+#     fill: "#fff1f2"
+#     stroke: "#fb7185"
+
+# ─────────────────────────────────────────────────────────────────────
+# callouts: 可选,轻量注释 chips,不算主架构节点
+# ─────────────────────────────────────────────────────────────────────
+# 适合 runtime key、人工 fallback、MCP/LLM side service、质量告警、权限约束等。
+# 如果一个东西没有独立输入/输出 contract,只是约束某个主节点,优先放 callout。
+
+# callouts:
+#   - id: runtime_keys
+#     label: "runtime: API key / library id"
+#     target: <node_id>
+#     fill: "#fff7ed"
+#     stroke: "#fed7aa"
+#     # layout: {x: 120, y: 520, w: 260, h: 34}
+
+# ─────────────────────────────────────────────────────────────────────
+# edges: 边列表
+# ─────────────────────────────────────────────────────────────────────
+# 必填: from / to / kind
+# 选填: label / style
+#
+# kind 取值:
+#   data_flow     主数据流(实线 + 数据文件名/contract label)
+#   config_input  配置输入(实线,通常无 label)
+#   orchestration 调度触发(实线灰,通常无 label)
+#   calibration   模型校准回喂(虚线)
+# 自定义 kind 需要同步加进 SKILL.md § 三 的 kind 表。
+
+edges:
+  - {from: <id_a>, to: <id_b>, kind: data_flow, label: "<可选,边 label>"}
+  # ... 继续加边

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1050" viewBox="0 0 1800 1050">
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1 1 L9 5 L1 9Z" fill="#7d715a"/></marker></defs>
+<rect width="100%" height="100%" fill="#fffdf8"/>
+<path d="M540,215.0 C597.6,215.0 602.4,215.0 660,215.0" fill="none" stroke="#1f3a5f" stroke-width="2.2" marker-end="url(#arrow)"/>
+<path d="M1140,215.0 C1197.6,215.0 1202.4,215.0 1260,215.0" fill="none" stroke="#1f3a5f" stroke-width="2.2" marker-end="url(#arrow)"/>
+<path d="M1500.0,310 C1500.0,369.8 1500.0,380.2 1500.0,440" fill="none" stroke="#1f3a5f" stroke-width="2.2" marker-end="url(#arrow)"/>
+<path d="M1260,535.0 C1202.4,535.0 1197.6,535.0 1140,535.0" fill="none" stroke="#1f3a5f" stroke-width="2.2" marker-end="url(#arrow)"/>
+<path d="M660,535.0 C602.4,535.0 597.6,535.0 540,535.0" fill="none" stroke="#1f3a5f" stroke-width="2.2" marker-end="url(#arrow)"/>
+<g id="node-query">
+<rect x="60" y="120" width="480" height="190" rx="17" fill="#f2ecdd" stroke="#8b795c" stroke-width="2"/>
+<text x="80" y="150" font-size="19" font-weight="700" fill="#1b2a44"><tspan x="80" dy="0">Your passage</tspan></text>
+<text x="80" y="176" font-size="12" font-weight="700" fill="#8b795c"><tspan x="80" dy="0">delivered-language text</tspan></text>
+<text x="80" y="285" font-size="11" font-weight="400" fill="#6f6758"><tspan x="80" dy="0">At least ~80 words or the script-equivalent</tspan><tspan x="80" dy="16">length</tspan></text>
+</g>
+<g id="node-input_guard">
+<rect x="660" y="120" width="480" height="190" rx="17" fill="#f2ecdd" stroke="#8b795c" stroke-width="2"/>
+<text x="680" y="150" font-size="19" font-weight="700" fill="#1b2a44"><tspan x="680" dy="0">Input guard</tspan></text>
+<text x="680" y="176" font-size="12" font-weight="700" fill="#8b795c"><tspan x="680" dy="0">language ID · length · mode</tspan></text>
+<text x="680" y="285" font-size="11" font-weight="400" fill="#6f6758"><tspan x="680" dy="0">Rejects short or unsupported input before</tspan><tspan x="680" dy="16">scoring</tspan></text>
+</g>
+<g id="node-style_encoder">
+<rect x="1260" y="120" width="480" height="190" rx="17" fill="#dce5f0" stroke="#1f3a5f" stroke-width="2"/>
+<text x="1280" y="150" font-size="19" font-weight="700" fill="#1b2a44"><tspan x="1280" dy="0">Style encoder</tspan></text>
+<text x="1280" y="176" font-size="12" font-weight="700" fill="#1f3a5f"><tspan x="1280" dy="0">fine-tuned multilingual authorship</tspan><tspan x="1280" dy="17">representation</tspan></text>
+<text x="1280" y="285" font-size="11" font-weight="400" fill="#6f6758"><tspan x="1280" dy="0">Primary signal; positives come from different</tspan><tspan x="1280" dy="16">sources</tspan></text>
+</g>
+<g id="node-topic_encoder">
+<rect x="60" y="780" width="480" height="200" rx="17" fill="#efe5ce" stroke="#a38b55" stroke-width="2"/>
+<text x="80" y="810" font-size="19" font-weight="700" fill="#1b2a44"><tspan x="80" dy="0">Topic encoder</tspan></text>
+<text x="80" y="836" font-size="12" font-weight="700" fill="#a38b55"><tspan x="80" dy="0">multilingual E5</tspan></text>
+<text x="80" y="955" font-size="11" font-weight="400" fill="#6f6758"><tspan x="80" dy="0">Affinity context only; never changes Style</tspan><tspan x="80" dy="16">Match rank</tspan></text>
+</g>
+<g id="node-profile_memory">
+<rect x="660" y="780" width="480" height="200" rx="17" fill="#eadfd8" stroke="#7b5145" stroke-width="2"/>
+<text x="680" y="810" font-size="19" font-weight="700" fill="#1b2a44"><tspan x="680" dy="0">Profile memory</tspan></text>
+<text x="680" y="836" font-size="12" font-weight="700" fill="#7b5145"><tspan x="680" dy="0">centroids + source prototypes</tspan></text>
+<text x="680" y="955" font-size="11" font-weight="400" fill="#6f6758"><tspan x="680" dy="0">Original-language chunks from independent</tspan><tspan x="680" dy="16">works</tspan></text>
+</g>
+<g id="node-retrieval">
+<rect x="1260" y="440" width="480" height="190" rx="17" fill="#e2e8e5" stroke="#47685d" stroke-width="2"/>
+<text x="1280" y="470" font-size="19" font-weight="700" fill="#1b2a44"><tspan x="1280" dy="0">Exact retrieval</tspan></text>
+<text x="1280" y="496" font-size="12" font-weight="700" fill="#47685d"><tspan x="1280" dy="0">normalized inner product</tspan></text>
+<text x="1280" y="605" font-size="11" font-weight="400" fill="#6f6758"><tspan x="1280" dy="0">Ranks profiles; cross-language results stay</tspan><tspan x="1280" dy="16">grouped by target language</tspan></text>
+</g>
+<g id="node-verification">
+<rect x="660" y="440" width="480" height="190" rx="17" fill="#e2e8e5" stroke="#47685d" stroke-width="2" stroke-dasharray="7 7"/>
+<text x="680" y="470" font-size="19" font-weight="700" fill="#1b2a44"><tspan x="680" dy="0">Open-set verification</tspan></text>
+<text x="680" y="496" font-size="12" font-weight="700" fill="#47685d"><tspan x="680" dy="0">per-language calibration</tspan></text>
+<text x="680" y="605" font-size="11" font-weight="400" fill="#6f6758"><tspan x="680" dy="0">Contract supports no strong match; deployed</tspan><tspan x="680" dy="16">refit is pending</tspan></text>
+</g>
+<g id="node-evidence">
+<rect x="1260" y="780" width="480" height="200" rx="17" fill="#e8e1ec" stroke="#68536f" stroke-width="2" stroke-dasharray="7 7"/>
+<text x="1280" y="810" font-size="19" font-weight="700" fill="#1b2a44"><tspan x="1280" dy="0">Evidence views</tspan></text>
+<text x="1280" y="836" font-size="12" font-weight="700" fill="#68536f"><tspan x="1280" dy="0">classical stylometry + decade prototypes</tspan></text>
+<text x="1280" y="955" font-size="11" font-weight="400" fill="#6f6758"><tspan x="1280" dy="0">Explains a result; does not alter author</tspan><tspan x="1280" dy="16">ranking</tspan></text>
+</g>
+<g id="node-result">
+<rect x="60" y="440" width="480" height="190" rx="17" fill="#e8e1ec" stroke="#68536f" stroke-width="2"/>
+<text x="80" y="470" font-size="19" font-weight="700" fill="#1b2a44"><tspan x="80" dy="0">Result contract</tspan></text>
+<text x="80" y="496" font-size="12" font-weight="700" fill="#68536f"><tspan x="80" dy="0">ranked authors + provenance</tspan></text>
+<text x="80" y="605" font-size="11" font-weight="400" fill="#6f6758"><tspan x="80" dy="0">Style Match, Topic/Tone, Affinity, confidence,</tspan><tspan x="80" dy="16">evidence</tspan></text>
+</g>
+<text x="28" y="28" font-size="16" font-weight="700" fill="#1f3a5f"><tspan x="28" dy="0">StyleMatch inference architecture</tspan></text>
+<text x="218" y="28" font-size="11" font-weight="600" fill="#8d816b"><tspan x="218" dy="0">schema.yaml · v1.0 · 2026-07-20</tspan></text>
+</svg>

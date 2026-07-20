@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StyleMatch — method &amp; evidence</title>
+<style>
+  /* Same design system as index.html: navy + khaki/warm-white, serif headings,
+     flat book-page layout, near-square corners, system light/dark scheme. */
+  :root {
+    --bg: #f7f4ec; --field: #fffdf8; --ink: #1b2a44; --muted: #7d715a;
+    --navy: #1f3a5f; --navy-deep: #16293f; --khaki: #e8e0c9; --khaki-strong: #c9bb95;
+    --border: #d8cfb6; --warn-bg: #f1e7c8; --warn-ink: #6b5518;
+    --serif: Cochin, Georgia, "Songti SC", "Noto Serif SC", "Hiragino Mincho ProN",
+             "Noto Serif JP", "Noto Serif", serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Noto Sans Mono CJK SC", monospace;
+    --radius: 2px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1a2b; --field: #17273d; --ink: #ece4d0; --muted: #a89d82;
+      --navy: #b3c7e2; --navy-deep: #2a4468; --khaki: #24354f; --khaki-strong: #3a5074;
+      --border: #2d4160; --warn-bg: #33290f; --warn-ink: #dcc37a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 16px/1.65 -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans SC", sans-serif;
+         min-height: 100vh; overflow-x: hidden; }
+  main { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 28px 18px 72px; }
+  a { color: var(--navy); }
+  .back { font-size: .88rem; text-decoration: none; }
+  .back:hover { text-decoration: underline; }
+  h1 { font-family: var(--serif); font-size: 1.9rem; color: var(--navy); margin: 10px 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 26px; }
+  h2 { font-family: var(--serif); font-size: 1.25rem; color: var(--navy); margin: 34px 0 8px; }
+  p { margin: 8px 0; }
+  ul { margin: 8px 0; padding-left: 20px; }
+  li { margin: 4px 0; }
+  code { font: .85em var(--mono); background: var(--khaki); padding: 1px 5px;
+         border-radius: var(--radius); }
+  .note { padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius);
+          background: var(--khaki); font-size: .9rem; margin: 12px 0; }
+  .note.warn { background: var(--warn-bg); color: var(--warn-ink); }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .88rem; margin: 10px 0; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border);
+           vertical-align: top; }
+  th { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  td.num { font: .85rem var(--mono); white-space: nowrap; }
+  .prov { color: var(--muted); font-size: .78rem; }
+  .refs { font-size: .88rem; }
+  .refs li { margin: 6px 0; }
+  footer { color: var(--muted); font-size: .8rem; margin-top: 40px; border-top: 1px solid var(--border);
+           padding-top: 14px; }
+
+</style>
+<link rel="stylesheet" href="method-flow.css">
+<link rel="stylesheet" href="site-shell.css">
+</head>
+<body class="method-page stylematch-atmosphere">
+<header class="site-header">
+  <a class="site-mark" href="https://github.com/sylviachangdou-prayer" target="_blank" rel="noopener noreferrer" aria-label="sylviadou on GitHub"><span aria-hidden="true">❦</span> sylviadou</a>
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a href="index.html"><span aria-hidden="true">⌂</span> Home</a>
+    <a class="active" href="method.html"><span aria-hidden="true">⌁</span> Method</a>
+    <a href="authors.html"><span aria-hidden="true">A–Z</span> Author Library</a>
+  </nav>
+</header>
+<main class="page-shell">
+  <header class="page-hero">
+    <div class="page-kicker"><span aria-hidden="true">⚖</span> Evidence before resemblance</div>
+    <h1>Method &amp; evidence</h1>
+    <p class="sub">The academic mechanism behind the match — and the measurements behind every claim.</p>
+  </header>
+
+  <section class="method-flow-host" data-method-static aria-label="StyleMatch method flow">
+    <noscript>
+      <img class="method-static-fallback" src="method-flow.svg" alt="Static StyleMatch method flow">
+      <p class="method-static-note">Static architecture shown. Enable JavaScript for the typeset version.</p>
+    </noscript>
+  </section>
+  <p class="method-map-caption">One non-crossing ranking path. The three support planes below it remain visibly separate from Style Match.</p>
+
+  <section class="method-brief" aria-label="How to read the method">
+    <article><span aria-hidden="true">I</span><h2>Rank</h2><p>The navy route compares authorship form: source-separated training, exact profile retrieval, then open-set verification. It may return no strong match.</p></article>
+    <article><span aria-hidden="true">II</span><h2>Context</h2><p>Topic similarity is computed by another model. It can inform Affinity, but it cannot enter the Style Match ranking or masquerade as stylistic evidence.</p></article>
+    <article><span aria-hidden="true">III</span><h2>Explain</h2><p>Classical features, source provenance, confidence labels, and the experimental decade view explain or qualify a result; they do not retroactively change it.</p></article>
+  </section>
+
+  <div class="method-prose">
+
+  <h2>1 · The task: open-set ranking, not classification</h2>
+  <p>StyleMatch treats authorship analysis as <strong>open-set profile ranking plus
+  verification</strong>. A closed-set classifier must answer with one of its known authors;
+  an open-set system must also be able to answer <em>none of them</em>. Every query is
+  thresholded, and the system returns "no strong match" when the evidence is weak. Evaluation
+  follows the same logic: complete sources — never random chunks — are held out, because
+  chunks of one book on both sides of a split leak topic and edition artifacts and inflate
+  accuracy (Sawatphol et al. 2024).</p>
+
+  <h2>2 · Architecture: two physically separate channels</h2>
+  <ul>
+    <li><strong>Style channel.</strong> A multilingual authorship-representation encoder
+      (Kim, Zhang &amp; Jurgens 2025), contrastively fine-tuned on same-author pairs drawn
+      from <em>different works</em> — so the objective cannot be solved by recognizing the
+      book — with matched hard negatives and language-aware batches.</li>
+    <li><strong>Topic channel.</strong> A separate multilingual E5 encoder (Wang et al.
+      2024) used only for the topic score. Style and topic never share an embedding, an
+      index, or a score.</li>
+    <li><strong>Profiles.</strong> Each author-language profile is a normalized centroid
+      over 75–150-word original-language chunks, plus per-work source prototypes that
+      preserve within-author variation. Retrieval is exact inner product over cached
+      embeddings — no approximate search, no model calls per candidate.</li>
+    <li><strong>Composite.</strong> The displayed Affinity is a declared product rule
+      (0.7·Style + 0.3·Topic within language; 0.5/0.5 across languages), not a learned or
+      calibrated quantity. Sub-scores are always shown separately.</li>
+    <li><strong>Evidence.</strong> Matches carry interpretable stylometric observations
+      (function words, punctuation, sentence rhythm, lexical diversity) computed against
+      the candidate cohort — a complement to the encoder, never a replacement
+      (Terreau et al. 2024).</li>
+  </ul>
+
+  <h2>3 · Corpus discipline</h2>
+  <p>Profiles are built exclusively from <strong>original-language primary texts</strong>.
+  Translations, adaptations, subtitles, summaries, and generated imitations are excluded:
+  translationese measurably shifts syntax, punctuation, register, and language-specific
+  distinctions, so a translated profile partly measures the translator. Mirrors and
+  editions of one work share an <code>independent_source_id</code>, so duplicated text can
+  never count as independent evidence. Authors with fewer than three independent sources
+  remain retrievable but are flagged exploratory and excluded from headline evaluation.
+  Rights-cleared in-copyright texts are indexed for matching but their passages are never
+  displayed.</p>
+
+  <h2>4 · How the deployed model was chosen</h2>
+  <p>Six candidates were compared on identical source-heldout dev/test splits: pretrained
+  and fine-tuned mStyleDistance (Qiu et al. 2025), its source-prototype variant, the
+  pretrained and fine-tuned authorship-representation challenger, and a classical
+  style-feature fusion. Selection rule: best dev MRR, with a learned fusion adopted only if
+  a paired bootstrap put its test-MRR gain above zero <em>and</em> calibration, selective
+  precision, and every major language/corpus subgroup did not degrade.</p>
+  <p><strong>Outcome (July 2026):</strong> the fine-tuned challenger won and is deployed;
+  fusion failed its gates and was rejected — kept on record as a negative result. The
+  decision is recorded in the model-comparison artifact and mirrored into the index
+  metadata (<code>deployment_matches_selection: true</code>).</p>
+
+  <h2>5 · Open-set calibration</h2>
+  <p>For each language, held-out authors are split into "known" and "unknown"; a logistic
+  calibrator is fitted on the maximum profile similarity, and the equal-error-rate
+  threshold becomes the rejection bar. Two safeguards come from a measured failure: the
+  retired baseline index shipped calibration whose AUROC was near chance (0.43–0.55),
+  partly because thresholds and encoder had drifted apart. The tooling now <em>refuses</em>
+  to install calibration fitted on a different encoder than the index, and the deployed
+  challenger index reports itself uncalibrated until its own refit lands.</p>
+  <div class="note warn">Current status: the deployed index is <strong>uncalibrated for
+  open-set rejection</strong> — scores are ranking evidence only, and the interface says
+  so. Recalibration on the deployed encoder is the next scheduled measurement.</div>
+
+  <h2>6 · Performance record</h2>
+  <p>Only measurements committed to the research repository are quoted here; each row names
+  its artifact. Numbers that exist only in offline training artifacts are listed as
+  pending rather than quoted from memory.</p>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Measurement</th><th>Value</th><th>Provenance</th></tr>
+    <tr>
+      <td>Deployed index composition</td>
+      <td class="num">167 profiles · 2,084 prototypes · 39,756 chunks · 9 languages</td>
+      <td class="prov">challenger index metadata</td>
+    </tr>
+    <tr>
+      <td>Score status</td>
+      <td class="num">uncalibrated_cosine</td>
+      <td class="prov">challenger index metadata</td>
+    </tr>
+    <tr>
+      <td>Warm query latency — CPU<br><span class="prov">retired baseline encoder, 30 runs, within-language</span></td>
+      <td class="num">p50 119.2 ms · p95 124.0 ms</td>
+      <td class="prov">latency_cpu.json (commit 15978e1)</td>
+    </tr>
+    <tr>
+      <td>Warm query latency — GPU<br><span class="prov">retired baseline encoder, 30 runs, within-language</span></td>
+      <td class="num">p50 25.7 ms · p95 26.9 ms</td>
+      <td class="prov">latency_gpu.json (commit 15978e1)</td>
+    </tr>
+    <tr>
+      <td>Open-set AUROC — retired baseline<br><span class="prov">kept as a negative result; see §5</span></td>
+      <td class="num">de 0.433 · en 0.506 · fr 0.466 · ru 0.545</td>
+      <td class="prov">retired index metadata</td>
+    </tr>
+  </table>
+  </div>
+  <p><strong>Pending measurements</strong> (recorded offline, not yet copied into the
+  repository): per-candidate source-heldout MRR/Recall from the model-comparison artifact
+  (the ordering — challenger first — is known; the numbers will be quoted only from the
+  artifact), the challenger's per-language open-set calibration, and the challenger's own
+  CPU/GPU latency (its encoder is larger than the retired baseline's, so the table above is
+  not assumed to transfer).</p>
+
+  <h2>7 · Known limitations</h2>
+  <ul>
+    <li>Similarity scores are uncalibrated cosines: valid for ranking, meaningless as
+      probabilities or percentages.</li>
+    <li>Cross-language matches are reduced-confidence and ranked per target language; raw
+      multilingual cosines are not comparable across language pairs (Icard et al. 2025).</li>
+    <li>Source-heldout evaluation is necessary but insufficient — author and topic can stay
+      correlated across sources; cross-topic results are tracked separately.</li>
+    <li>Central profiles can be over-returned for texts they did not write; misattribution
+      exposure is part of the evaluation checklist (Alipoormolabashi et al. 2025).</li>
+  </ul>
+
+  <h2>8 · References</h2>
+  <ol class="refs">
+    <li>Sawatphol, Udomcharoenchaikit &amp; Nutanong (2024). Addressing Topic Leakage in
+      Cross-Topic Evaluation for Authorship Verification. <em>TACL</em>.</li>
+    <li>Huertas-Tato et al. (2024). Isolating authorship from content with semantic
+      embeddings and contrastive learning. <em>arXiv:2411.18472</em>.</li>
+    <li>Terreau, Gourru &amp; Velcin (2024). Capturing Style in Author and Document
+      Representation. <em>arXiv:2407.13358</em>.</li>
+    <li>Wang et al. (2024). Multilingual E5 Text Embeddings: A Technical Report.
+      <em>arXiv:2402.05672</em>.</li>
+    <li>Qiu et al. (2025). mStyleDistance: Multilingual Style Embeddings and their
+      Evaluation. <em>Findings of ACL</em>.</li>
+    <li>Kim, Zhang &amp; Jurgens (2025). Leveraging Multilingual Training for Authorship
+      Representation. <em>EMNLP</em>.</li>
+    <li>Alshomary et al. (2025). Layered Insights: Generalizable Analysis of Human
+      Authorial Style by Leveraging All Transformer Layers. <em>EMNLP</em>.</li>
+    <li>Alshomary et al. (2025). Latent Space Interpretation for Stylistic Analysis and
+      Explainable Authorship Attribution. <em>COLING</em>.</li>
+    <li>Alipoormolabashi, Patel &amp; Balasubramanian (2025). Quantifying Misattribution
+      Unfairness in Authorship Attribution. <em>ACL</em>.</li>
+    <li>Icard et al. (2025). Embedding Style Beyond Topics: Analyzing Dispersion Effects
+      Across Different Language Models. <em>COLING</em>.</li>
+    <li>Man et al. (2026). Explainable Disentangled Representation Learning for
+      Generalizable Authorship Attribution. <em>ACL</em>.</li>
+    <li>Anand, Alshomary &amp; McKeown (2026). iBERT: Interpretable Embeddings via Sense
+      Decomposition. <em>EACL</em>.</li>
+  </ol>
+
+  <footer>Style and topic are scored by two separate models and always shown separately.
+  Scores are uncalibrated cosine values used for ranking, never probabilities.
+  <a href="index.html">Try StyleMatch &rarr;</a></footer>
+  </div>
+</main>
+<script src="method-flow.js"></script>
+<script src="method-static.js"></script>
+</body>
+</html>

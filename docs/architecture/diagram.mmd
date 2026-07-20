@@ -1,0 +1,36 @@
+flowchart TB
+    subgraph PRIMARY["AUTHOR-RANKING PATH"]
+      direction TB
+      subgraph ROW1[" "]
+        direction LR
+        Q["Your passage<br/><small>delivered-language text</small>"]:::input
+        G["Input guard<br/><small>language ID · length · mode</small>"]:::input
+        S["Style encoder<br/><small>authorship representation</small>"]:::style
+        Q --> G --> S
+      end
+      subgraph ROW2[" "]
+        direction RL
+        R["Exact retrieval<br/><small>normalized inner product</small>"]:::decision
+        V["Open-set verification<br/><small>encoder-matched calibration</small>"]:::planned
+        O["Result contract<br/><small>separate scores + provenance</small>"]:::output
+        R --> V --> O
+      end
+      S --> R
+    end
+
+    subgraph SUPPORT["SEPARATE SUPPORT PLANES · NO RANKING ARROWS"]
+      direction LR
+      T["Topic context<br/><small>Affinity only</small>"]:::context
+      P["Profile memory<br/><small>centroids + source prototypes</small>"]:::data
+      E["Evidence views<br/><small>stylometry + experimental decade</small>"]:::planned
+    end
+
+    classDef input fill:#f4e5d8,stroke:#9d5d35,color:#1b2a44
+    classDef style fill:#dbe7f1,stroke:#214f7b,color:#1b2a44
+    classDef context fill:#f3e4bd,stroke:#b2822f,color:#1b2a44
+    classDef data fill:#ead9df,stroke:#8b3f55,color:#1b2a44
+    classDef decision fill:#d7e8e2,stroke:#2c6d61,color:#1b2a44
+    classDef planned fill:#f7f4ec,stroke:#694a78,stroke-dasharray:5 4,color:#1b2a44
+    classDef output fill:#e6dcea,stroke:#694a78,color:#1b2a44
+    style ROW1 fill:transparent,stroke:transparent
+    style ROW2 fill:transparent,stroke:transparent

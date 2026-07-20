@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "blueprint": {
+      "source": "lelelelelelelelelelelelele/blueprint-skill",
+      "sourceType": "github",
+      "skillPath": "skills/blueprint/SKILL.md",
+      "computedHash": "f73d8fb45ad92db3233a509c5e56d5147596652b80516d3ff61cdef0b65601a0"
+    }
+  }
+}

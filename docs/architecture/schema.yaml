@@ -1,0 +1,187 @@
+meta:
+  title: "StyleMatch inference architecture"
+  subtitle: "Open-set author-profile ranking with style, topic, and evidence kept distinct"
+  updated: "2026-07-20"
+  version: "1.0"
+  direction: left_to_right
+  canvas: {width: 1800, height: 1050}
+  diagram_edges: primary_only
+
+categories:
+  input:
+    role: "Query contract"
+    fill: "#f2ecdd"
+    stroke: "#8b795c"
+  style:
+    role: "Primary style path"
+    fill: "#dce5f0"
+    stroke: "#1f3a5f"
+  context:
+    role: "Context-only path"
+    fill: "#efe5ce"
+    stroke: "#a38b55"
+  data:
+    role: "Profile data plane"
+    fill: "#eadfd8"
+    stroke: "#7b5145"
+  decision:
+    role: "Ranking and verification"
+    fill: "#e2e8e5"
+    stroke: "#47685d"
+  output:
+    role: "User-facing evidence"
+    fill: "#e8e1ec"
+    stroke: "#68536f"
+
+nodes:
+  - id: query
+    label: "Your passage"
+    category: input
+    signature: "delivered-language text"
+    note: "At least ~80 words or the script-equivalent length"
+    eyebrow: "01 · ENTRY"
+    detail: "The passage enters once in its delivered language. The system preserves the option to return no strong author match."
+    status: live
+    insets: ["text", "mode", "optional language"]
+    layer: middle
+    layout: {x: 60, y: 120, w: 480, h: 190}
+
+  - id: input_guard
+    label: "Input guard"
+    category: input
+    signature: "language ID · length · mode"
+    note: "Rejects short or unsupported input before scoring"
+    eyebrow: "02 · ROUTE"
+    detail: "Language identification, length validation, and retrieval mode select the comparison cohort before any model runs."
+    status: live
+    insets: ["within", "cross", "global"]
+    layer: middle
+    layout: {x: 660, y: 120, w: 480, h: 190}
+
+  - id: style_encoder
+    label: "Style encoder"
+    category: style
+    signature: "fine-tuned multilingual authorship representation"
+    note: "Primary signal; positives come from different sources"
+    eyebrow: "03A · HOW"
+    detail: "The selected challenger encodes authorship cues. Different-source positives, matched hard negatives, and language-aware batches reduce content shortcuts."
+    status: selected
+    insets: ["syntax", "rhythm", "lexical habits"]
+    layer: top
+    layout: {x: 1260, y: 120, w: 480, h: 190}
+
+  - id: topic_encoder
+    label: "Topic encoder"
+    category: context
+    signature: "multilingual E5"
+    note: "Affinity context only; never changes Style Match rank"
+    eyebrow: "03B · WHAT"
+    detail: "A physically separate semantic model measures topical proximity. Its vector, index, and score never become the Style Match ranking."
+    status: separate
+    insets: ["subject", "semantic proximity"]
+    layer: bottom
+    layout: {x: 60, y: 780, w: 480, h: 200}
+
+  - id: profile_memory
+    label: "Profile memory"
+    category: data
+    signature: "centroids + source prototypes"
+    note: "Original-language chunks from independent works"
+    eyebrow: "MEMORY · READ ONLY"
+    detail: "Cached centroids represent each author’s center; source prototypes preserve variation across independent works without using translations to fill gaps."
+    status: cached
+    shape: cylinder
+    insets: ["167 profiles", "2,084 prototypes", "9 languages"]
+    layer: top
+    layout: {x: 660, y: 780, w: 480, h: 200}
+
+  - id: retrieval
+    label: "Exact retrieval"
+    category: decision
+    signature: "normalized inner product"
+    note: "Ranks profiles; cross-language results stay grouped by target language"
+    eyebrow: "04 · COMPARE"
+    detail: "Exact normalized inner product compares the query with compatible cached profiles. Cross-language candidates remain grouped by target language."
+    status: live
+    insets: ["StyleSim", "top-k authors"]
+    layer: middle
+    layout: {x: 1260, y: 440, w: 480, h: 190}
+
+  - id: verification
+    label: "Open-set verification"
+    category: decision
+    signature: "per-language calibration"
+    note: "Contract supports no strong match; deployed refit is pending"
+    eyebrow: "05 · VERIFY"
+    detail: "Open-set status uses top-score and margin evidence only after per-language calibration matches the deployed encoder. Current cosine values are rankings, not probabilities."
+    status: calibration_pending
+    style: dashed
+    insets: ["top score", "margin", "threshold"]
+    layer: top
+    layout: {x: 660, y: 440, w: 480, h: 190}
+
+  - id: evidence
+    label: "Evidence views"
+    category: output
+    signature: "classical stylometry + decade prototypes"
+    note: "Explains a result; does not alter author ranking"
+    eyebrow: "EVIDENCE · SIDE VIEW"
+    detail: "Classical stylometry explains the shortlist. The independently evaluated decade view remains experimental and unavailable below its support gates."
+    status: experimental
+    style: dashed
+    insets: ["function words", "sentence rhythm", "closest decade · experimental"]
+    layer: bottom
+    layout: {x: 1260, y: 780, w: 480, h: 200}
+
+  - id: result
+    label: "Result contract"
+    category: output
+    signature: "ranked authors + provenance"
+    note: "Style Match, Topic/Tone, Affinity, confidence, evidence"
+    eyebrow: "06 · RETURN"
+    detail: "The response keeps score meanings, confidence labels, provenance, and rights-safe passages separate instead of collapsing them into an unexplained percentage."
+    status: live
+    insets: ["separate scores", "status labels", "legal passage policy"]
+    layer: middle
+    layout: {x: 60, y: 440, w: 480, h: 190}
+
+composition:
+  paths:
+    - id: primary_style_path
+      role: primary
+      nodes: [query, input_guard, style_encoder, retrieval, verification, result]
+    - id: context_only_path
+      role: context
+      nodes: [input_guard, topic_encoder, result]
+    - id: profile_context_path
+      role: secondary
+      nodes: [profile_memory, retrieval, evidence, result]
+
+callouts:
+  - id: no_topic_leakage
+    label: "Topic never enters Style Match"
+    target: topic_encoder
+    fill: "#fff8e9"
+    stroke: "#c8aa6a"
+  - id: source_independence
+    label: "Different editions of one work count once"
+    target: profile_memory
+    fill: "#f7efe9"
+    stroke: "#a47767"
+  - id: calibration_status
+    label: "Uncalibrated cosine is not a probability"
+    target: verification
+    fill: "#edf2ef"
+    stroke: "#719084"
+
+edges:
+  - {from: query, to: input_guard, kind: data_flow, role: primary, label: "text + requested mode"}
+  - {from: input_guard, to: style_encoder, kind: data_flow, role: primary, label: "validated original text"}
+  - {from: input_guard, to: topic_encoder, kind: config_input, role: secondary, label: "parallel context view"}
+  - {from: style_encoder, to: retrieval, kind: data_flow, role: primary, label: "query style vector"}
+  - {from: profile_memory, to: retrieval, kind: data_flow, role: context, label: "profile vectors"}
+  - {from: retrieval, to: verification, kind: calibration, role: primary, label: "top score + margin"}
+  - {from: retrieval, to: evidence, kind: orchestration, role: secondary, label: "ranked cohort"}
+  - {from: topic_encoder, to: result, kind: config_input, role: secondary, label: "TopicSim → Affinity only"}
+  - {from: verification, to: result, kind: data_flow, role: primary, label: "match status"}
+  - {from: evidence, to: result, kind: orchestration, role: secondary, label: "why + decade evidence"}

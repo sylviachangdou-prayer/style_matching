@@ -47,6 +47,30 @@ the decision is mirrored into both index `metadata.json` files.
   it recorded `deployment_matches_selection: false` and near-chance open-set AUROC
   (0.43–0.55 for de/en/fr/ru) — a record of why encoder and calibration must move together.
 
+## Current performance record (as of 2026-07-18)
+
+Every number below is committed in this repository; provenance in parentheses. Numbers that
+exist only in the Colab/Drive artifacts are listed as pending, not quoted from memory.
+
+| Measurement | Value | Provenance |
+| --- | --- | --- |
+| Deployed index composition | 167 profiles · 2,084 source prototypes · 39,756 chunks · 9 languages | `multilingual_style_index_challenger_v1/metadata.json` |
+| Score status | `uncalibrated_cosine` (ranking evidence, not probabilities) | same metadata |
+| Warm query latency, CPU (retired baseline encoder) | p50 119.2 ms · p95 124.0 ms (30 runs, within-language) | `latency_cpu.json`, commit `15978e1` |
+| Warm query latency, GPU (retired baseline encoder) | p50 25.7 ms · p95 26.9 ms (30 runs, within-language) | `latency_gpu.json`, commit `15978e1` |
+| Open-set AUROC, retired baseline (mStyleDistance) | de 0.433 · en 0.506 · fr 0.466 · ru 0.545 — near chance | retired `multilingual_style_index_v1/metadata.json` |
+
+Reading: latency clears the release targets (GPU p95 ≤ 1.5 s, CPU p95 ≤ 4 s) by a wide
+margin, but was measured with the smaller retired encoder — the challenger must be
+re-benchmarked. The near-chance baseline open-set AUROC is kept as a negative result: it is
+why the deployed challenger index refuses calibration fitted on another encoder and why its
+own calibration must be refit before open-set claims.
+
+Pending (recorded in Drive artifacts, to be copied into the repo — runbook steps 4–6):
+per-candidate source-heldout MRR/Recall from `model_comparison_v1.json` (decision known:
+`challenger_finetuned` had the best dev MRR; fusion rejected), challenger per-language
+open-set calibration, and challenger CPU/GPU latency.
+
 ## Open-set recalibration
 
 The challenger index shipped with an empty `open_set_calibration`; rejection thresholds
@@ -134,7 +158,9 @@ python scripts/multilingual_style_index.py build \
 ```
 
 Because the profile set changes, re-run the open-set recalibration afterwards. Serving
-loads the rebuilt index once at process start.
+loads the rebuilt index once at process start. The full step-by-step procedure for the
+2026-07b batch — including the exact filenames for the twelve rights-cleared local texts —
+is `docs/expansion_runbook_2026_07.md`.
 
 Artifacts required downstream:
 

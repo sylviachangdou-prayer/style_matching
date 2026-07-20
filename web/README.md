@@ -19,7 +19,9 @@ web/
 ```bash
 pip install -r web/requirements.txt
 uvicorn web.api.main:app --reload --port 8000
-# open http://127.0.0.1:8000
+# Home:   http://127.0.0.1:8000
+# Method: http://127.0.0.1:8000/method.html
+# Authors: http://127.0.0.1:8000/authors.html
 ```
 
 The app looks for `artifacts/multilingual_style_index_challenger_v1/` first (the index
@@ -98,6 +100,14 @@ as the root directory).
 
 ## Frontend extras
 
+- **Permanent navigation**: Home, Method, and the full Author Library are direct
+  routes. The library is generated from `data/source_registry/all_people.csv` by
+  `scripts/export_author_library.py` and provides search plus language/register filters.
+- **Distinct results gallery**: successful matching replaces the entry portrait with four
+  local public-domain museum strips. Selecting a result changes the emphasized artwork;
+  the closest original-language passage is always visible.
+- **Static method map**: `method.html` renders the schema-backed primary path as a
+  non-crossing diagram with separate context, profile-memory, and evidence planes.
 - **Test a new passage / Clear**: after a match the results end with a "Test a new
   passage" button (and the counter row gains a "Clear" button) that resets the input
   and results in one click.

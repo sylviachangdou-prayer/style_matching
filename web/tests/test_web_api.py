@@ -54,6 +54,45 @@ class ExplainFeatureTests(unittest.TestCase):
 
 
 class MatchEndpointTests(unittest.TestCase):
+    def test_method_and_author_pages_serve_blueprint_assets(self) -> None:
+        with TestClient(app) as client:
+            page = client.get("/method.html")
+            self.assertEqual(page.status_code, 200)
+            self.assertIn('data-method-static', page.text)
+            self.assertIn('src="method-flow.js"', page.text)
+            self.assertIn('src="method-static.js"', page.text)
+            self.assertNotIn('src="method-modal.js"', page.text)
+
+            flow = client.get("/method-flow.js")
+            self.assertEqual(flow.status_code, 200)
+            self.assertIn("STYLEMATCH_METHOD_FLOW", flow.text)
+            self.assertIn("Topic never enters Style Match", flow.text)
+
+            fallback = client.get("/method-flow.svg")
+            self.assertEqual(fallback.status_code, 200)
+            self.assertEqual(fallback.headers["content-type"], "image/svg+xml")
+
+            portrait = client.get("/head.webp")
+            self.assertEqual(portrait.status_code, 200)
+            self.assertEqual(portrait.headers["content-type"], "image/webp")
+
+            static_ui = client.get("/method-static.js")
+            self.assertEqual(static_ui.status_code, 200)
+            self.assertIn("primary-flow", static_ui.text)
+
+            home = client.get("/index.html")
+            self.assertEqual(home.status_code, 200)
+            self.assertIn('class="site-nav"', home.text)
+            self.assertIn('class="art-ribbon"', home.text)
+            self.assertNotIn('<dialog', home.text)
+
+            authors = client.get("/authors.html")
+            self.assertEqual(authors.status_code, 200)
+            self.assertIn('id="author-grid"', authors.text)
+            author_data = client.get("/authors-data.js")
+            self.assertEqual(author_data.status_code, 200)
+            self.assertIn("STYLEMATCH_AUTHORS", author_data.text)
+
     def test_demo_mode_health_and_default_global_match(self) -> None:
         with TestClient(app) as client:
             health = client.get("/api/health").json()

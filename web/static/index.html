@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>StyleMatch — which famous voice do you write like?</title>
+<title>Pure Style, Beyond Language — sylviadou</title>
 <script src="config.js"></script>
 <style>
   /* Design decisions (owner-approved): navy + khaki/warm-white palette following
@@ -49,11 +49,15 @@
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
-         font: 16px/1.6 -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans SC", sans-serif; }
-  main { max-width: 680px; margin: 0 auto; padding: 28px 18px 72px; }
+         font: 16px/1.6 -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans SC", sans-serif;
+         min-height: 100vh; overflow-x: hidden; }
+  main { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 28px 18px 72px; }
   h1 { font-family: var(--serif); font-size: 2rem; letter-spacing: .01em;
        color: var(--navy); margin: 12px 0 4px; }
   .tagline { color: var(--muted); margin: 0 0 22px; }
+  .method-link { display: inline-block; margin-left: 6px; color: var(--navy);
+                 font-size: .88rem; text-decoration: none; border-bottom: 1px solid var(--khaki-strong); }
+  .method-link:hover { border-bottom-color: var(--navy); }
   textarea { width: 100%; min-height: 180px; padding: 14px; border: 1px solid var(--border);
              border-radius: var(--radius); background: var(--field); color: var(--ink);
              font: .92rem/1.55 var(--mono); resize: vertical; }
@@ -179,11 +183,30 @@
     body.printing #export-sheet { display: block; width: auto; padding: 0; }
   }
 </style>
+<link rel="stylesheet" href="method-flow.css">
+<link rel="stylesheet" href="site-shell.css">
 </head>
-<body>
-<main>
-  <h1>StyleMatch</h1>
-  <p class="tagline"><strong>Who do you sound like?</strong> Paste a passage you wrote — we compare <em>how</em> you write, not what you write about, and show our work.</p>
+<body class="page-home stylematch-atmosphere">
+<header class="site-header">
+  <a class="site-mark" href="https://github.com/sylviachangdou-prayer" target="_blank" rel="noopener noreferrer" aria-label="sylviadou on GitHub"><span aria-hidden="true">❦</span> sylviadou</a>
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a class="active" href="index.html"><span aria-hidden="true">⌂</span> Home</a>
+    <a href="method.html"><span aria-hidden="true">⌁</span> Method</a>
+    <a href="authors.html"><span aria-hidden="true">A–Z</span> Author Library</a>
+  </nav>
+</header>
+
+<aside class="art-ribbon" aria-hidden="true">
+  <span class="art-strip art-wave"></span>
+  <span class="art-strip art-bedroom"></span>
+  <span class="art-strip art-scroll"></span>
+  <span class="art-strip art-manuscript"></span>
+</aside>
+
+<main class="home-main">
+  <section class="input-panel" aria-labelledby="home-title">
+  <h1 id="home-title">Pure style.<br><em>Beyond language.</em></h1>
+  <p class="capability-line"><span aria-hidden="true">✦</span> Cross-lingual, multi-style retrieval — fine-tuned from the frontier of academic authorship research.</p>
 
   <textarea id="text" placeholder="Paste at least ~80 words (or ~160 characters of Chinese/Japanese) of your own writing…"></textarea>
 
@@ -191,7 +214,9 @@
     <span class="counter" id="counter">0 words</span>
     <button id="clear" type="button" hidden>Clear</button>
   </div>
-  <button id="go">Find my match</button>
+  <button id="go"><span aria-hidden="true">❧</span> Find my match</button>
+  <p class="input-note"><span aria-hidden="true">¶</span> Original-language passages only · style and topic remain separate · no match is a valid result</p>
+  </section>
 
   <div id="output"></div>
 
@@ -211,7 +236,8 @@
     cross-language retrieval is served as a reduced-confidence mode ranked per target
     language, since raw multilingual cosines are not comparable across language pairs.
     Matches are returned with interpretable stylometric evidence and, where licensing
-    permits, representative original-language passages.</p>
+    permits, representative original-language passages.
+    <a href="method.html">Method &amp; evidence &rarr;</a></p>
   </footer>
 </main>
 
@@ -241,6 +267,8 @@ textEl.addEventListener("input", updateCounter);
 function resetAll() {
   textEl.value = "";
   output.innerHTML = "";
+  document.body.classList.remove("results-mode", "matching-mode");
+  delete document.body.dataset.gallery;
   lastData = null; lastText = "";
   updateCounter();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -251,8 +279,10 @@ clearBtn.onclick = resetAll;
 goBtn.onclick = async () => {
   const text = textEl.value.trim();
   if (!text) return;
+  const started = performance.now();
   goBtn.disabled = true;
-  output.innerHTML = `<div class="spinner">Encoding your passage…</div>`;
+  document.body.classList.add("matching-mode");
+  output.innerHTML = loadingMarkup();
   try {
     const res = await fetch(`${API}/api/match`, {
       method: "POST",
@@ -261,17 +291,48 @@ goBtn.onclick = async () => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || `Request failed (${res.status})`);
+    const minimumDisplay = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1400;
+    const remaining = minimumDisplay - (performance.now() - started);
+    if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
     lastData = data; lastText = text;
     render(data);
   } catch (err) {
+    document.body.classList.remove("matching-mode");
     output.innerHTML = `<div class="error">${escapeHtml(err.message)}</div>`;
   } finally {
+    document.body.classList.remove("matching-mode");
     goBtn.disabled = false;
   }
 };
 
+function loadingMarkup() {
+  return `<section class="loading-theatre" role="status" aria-live="polite">
+    <div class="scroll-stage" aria-hidden="true">
+      <span class="scroll-rod rod-left"></span>
+      <div class="parchment">
+        <span class="scroll-flourish">❦</span>
+        <span class="ink-line line-one"></span>
+        <span class="ink-line line-two"></span>
+        <span class="ink-line line-three"></span>
+        <span class="ink-signature">style · rhythm · voice</span>
+      </div>
+      <span class="scroll-rod rod-right"></span>
+    </div>
+    <p class="loading-title">Reading the architecture of your voice…</p>
+    <p class="loading-subtitle">syntax · cadence · lexical habit · register</p>
+  </section>`;
+}
+
 function render(data) {
+  document.body.classList.remove("matching-mode");
+  document.body.classList.add("results-mode");
+  const matches = Object.values(data.results).flat();
   const parts = [];
+  parts.push(`<header class="result-intro">
+    <div class="result-kicker"><span aria-hidden="true">❦</span> Your literary constellation</div>
+    <h2>${matches.length ? "The voices nearest to yours" : "No strong voice emerged"}</h2>
+    <p>Style leads the ranking. Topic remains visible as a separate contextual signal.</p>
+  </header>`);
   if (data.demo) parts.push(
     `<div class="banner warn"><strong>Demo data.</strong> The real style index is still training —
      these authors and scores are placeholder fixtures, not measurements.</div>`);
@@ -287,7 +348,6 @@ function render(data) {
     parts.push(`<div class="banner info"><strong>Closest style decades (experimental).</strong> ${decades}</div>`);
   }
 
-  const matches = Object.values(data.results).flat();
   matches.forEach((m, i) => parts.push(matchRow(m, i + 1)));
   if (!matches.length) parts.push(
     `<div class="empty">No match to show for this passage yet — try a longer or different passage.</div>`);
@@ -305,6 +365,19 @@ function render(data) {
   const pdfBtn = $("export-pdf"), pngBtn = $("export-png");
   if (pdfBtn) pdfBtn.onclick = exportPdf;
   if (pngBtn) pngBtn.onclick = () => exportPng(pngBtn);
+  const cards = [...output.querySelectorAll(".match")];
+  cards.forEach(card => {
+    const select = () => {
+      cards.forEach(item => item.classList.toggle("is-selected", item === card));
+      document.body.dataset.gallery = card.dataset.gallery;
+    };
+    card.addEventListener("click", select);
+    card.addEventListener("focus", select);
+  });
+  if (cards[0]) {
+    cards[0].classList.add("is-selected");
+    document.body.dataset.gallery = cards[0].dataset.gallery;
+  }
 }
 
 function matchRow(m, rank) {
@@ -316,8 +389,9 @@ function matchRow(m, rank) {
   const photo = /^https?:\/\//.test(m.photo_url || "")
     ? `<img src="${escapeHtml(m.photo_url)}" alt="Portrait of ${escapeHtml(m.author_or_speaker)}" loading="lazy">`
     : "";
+  const gallery = galleryFor(m.target_language, rank);
   return `
-  <div class="match rank-${rank}">
+  <article class="match rank-${rank} gallery-${gallery}" data-gallery="${gallery}" tabindex="0" aria-label="Rank ${rank}: ${escapeHtml(m.author_or_speaker)}">
     <div class="rank-num">${rank}</div>
     <div class="match-body">
       <div class="match-head">
@@ -333,9 +407,17 @@ function matchRow(m, rank) {
         ${m.topic_similarity != null ? scoreRow("Topic", m.topic_similarity, "topic") : ""}
       </div>
       ${why ? `<ul class="why">${why}</ul>` : ""}
-      ${passages ? `<details open><summary>Their passage closest to yours (original language)</summary>${passages}</details>` : ""}
+      ${passages ? `<section class="passage-match" aria-label="Closest original-language passage">
+        <div class="passage-label"><span aria-hidden="true">“</span> Their passage closest to yours <em>(original language)</em></div>
+        ${passages}
+      </section>` : ""}
     </div>
-  </div>`;
+  </article>`;
+}
+
+function galleryFor(language, rank) {
+  const byLanguage = { ja: "wave", zh: "scroll", fa: "manuscript", ar: "manuscript", fr: "bedroom", de: "bedroom", en: "bedroom" };
+  return byLanguage[language] || ["wave", "bedroom", "scroll", "manuscript"][(rank - 1) % 4];
 }
 
 function scoreRow(label, value, kind) {
