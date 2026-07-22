@@ -196,6 +196,26 @@ Explored and recorded (post-baseline method-exploration notebook, outputs under
   most frequent subwords, mask at 0.4, one epoch);
 - single-centroid versus source-prototype retrieval — `single_centroid` remains deployed.
 
+### Expanded-corpus top-four retraining (notebook Part 8)
+
+Part 8 reruns the original four leading method families after the expanded independent-source
+artifact is frozen: learned multi-view reranker, fine-tuned authorship representation,
+classical style-feature fusion, and pretrained authorship representation. The pretrained
+encoder remains a fixed control. The fine-tuned encoder is initialized from the pinned
+multilingual authorship model and refit with different-source positives, matched hard
+negatives, language-aware batches, and the complete expanded training partition. The
+classical views are refit on the same train sources.
+
+The source split is binding: encoder and classical fitting use train only; the reranker uses
+dev source-level scores only; test is opened once (Cawley & Talbot 2010). A profile must have
+at least two independent train sources to create valid contrastive positives. Profiles below
+that threshold are retained as zero-shot retrieval candidates and held-out cases rather than
+leaked into training. The reranker converts each non-topic view to within-language z-scores
+and candidate percentiles, fits an elastic-net candidate model, and is adopted only when its
+paired profile-bootstrap MRR interval is wholly positive, calibration and selective precision
+do not regress, and supported language/corpus groups do not worsen (Dror et al. 2018; Guo et
+al. 2017; Geifman & El-Yaniv 2017). Topic scores remain prohibited from every Part 8 view.
+
 Diachronic output: optional `language × decade` centroids from sources with verified years
 only; never inferred from lifespan or edition dates; uncalibrated until decade-heldout
 evaluation exists; unavailable rather than blocking when support is insufficient.
@@ -222,8 +242,29 @@ used machine translation. `--audit-only` reconciles registry profiles against th
 artifact before any GPU run. Profile construction caps: 50 chunks per source, 600 per
 profile.
 
-## Literature record, 2023–2026
+## Literature record, 1998–2026
 
+- Kittler et al., IEEE TPAMI 1998 — theoretical framework for combining distinct classifier
+  representations and the linear sum rule. [DOI](https://doi.org/10.1109/34.667881)
+- Montague & Aslam, CIKM 2001 — normalization before score-based metasearch fusion; basis
+  for putting heterogeneous retrieval views on a common scale.
+  [DOI](https://doi.org/10.1145/502585.502657)
+- Cameron, Gelbach & Miller, *Review of Economics and Statistics* 2008 — bootstrap inference
+  under within-cluster dependence; basis for resampling profiles rather than dependent source
+  rows. [DOI](https://doi.org/10.1162/rest.90.3.414)
+- Cawley & Talbot, JMLR 2010 — model-selection overfitting and subsequent selection bias;
+  basis for dev-only weight selection and a locked test.
+  [Paper](https://www.jmlr.org/papers/v11/cawley10a.html)
+- Guo et al., ICML 2017 — calibration and expected calibration error as a distinct evaluation
+  axis. [Paper](https://proceedings.mlr.press/v70/guo17a.html)
+- Geifman & El-Yaniv, NeurIPS 2017 — selective prediction and the risk–coverage trade-off;
+  basis for the 50%-coverage precision gate.
+  [Paper](https://proceedings.neurips.cc/paper/2017/hash/4a8423d5e91fda00bb7e46540e2b0cf1-Abstract.html)
+- Dror et al., ACL 2018 — task-appropriate paired significance testing in NLP.
+  [Paper](https://aclanthology.org/P18-1128/)
+- Sagawa et al., ICLR 2020 — worst-group robustness under group shifts; basis for the
+  language/corpus non-degradation constraint.
+  [Paper](https://openreview.net/forum?id=ryxGuJrFvS)
 - Sawatphol et al., TACL 2024 — topic leakage in cross-topic authorship evaluation.
 - Huertas-Tato et al. 2024 — hard-negative contrastive isolation of style from content.
 - Terreau et al. 2024 — interpretable stylistic features as a complementary channel.

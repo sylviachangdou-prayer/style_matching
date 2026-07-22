@@ -50,6 +50,7 @@ def test_index_exposes_primary_navigation_and_visible_passage() -> None:
     assert "Paste a passage you wrote — we compare" not in page
     assert 'href="method.html"' in page
     assert 'href="authors.html"' in page
+    assert 'href="fyi.html"' in page
     assert '<dialog' not in page
     assert '<details' not in page
     assert 'class="passage-match"' in page
@@ -142,3 +143,13 @@ def test_author_library_is_generated_from_complete_registry() -> None:
     assert len(payload) == 270
     assert all(author["profile"] and author["style_traits"] for author in payload)
     assert next(author for author in payload if author["name"] == "Hannah Arendt")["original_languages"] == ["de", "en"]
+
+
+def test_fyi_page_explains_scores_without_calling_them_probabilities() -> None:
+    page = (STATIC / "fyi.html").read_text(encoding="utf-8")
+    assert 'class="site-nav"' in page
+    assert page.count('href="fyi.html"') == 1
+    assert "Why does a passage copied from the library not score 1.00?" in page
+    assert "does not compare the passage with itself" in page
+    assert "not a probability of authorship" in page
+    assert "Style matching and source identification are different tasks" in page

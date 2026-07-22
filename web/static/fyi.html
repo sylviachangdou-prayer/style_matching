@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StyleMatch — FYI</title>
+<style>
+  :root {
+    --bg: #f7f4ec; --field: #fffdf8; --ink: #1b2a44; --muted: #756b5d;
+    --navy: #1f3a5f; --khaki: #e8e0c9; --border: #d8cfb6; --wine: #7b2f3c;
+    --serif: Cochin, Georgia, "Songti SC", "Noto Serif SC", "Hiragino Mincho ProN", "Noto Serif JP", serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Noto Sans Mono CJK SC", monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: var(--ink); font: 16px/1.65 -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; min-height: 100vh; }
+  .fyi-sheet { max-width: 840px; padding: 0 0 50px; }
+  .fyi-note { margin: 0; padding: 28px 0 30px; border-top: 1px solid #c9bda5; }
+  .fyi-note:last-child { border-bottom: 1px solid #c9bda5; }
+  .fyi-note h2 { max-width: 720px; margin: 0 0 12px; color: var(--navy); font: 600 clamp(1.45rem, 3vw, 2.15rem)/1.2 var(--serif); }
+  .fyi-note h2::before { content: "Q"; display: inline-grid; place-items: center; width: 28px; height: 28px; margin-right: 12px; border: 1px solid var(--wine); border-radius: 50%; color: var(--wine); font: 800 .68rem/1 var(--mono); vertical-align: .24em; }
+  .fyi-note p { max-width: 760px; margin: 8px 0 0 42px; color: #514c44; font: 1rem/1.75 var(--serif); }
+  .fyi-note strong { color: var(--wine); font-weight: 600; }
+  .fyi-note code { padding: 1px 5px; background: var(--khaki); color: var(--navy); font: .84em var(--mono); }
+  @media (max-width: 720px) { .fyi-note p { margin-left: 0; } }
+</style>
+<link rel="stylesheet" href="site-shell.css">
+</head>
+<body class="page-fyi stylematch-atmosphere">
+<header class="site-header">
+  <a class="site-mark" href="https://github.com/sylviachangdou-prayer" target="_blank" rel="noopener noreferrer" aria-label="sylviadou on GitHub"><span aria-hidden="true">❦</span> sylviadou</a>
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a href="index.html"><span aria-hidden="true">⌂</span> Home</a>
+    <a href="method.html"><span aria-hidden="true">⌁</span> Method</a>
+    <a href="authors.html"><span aria-hidden="true">A–Z</span> Author Library</a>
+    <a class="active" href="fyi.html"><span aria-hidden="true">?</span> FYI</a>
+  </nav>
+</header>
+
+<main class="page-shell">
+  <header class="page-hero">
+    <div class="page-kicker"><span aria-hidden="true">?</span> Frequently, yes. Obviously, no.</div>
+    <h1>FYI</h1>
+  </header>
+
+  <section class="fyi-sheet" aria-label="Frequently asked questions">
+    <article class="fyi-note">
+      <h2>Why does a passage copied from the library not score 1.00?</h2>
+      <p><strong>Because StyleMatch does not compare the passage with itself.</strong> The Style score is cosine similarity to an author profile aggregated across independent works. Only an embedding compared directly with the identical embedding should equal <code>1.00</code>. The larger number beside a result is Affinity, not a probability of authorship; <code>0.92</code> does not mean “92% written by this author.”</p>
+    </article>
+
+    <article class="fyi-note">
+      <h2>Why can a library excerpt rank a neighboring writer first?</h2>
+      <p>Style matching and source identification are different tasks. The current ranking asks which author’s broad profile is nearest to the excerpt; it does not perform quotation lookup. Short excerpt boundaries can also move an embedding, while a single author profile compresses variation across novels, essays, speeches, and decades. Rank 1 therefore means “nearest profile under this model,” not “verified source author.”</p>
+    </article>
+  </section>
+</main>
+</body>
+</html>

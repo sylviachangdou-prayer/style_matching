@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import re
 import time
@@ -16,6 +17,13 @@ DEFAULT_TOPIC_MODEL = "intfloat/multilingual-e5-base"
 # These are the language codes currently present in the registry. mStyleDistance
 # can encode arbitrary XLM-R text, but quality must be calibrated per language pair.
 SUPPORTED_LANGUAGES = {"de", "en", "es", "fr", "it", "ja", "pl", "ru", "zh"}
+
+_DISPLAY_NOISE_RE = re.compile(
+    r"\[(?:illustration|picture|frontispiece|music|decoration|map|plate)(?::[^\]]*)?\]"
+    r"|(?:\s*\*\s*){3,}",
+    flags=re.IGNORECASE,
+)
+_SENTENCE_END_RE = re.compile(r"[.!?。！？…]+[\"'’”」』】）》）)]*")
 
 
 def validate_frame(df: pd.DataFrame) -> None:
@@ -265,9 +273,18 @@ def build_index(args: argparse.Namespace) -> None:
             if "display_allowed" in df.columns
             else np.zeros(len(indices), dtype=bool)
         )
-        representative_order = [
-            local_index for local_index in np.argsort(local_scores)[::-1] if display_allowed[local_index]
-        ][:3]
+        representative_order = []
+        prepared_passages: dict[int, str] = {}
+        for local_index in np.argsort(local_scores)[::-1]:
+            if not display_allowed[local_index]:
+                continue
+            prepared = prepare_display_passage(str(df.iloc[indices[local_index]]["text"]))
+            if not prepared:
+                continue
+            representative_order.append(local_index)
+            prepared_passages[local_index] = prepared
+            if len(representative_order) == 3:
+                break
         for local_index in representative_order:
             row = df.iloc[indices[local_index]]
             representative_rows.append({
@@ -275,7 +292,7 @@ def build_index(args: argparse.Namespace) -> None:
                 "corpus": row["corpus"],
                 "source_id": row["source_id"],
                 "title": row.get("title", ""),
-                "text": row["text"],
+                "text": prepared_passages[local_index],
                 "centroid_similarity": float(local_scores[local_index]),
             })
 
@@ -405,20 +422,47 @@ def build_index(args: argparse.Namespace) -> None:
     print(json.dumps(metadata, indent=2))
 
 
-def truncate_to_length(passage: str, target_chars: int) -> str:
-    """Trim a representative passage to roughly the query length, preferring a
-    sentence boundary so the displayed evidence stays readable."""
-    limit = int(target_chars * 1.4)
-    if len(passage) <= limit:
-        return passage
-    cut = None
-    for match in re.finditer(r"[.!?。！？…]+[”’\"')】』」]*\s*", passage):
-        if match.end() > limit:
-            break
-        cut = match.end()
-    if cut and cut >= target_chars * 0.5:
-        return passage[:cut].rstrip()
-    return passage[:target_chars].rstrip() + "…"
+def _strip_leading_heading(text: str) -> str:
+    """Remove a short all-caps chapter or section label from a passage start."""
+    tokens = list(re.finditer(r"\S+", text))[:14]
+    uppercase_words = 0
+    for token in tokens:
+        letters = "".join(character for character in token.group() if character.isalpha())
+        if letters and letters.isupper():
+            uppercase_words += 1
+            continue
+        if uppercase_words >= 2 and letters:
+            return text[token.start():]
+        break
+    return text
+
+
+def prepare_display_passage(passage: str, target_chars: int | None = None) -> str:
+    """Return clean, whole sentences for user-facing evidence.
+
+    Training chunks remain unchanged. Display candidates containing Gutenberg
+    illustration markers or ornamental dividers are rejected because removing
+    those markers can join a caption or chapter title to unrelated prose.
+    """
+    passage = " ".join(str(passage).split()).strip()
+    if not passage or _DISPLAY_NOISE_RE.search(passage):
+        return ""
+    passage = _strip_leading_heading(passage).strip()
+    endings = list(_SENTENCE_END_RE.finditer(passage))
+    if not endings:
+        return ""
+
+    first_character = next((character for character in passage if character.isalpha()), "")
+    start = endings[0].end() if first_character and first_character.islower() else 0
+    endings = [ending for ending in endings if ending.end() > start]
+    if not endings:
+        return ""
+
+    limit = int(target_chars * 1.4) if target_chars else len(passage)
+    eligible_ends = [ending.end() for ending in endings if ending.end() - start <= limit]
+    end = eligible_ends[-1] if eligible_ends else endings[0].end()
+    excerpt = passage[start:end].strip(" \t\n—–-")
+    return excerpt if any(character.isalpha() for character in excerpt) else ""
 
 
 class StyleIndex:
@@ -461,11 +505,15 @@ class StyleIndex:
     def _load_or_encode_passages(self) -> np.ndarray:
         cache_path = self.index_dir / "passage_style_embeddings.npz"
         texts = self.passages["text"].fillna("").tolist()
+        text_sha256 = hashlib.sha256("\0".join(texts).encode("utf-8")).hexdigest()
         if cache_path.exists():
             payload = np.load(cache_path, allow_pickle=False)
-            if str(payload["model_name"]) == str(self.metadata["model_name"]) and len(
-                payload["embeddings"]
-            ) == len(texts):
+            if (
+                str(payload["model_name"]) == str(self.metadata["model_name"])
+                and "text_sha256" in payload.files
+                and str(payload["text_sha256"]) == text_sha256
+                and len(payload["embeddings"]) == len(texts)
+            ):
                 return payload["embeddings"]
         embeddings = self.model.encode(
             texts,
@@ -476,7 +524,10 @@ class StyleIndex:
         ).astype("float32")
         try:
             np.savez_compressed(
-                cache_path, model_name=str(self.metadata["model_name"]), embeddings=embeddings
+                cache_path,
+                model_name=str(self.metadata["model_name"]),
+                text_sha256=text_sha256,
+                embeddings=embeddings,
             )
         except OSError:
             pass
@@ -527,20 +578,24 @@ class StyleIndex:
                 )
                 if column in passages.columns
             )
-            passage_records = passages[passage_columns].to_dict("records")
             passage_records = [
                 {key: value for key, value in record.items() if not pd.isna(value)}
-                for record in passage_records
+                for record in passages[passage_columns].to_dict("records")
             ]
             if passage_records and self.passage_style_embeddings is not None:
                 similarities = (
                     self.passage_style_embeddings[passages.index.to_numpy()] @ query_embedding
                 )
-                best = int(np.argmax(similarities))
-                record = dict(passage_records[best])
-                record["text"] = truncate_to_length(record["text"], max(len(text), 200))
-                record["passage_style_similarity"] = float(similarities[best])
-                passage_records = [record]
+                selected = []
+                for best in np.argsort(similarities)[::-1]:
+                    record = dict(passage_records[int(best)])
+                    prepared = prepare_display_passage(record["text"], max(len(text), 200))
+                    if prepared:
+                        record["text"] = prepared
+                        record["passage_style_similarity"] = float(similarities[int(best)])
+                        selected = [record]
+                        break
+                passage_records = selected
             source_corpora = profile["source_corpora"]
             if isinstance(source_corpora, np.ndarray):
                 source_corpora = source_corpora.tolist()

@@ -12,7 +12,12 @@ from scripts.audit_source_metadata import audit as audit_source_metadata
 from scripts.finetune_multilingual_style import make_hard_negative_examples, make_pairs, training_coverage
 from scripts.make_group_heldout_splits import build_split
 from scripts.make_source_heldout_splits import split_author
-from scripts.multilingual_style_index import StyleIndex, balanced_profile_sample, profile_metadata
+from scripts.multilingual_style_index import (
+    StyleIndex,
+    balanced_profile_sample,
+    prepare_display_passage,
+    profile_metadata,
+)
 from scripts.retrieval_metrics import paired_bootstrap_mrr, ranking_metrics
 from scripts.style_embedding_recall import mask_cross_language_candidates
 from scripts.style_robust_baseline import compression_distance_scores
@@ -92,6 +97,24 @@ def test_query_result_is_json_serializable_when_parquet_returns_array() -> None:
     assert result["results"]["en"][0]["source_corpora"] == ["literary", "rhetorical"]
     assert result["decade_match"]["decade"] == "1920s"
     json.dumps(result)
+
+
+def test_display_passage_rejects_editorial_artifacts() -> None:
+    passage = (
+        "[Picture: Sketch of tree-lined path] * * * * * "
+        "THE DANCE AT THE PHŒNIX TO Jenny came a gentle youth."
+    )
+    assert prepare_display_passage(passage) == ""
+
+
+def test_display_passage_has_complete_start_and_end() -> None:
+    passage = "continued from an earlier sentence. This sentence is whole. This one is also whole. trailing fragment"
+    assert prepare_display_passage(passage) == "This sentence is whole. This one is also whole."
+
+
+def test_display_passage_removes_leading_chapter_heading() -> None:
+    passage = "CHAPTER XII The rain began before dawn. Nobody had slept."
+    assert prepare_display_passage(passage) == "The rain began before dawn. Nobody had slept."
 
 
 def test_real_mini_index_artifact_loads_without_demo(monkeypatch, tmp_path) -> None:
