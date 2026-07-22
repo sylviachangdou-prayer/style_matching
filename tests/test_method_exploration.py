@@ -16,6 +16,7 @@ from scripts.evaluate_multiview_fusion import (
     predict_fusion,
     profile_bootstrap_intervals,
 )
+from scripts.evaluate_robust_rank_fusion import simplex_weights
 from scripts.fetch_gutendex import author_match, independent_title_key
 from scripts.evaluate_multiview_open_set import confidence_features
 from scripts.finetune_multilingual_style import pcm_mask_examples
@@ -103,6 +104,14 @@ def test_fusion_trains_only_same_language_candidate_pairs() -> None:
     fused = predict_fusion(model, rows, feature_names, features, languages, profiles)
     assert fused.argmax(axis=1).tolist() == labels.tolist()
     assert np.all(fused[0, 2:] == -1e9)
+
+
+def test_robust_fusion_weights_are_convex_and_base_anchored() -> None:
+    candidates = simplex_weights(["base", "classical", "pretrained"], "base", 0.1, 0.5)
+    assert candidates
+    assert all(np.isclose(sum(row.values()), 1.0) for row in candidates)
+    assert all(row["base"] >= 0.5 for row in candidates)
+    assert {"base": 1.0, "classical": 0.0, "pretrained": 0.0} in candidates
 
 
 def test_open_set_features_include_cross_view_agreement() -> None:
@@ -278,6 +287,34 @@ def test_source_level_experiment_clis(tmp_path: Path) -> None:
         text=True,
     )
     assert (fusion_dir / "multiview_fusion_metrics.json").exists()
+    robust_dir = tmp_path / "robust"
+    subprocess.run(
+        [
+            sys.executable,
+            "scripts/evaluate_robust_rank_fusion.py",
+            "--input",
+            str(input_path),
+            "--scores",
+            f"base={artifact}:view1",
+            "--scores",
+            f"support={artifact}:view2",
+            "--base",
+            "base",
+            "--output-dir",
+            str(robust_dir),
+            "--minimum-group-sources",
+            "2",
+            "--bootstrap-runs",
+            "20",
+        ],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    report = json.loads((robust_dir / "robust_reranker_metrics.json").read_text())
+    assert report["decision"] == "base"
+    assert (robust_dir / "robust_reranker_candidates.csv").exists()
     open_dir = tmp_path / "open"
     subprocess.run(
         [

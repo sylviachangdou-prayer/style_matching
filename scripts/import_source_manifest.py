@@ -31,6 +31,7 @@ FIELDS = [
 ]
 REQUIRED = {"corpus", "name", "original_language", "title", "source_id", "local_text_path"}
 REGISTRY_PATH = ROOT / "data" / "source_registry" / "all_people.csv"
+REGISTRY_DIR = REGISTRY_PATH.parent
 
 
 def slug(value: str) -> str:
@@ -64,7 +65,20 @@ def registry_keys() -> set[tuple[str, str, str]]:
         }
 
 
-def import_rows(rows: list[dict[str, str]], manifest_dir: Path, dry_run: bool) -> dict[str, list[dict[str, str]]]:
+def resolve_local_path(value: str, manifest_dir: Path) -> tuple[Path, list[Path]]:
+    path = Path(value)
+    if path.is_absolute():
+        return path, [path]
+    candidates = [manifest_dir / path, REGISTRY_DIR / path, ROOT / path]
+    return next((candidate for candidate in candidates if candidate.exists()), candidates[0]), candidates
+
+
+def import_rows(
+    rows: list[dict[str, str]],
+    manifest_dir: Path,
+    dry_run: bool,
+    skip_missing: bool = False,
+) -> dict[str, list[dict[str, str]]]:
     by_corpus: dict[str, list[dict[str, str]]] = {}
     allowed = registry_keys()
     for row in rows:
@@ -79,11 +93,13 @@ def import_rows(rows: list[dict[str, str]], manifest_dir: Path, dry_run: bool) -
             independent_source_id = source_identity(
                 corpus, row["title"], row.get("year", ""), source_id
             )
-        local_path = Path(row["local_text_path"])
-        if not local_path.is_absolute():
-            local_path = manifest_dir / local_path
+        local_path, checked_paths = resolve_local_path(row["local_text_path"], manifest_dir)
         if not local_path.exists():
-            raise FileNotFoundError(local_path)
+            checked = ", ".join(str(path) for path in checked_paths)
+            if skip_missing:
+                print(f"skip missing {source_id}: checked {checked}")
+                continue
+            raise FileNotFoundError(f"{source_id}: checked {checked}")
 
         text = local_path.read_text(encoding="utf-8", errors="replace")
         word_count = len(re.findall(r"\S+", text))
@@ -155,13 +171,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--append", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--skip-missing",
+        action="store_true",
+        help="Import successful manifest rows and report stale or failed local paths.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     rows = read_manifest(args.manifest)
-    by_corpus = import_rows(rows, args.manifest.resolve().parent, args.dry_run)
+    by_corpus = import_rows(
+        rows,
+        args.manifest.resolve().parent,
+        args.dry_run,
+        skip_missing=args.skip_missing,
+    )
     for corpus, corpus_rows in sorted(by_corpus.items()):
         if args.dry_run:
             print(f"{corpus}: validated {len(corpus_rows)} source rows")

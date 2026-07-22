@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest import mock
 
 from scripts.build_chunk_parquet_from_sources import chunk_cjk, chunk_words, normalize_source_text
 from scripts.fetch_multilingual_sources import clean_gutenberg, row_manifest_metadata, script_ratio
+from scripts import import_source_manifest
 
 
 class ChunkingTests(unittest.TestCase):
@@ -47,6 +51,36 @@ class SourceValidationTests(unittest.TestCase):
         )
         self.assertEqual(metadata["license_status"], "rights_cleared_research")
         self.assertEqual(metadata["display_allowed"], "false")
+
+    def test_manifest_outside_registry_resolves_registry_raw_input(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            registry = root / "data" / "source_registry"
+            raw_input = registry / "raw_inputs" / "book.txt"
+            raw_input.parent.mkdir(parents=True)
+            raw_input.write_text("text", encoding="utf-8")
+            with mock.patch.object(import_source_manifest, "REGISTRY_DIR", registry):
+                resolved, _ = import_source_manifest.resolve_local_path(
+                    "raw_inputs/book.txt", root / "artifacts" / "expansion"
+                )
+            self.assertEqual(resolved, raw_input)
+
+    def test_manifest_can_skip_a_stale_missing_source(self) -> None:
+        row = {
+            "corpus": "literary",
+            "name": "Missing Writer",
+            "original_language": "en",
+            "title": "Missing Work",
+            "source_id": "missing_work",
+            "local_text_path": "raw_inputs/missing.txt",
+        }
+        with TemporaryDirectory() as directory, mock.patch.object(
+            import_source_manifest, "registry_keys", return_value=set()
+        ):
+            imported = import_source_manifest.import_rows(
+                [row], Path(directory), dry_run=True, skip_missing=True
+            )
+        self.assertEqual(imported, {})
 
 
 if __name__ == "__main__":
