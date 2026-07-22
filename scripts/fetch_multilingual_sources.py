@@ -236,13 +236,14 @@ def read_csv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
-def write_manifest(rows: list[dict[str, str]]) -> None:
-    existing = read_csv(MANIFEST) if MANIFEST.exists() else []
+def write_manifest(rows: list[dict[str, str]], manifest: Path = MANIFEST) -> None:
+    existing = read_csv(manifest) if manifest.exists() else []
     merged = {
         (row["corpus"], row["name"], row["original_language"], row["source_id"]): row
         for row in existing + rows
     }
-    with MANIFEST.open("w", newline="", encoding="utf-8") as handle:
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    with manifest.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=MANIFEST_FIELDS)
         writer.writeheader()
         writer.writerows(merged.values())
@@ -261,6 +262,18 @@ def fetch_row(row: dict[str, str]) -> dict[str, str]:
         text = extract_aozora(fetch_bytes(row["source_url"]))
     elif source_format == "wikisource_subpages":
         text = extract_wikisource(row["original_language"], row["source_url"])
+    elif source_format == "approved_remote_text":
+        download_url = row["source_url"]
+        parsed = urllib.parse.urlsplit(download_url)
+        if parsed.netloc == "github.com" and "/blob/" in parsed.path:
+            repository_path, file_path = parsed.path.split("/blob/", 1)
+            download_url = f"https://raw.githubusercontent.com{repository_path}/{file_path}"
+        decoded = UnicodeDammit(fetch_bytes(download_url)).unicode_markup
+        if not decoded:
+            raise ValueError(f"Could not decode approved remote text: {row['source_id']}")
+        text = decoded.strip()
+    elif source_format == "http_text":
+        text = fetch_bytes(row["source_url"]).decode("utf-8", errors="replace").strip()
     elif source_format == "local_text":
         # Rights-cleared, in-copyright works the owner supplies herself: the file
         # must already sit in raw_inputs/ under the standard name. Never fetched.
@@ -285,6 +298,7 @@ def row_manifest_metadata(row: dict[str, str]) -> dict[str, str]:
     # local_text rows are privately cleared for research/indexing, not for
     # public passage display, unless the catalog row explicitly overrides.
     local = row.get("source_format") == "local_text"
+    approved_remote = row.get("source_format") == "approved_remote_text"
     metadata = {field: row.get(field, "") for field in MANIFEST_FIELDS[:-1]}
     metadata.update({
         "independent_source_id": source_identity(row),
@@ -292,8 +306,10 @@ def row_manifest_metadata(row: dict[str, str]) -> dict[str, str]:
         "register": row.get("register", "literary_prose"),
         "source_type": row.get("source_type", "work"),
         "delivered_language": row["original_language"],
-        "license_status": row.get("license_status") or ("rights_cleared_private" if local else "public_domain"),
-        "display_allowed": row.get("display_allowed") or ("false" if local else "true"),
+        "license_status": row.get("license_status") or (
+            "rights_cleared_research" if approved_remote else "rights_cleared_private" if local else "public_domain"
+        ),
+        "display_allowed": row.get("display_allowed") or ("false" if local or approved_remote else "true"),
         "canonical_url": row.get("canonical_url", row["source_url"]),
     })
     return metadata
@@ -302,6 +318,7 @@ def row_manifest_metadata(row: dict[str, str]) -> dict[str, str]:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Fetch curated original-language literary sources.")
     parser.add_argument("--catalog", type=Path, default=CATALOG)
+    parser.add_argument("--manifest", type=Path, default=MANIFEST)
     parser.add_argument("--language", action="append")
     parser.add_argument(
         "--skip-existing",
@@ -334,8 +351,8 @@ def main() -> None:
         except Exception as error:  # noqa: BLE001 - keep the batch alive, fail loudly at the end
             failures.append((row["source_id"], f"{type(error).__name__}: {error}"))
             print(f"FAILED {row['source_id']}: {error}", flush=True)
-    write_manifest(manifest_rows)
-    print(f"Wrote {len(manifest_rows)} original-language sources and updated {MANIFEST}")
+    write_manifest(manifest_rows, args.manifest)
+    print(f"Wrote {len(manifest_rows)} original-language sources and updated {args.manifest}")
     if failures:
         print(f"\n{len(failures)} source(s) failed; successes were kept and rerunning with --skip-existing resumes here:")
         for source_id, message in failures:

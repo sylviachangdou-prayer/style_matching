@@ -32,8 +32,9 @@
   .author-name { margin: 0 0 5px; color: var(--author-accent); font: 600 1.42rem/1.15 var(--serif); }
   .author-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 9px; }
   .author-meta span { padding: 2px 6px; border: 1px solid #c8bca5; color: #756b5d; font: 800 .56rem/1.3 var(--mono); letter-spacing: .07em; text-transform: uppercase; }
-  .author-profile { margin: 0; color: #5f5a52; font: .84rem/1.55 var(--serif); }
-  .author-traits { margin: 10px 0 0; color: var(--author-accent); font: 700 .7rem/1.5 var(--mono); }
+  .author-traits { margin: 0; color: #5f5a52; font: .84rem/1.55 var(--serif); }
+  .author-profile { margin: 11px 0 0; color: var(--author-accent); font: 700 .7rem/1.5 var(--mono); }
+  .author-profile span { display: block; }
   .library-empty { grid-column: 1 / -1; padding: 80px 20px; color: #756b5d; text-align: center; font-family: var(--serif); }
   .library-foot { margin-top: 50px; padding-top: 18px; border-top: 1px solid #cfc4ad; color: #756b5d; font-size: .78rem; }
   @media (max-width: 760px) {
@@ -101,6 +102,10 @@
     return name.split(/[\s-]+/).filter(Boolean).slice(0, 2).map(part => part[0]).join("").toUpperCase();
   }
 
+  function profileLines(profile) {
+    return profile.split(";").map(part => `<span>${escapeHtml(part.trim())}</span>`).join("");
+  }
+
   function option(select, value, label) {
     const item = document.createElement("option");
     item.value = value;
@@ -157,8 +162,8 @@
             <span>${author.eras.map(value => escapeHtml(value.replaceAll("_", "–"))).join(" · ")}</span>
             <span>${register}</span>
           </div>
-          <p class="author-profile">${escapeHtml(author.profile)}</p>
           <p class="author-traits"><span aria-hidden="true">✦</span> ${escapeHtml(author.style_traits)}</p>
+          <p class="author-profile">${profileLines(author.profile)}</p>
         </div>
       </article>`;
     }).join("");

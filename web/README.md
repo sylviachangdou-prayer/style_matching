@@ -17,12 +17,15 @@ web/
 ## Local run
 
 ```bash
-pip install -r web/requirements.txt
-uvicorn web.api.main:app --reload --port 8000
+./web/preview.sh
 # Home:   http://127.0.0.1:8000
 # Method: http://127.0.0.1:8000/method.html
 # Authors: http://127.0.0.1:8000/authors.html
 ```
+
+The preview script uses the local challenger index and an already working Python
+installation; it does not resolve or reinstall the training stack. Set
+`STYLEMATCH_INDEX_DIR` only when testing another index.
 
 The app looks for `artifacts/multilingual_style_index_challenger_v1/` first (the index
 built from the model selected in `artifacts/model_comparison_v1.json`), then falls back

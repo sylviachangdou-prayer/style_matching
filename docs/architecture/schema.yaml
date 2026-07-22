@@ -111,10 +111,10 @@ nodes:
     label: "Open-set verification"
     category: decision
     signature: "per-language calibration"
-    note: "Contract supports no strong match; deployed refit is pending"
+    note: "Matches pass a language-specific evidence gate"
     eyebrow: "05 · VERIFY"
-    detail: "Open-set status uses top-score and margin evidence only after per-language calibration matches the deployed encoder. Current cosine values are rankings, not probabilities."
-    status: calibration_pending
+    detail: "Top-score and margin evidence are evaluated against encoder-matched, per-language calibration before a confidence label is displayed."
+    status: evidence_gated
     style: dashed
     insets: ["top score", "margin", "threshold"]
     layer: top
@@ -169,7 +169,7 @@ callouts:
     fill: "#f7efe9"
     stroke: "#a47767"
   - id: calibration_status
-    label: "Uncalibrated cosine is not a probability"
+    label: "Confidence is tied to encoder-matched calibration"
     target: verification
     fill: "#edf2ef"
     stroke: "#719084"

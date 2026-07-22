@@ -516,7 +516,22 @@ class StyleIndex:
             profile = self.profiles.iloc[index]
             profile_id = int(profile["profile_id"])
             passages = self.passages[self.passages["profile_id"].eq(profile_id)]
-            passage_records = passages[["title", "source_id", "text"]].to_dict("records")
+            passage_columns = ["title", "source_id", "text"]
+            passage_columns.extend(
+                column for column in (
+                    "translated_text",
+                    "translation_language",
+                    "translator",
+                    "translation_year",
+                    "translation_publisher",
+                )
+                if column in passages.columns
+            )
+            passage_records = passages[passage_columns].to_dict("records")
+            passage_records = [
+                {key: value for key, value in record.items() if not pd.isna(value)}
+                for record in passage_records
+            ]
             if passage_records and self.passage_style_embeddings is not None:
                 similarities = (
                     self.passage_style_embeddings[passages.index.to_numpy()] @ query_embedding

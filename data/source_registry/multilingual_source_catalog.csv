@@ -272,6 +272,6 @@ literary,Jian Zhen,zh,2002,天涯海角,local_jianzhen_tianyahaijiao,local://rig
 literary,Qiu Miaojin,zh,1994,鱷魚手記,local_qiumiaojin_eyushouji,local://rights-cleared,local_text
 literary,Qiu Miaojin,zh,1995,寂寞的群眾,local_qiumiaojin_jimodequnzhong,local://rights-cleared,local_text
 literary,Qiu Miaojin,zh,1996,蒙馬特遺書,local_qiumiaojin_mengmateyishu,local://rights-cleared,local_text
-literary,J. K. Rowling,en,1997,Harry Potter and the Philosopher's Stone,local_rowling_philosophers_stone,local://rights-cleared,local_text
+literary,J. K. Rowling,en,1997,Harry Potter and the Sorcerer's Stone,approved_rowling_sorcerers_stone,https://github.com/amephraim/nlp/blob/master/texts/J.%20K.%20Rowling%20-%20Harry%20Potter%201%20-%20Sorcerer's%20Stone.txt,approved_remote_text
 literary,J. K. Rowling,en,1998,Harry Potter and the Chamber of Secrets,local_rowling_chamber_of_secrets,local://rights-cleared,local_text
 literary,J. K. Rowling,en,1999,Harry Potter and the Prisoner of Azkaban,local_rowling_prisoner_of_azkaban,local://rights-cleared,local_text

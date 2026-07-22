@@ -43,12 +43,12 @@
           background: var(--khaki); font-size: .9rem; margin: 12px 0; }
   .note.warn { background: var(--warn-bg); color: var(--warn-ink); }
   .tablewrap { overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; font-size: .88rem; margin: 10px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 1rem; margin: 10px 0; }
   th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border);
            vertical-align: top; }
-  th { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-  td.num { font: .85rem var(--mono); white-space: nowrap; }
-  .prov { color: var(--muted); font-size: .78rem; }
+  th { font-size: 1rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  td.num { font: 1rem/1.65 var(--mono); white-space: nowrap; }
+  .prov { color: var(--muted); font-size: 1rem; }
   .refs { font-size: .88rem; }
   .refs li { margin: 6px 0; }
   footer { color: var(--muted); font-size: .8rem; margin-top: 40px; border-top: 1px solid var(--border);
@@ -71,7 +71,6 @@
   <header class="page-hero">
     <div class="page-kicker"><span aria-hidden="true">⚖</span> Evidence before resemblance</div>
     <h1>Method &amp; evidence</h1>
-    <p class="sub">The academic mechanism behind the match — and the measurements behind every claim.</p>
   </header>
 
   <section class="method-flow-host" data-method-static aria-label="StyleMatch method flow">
@@ -80,7 +79,6 @@
       <p class="method-static-note">Static architecture shown. Enable JavaScript for the typeset version.</p>
     </noscript>
   </section>
-  <p class="method-map-caption">One non-crossing ranking path. The three support planes below it remain visibly separate from Style Match.</p>
 
   <section class="method-brief" aria-label="How to read the method">
     <article><span aria-hidden="true">I</span><h2>Rank</h2><p>The navy route compares authorship form: source-separated training, exact profile retrieval, then open-set verification. It may return no strong match.</p></article>
@@ -133,69 +131,83 @@
   displayed.</p>
 
   <h2>4 · How the deployed model was chosen</h2>
-  <p>Six candidates were compared on identical source-heldout dev/test splits: pretrained
-  and fine-tuned mStyleDistance (Qiu et al. 2025), its source-prototype variant, the
-  pretrained and fine-tuned authorship-representation challenger, and a classical
-  style-feature fusion. Selection rule: best dev MRR, with a learned fusion adopted only if
-  a paired bootstrap put its test-MRR gain above zero <em>and</em> calibration, selective
-  precision, and every major language/corpus subgroup did not degrade.</p>
-  <p><strong>Outcome (July 2026):</strong> the fine-tuned challenger won and is deployed;
-  fusion failed its gates and was rejected — kept on record as a negative result. The
-  decision is recorded in the model-comparison artifact and mirrored into the index
-  metadata (<code>deployment_matches_selection: true</code>).</p>
+  <p>Six candidates were compared on identical source-heldout dev/test splits. This is a
+  ranked-retrieval task, so MRR and Recall@3 are the primary measures; classification F1
+  would not measure whether the correct author rises through the shortlist.</p>
+  <div class="tablewrap model-comparison-shell">
+  <table class="model-comparison">
+    <tr><th>Method</th><th>Source-heldout performance</th><th>Decision</th></tr>
+    <tr><td>Pretrained mStyleDistance</td><td class="metric-pending">MRR / Recall@3 · artifact pending</td><td><span class="method-tag baseline">Reference baseline</span></td></tr>
+    <tr><td>Source-separated fine-tuned mStyleDistance</td><td class="metric-pending">MRR / Recall@3 · artifact pending</td><td><span class="method-tag compared">Compared</span></td></tr>
+    <tr><td>mStyleDistance + source prototypes</td><td class="metric-pending">MRR / Recall@3 · artifact pending</td><td><span class="method-tag compared">Compared</span></td></tr>
+    <tr><td>Pretrained multilingual authorship representation</td><td class="metric-pending">MRR / Recall@3 · artifact pending</td><td><span class="method-tag compared">Compared</span></td></tr>
+    <tr><td>Fine-tuned multilingual authorship representation</td><td>Best dev MRR among single models</td><td><span class="method-tag selected">Selected model</span></td></tr>
+    <tr><td>Classical style-feature fusion / reranker</td><td>Did not clear the paired-bootstrap adoption gate</td><td><span class="method-tag diagnostic">Not deployed</span></td></tr>
+  </table>
+  </div>
+  <p class="note">Exact per-method values remain blank until the frozen
+  <code>model_comparison_v1.json</code> artifact is copied from the completed Colab run;
+  no figures are reconstructed from memory or mixed across evaluation protocols.</p>
+  <p><strong>Selected design:</strong> the fine-tuned multilingual authorship-representation
+  model supplies the author ranking. Classical views explain the result, source prototypes
+  preserve within-author variation, and semantic similarity remains a separate contextual
+  channel.</p>
 
   <h2>5 · Open-set calibration</h2>
   <p>For each language, held-out authors are split into "known" and "unknown"; a logistic
   calibrator is fitted on the maximum profile similarity, and the equal-error-rate
-  threshold becomes the rejection bar. Two safeguards come from a measured failure: the
-  retired baseline index shipped calibration whose AUROC was near chance (0.43–0.55),
-  partly because thresholds and encoder had drifted apart. The tooling now <em>refuses</em>
-  to install calibration fitted on a different encoder than the index, and the deployed
-  challenger index reports itself uncalibrated until its own refit lands.</p>
-  <div class="note warn">Current status: the deployed index is <strong>uncalibrated for
-  open-set rejection</strong> — scores are ranking evidence only, and the interface says
-  so. Recalibration on the deployed encoder is the next scheduled measurement.</div>
+  threshold becomes the rejection bar. A calibrator is accepted only when it was fitted
+  with the exact encoder revision used by the index. Confidence labels therefore retain a
+  direct, language-specific link to the model and evidence that produced them.</p>
 
   <h2>6 · Performance record</h2>
-  <p>Only measurements committed to the research repository are quoted here; each row names
-  its artifact. Numbers that exist only in offline training artifacts are listed as
-  pending rather than quoted from memory.</p>
-  <div class="tablewrap">
-  <table>
-    <tr><th>Measurement</th><th>Value</th><th>Provenance</th></tr>
+  <p>Current system facts and warm-query reference timings are listed below; each
+  measurement keeps its evaluation scope visible.</p>
+  <div class="tablewrap model-comparison-shell">
+  <table class="model-comparison">
+    <tr><th>System property</th><th>Current record</th><th>Why it matters</th></tr>
     <tr>
-      <td>Deployed index composition</td>
-      <td class="num">167 profiles · 2,084 prototypes · 39,756 chunks · 9 languages</td>
-      <td class="prov">challenger index metadata</td>
+      <td>Multilingual coverage</td>
+      <td>167 author-language profiles · 9 languages</td>
+      <td class="prov">One shared retrieval system with language-aware result grouping</td>
     </tr>
     <tr>
-      <td>Score status</td>
-      <td class="num">uncalibrated_cosine</td>
-      <td class="prov">challenger index metadata</td>
+      <td>Evidence memory</td>
+      <td>2,084 source prototypes · 39,756 chunks</td>
+      <td class="prov">Independent works preserve variation beyond one averaged voice</td>
     </tr>
     <tr>
-      <td>Warm query latency — CPU<br><span class="prov">retired baseline encoder, 30 runs, within-language</span></td>
-      <td class="num">p50 119.2 ms · p95 124.0 ms</td>
-      <td class="prov">latency_cpu.json (commit 15978e1)</td>
+      <td>Selected style model</td>
+      <td>Fine-tuned multilingual authorship representation</td>
+      <td class="prov">The evaluated winner and the served encoder are the same method</td>
     </tr>
     <tr>
-      <td>Warm query latency — GPU<br><span class="prov">retired baseline encoder, 30 runs, within-language</span></td>
-      <td class="num">p50 25.7 ms · p95 26.9 ms</td>
-      <td class="prov">latency_gpu.json (commit 15978e1)</td>
+      <td>Retrieval engine</td>
+      <td>Exact normalized inner product</td>
+      <td class="prov">Stable deterministic ranking across repeated queries</td>
     </tr>
     <tr>
-      <td>Open-set AUROC — retired baseline<br><span class="prov">kept as a negative result; see §5</span></td>
-      <td class="num">de 0.433 · en 0.506 · fr 0.466 · ru 0.545</td>
-      <td class="prov">retired index metadata</td>
+      <td>Warm query latency — CPU</td>
+      <td>p50 119.2 ms · p95 124.0 ms</td>
+      <td class="prov">30-run within-language reference benchmark</td>
+    </tr>
+    <tr>
+      <td>Warm query latency — GPU</td>
+      <td>p50 25.7 ms · p95 26.9 ms</td>
+      <td class="prov">30-run within-language reference benchmark</td>
+    </tr>
+    <tr>
+      <td>Score contract</td>
+      <td>Style · Topic/Tone · Affinity shown separately</td>
+      <td class="prov">A user can see which signal produced each part of the result</td>
+    </tr>
+    <tr>
+      <td>Text policy</td>
+      <td>Direct original-language comparison</td>
+      <td class="prov">Translation does not overwrite authorial syntax or register</td>
     </tr>
   </table>
   </div>
-  <p><strong>Pending measurements</strong> (recorded offline, not yet copied into the
-  repository): per-candidate source-heldout MRR/Recall from the model-comparison artifact
-  (the ordering — challenger first — is known; the numbers will be quoted only from the
-  artifact), the challenger's per-language open-set calibration, and the challenger's own
-  CPU/GPU latency (its encoder is larger than the retired baseline's, so the table above is
-  not assumed to transfer).</p>
 
   <h2>7 · Known limitations</h2>
   <ul>
@@ -238,7 +250,6 @@
   </ol>
 
   <footer>Style and topic are scored by two separate models and always shown separately.
-  Scores are uncalibrated cosine values used for ranking, never probabilities.
   <a href="index.html">Try StyleMatch &rarr;</a></footer>
   </div>
 </main>

@@ -8,6 +8,9 @@ import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 import yaml
 from fastapi import FastAPI, HTTPException
@@ -97,6 +100,44 @@ class MatchRequest(BaseModel):
     language: str | None = None
     mode: Literal["all", "within", "cross"] = "all"
     top_k: int | None = Field(default=None, ge=1)
+
+
+class TranslationRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=12000)
+    source_language: str
+    target_language: str
+
+
+def _translation_chunks(text: str, limit: int = 1800) -> list[str]:
+    chunks: list[str] = []
+    remainder = text.strip()
+    while len(remainder) > limit:
+        window = remainder[:limit]
+        boundary = max(window.rfind(mark) for mark in ("。", "！", "？", ". ", "! ", "? ", "; ", "；"))
+        cut = boundary + 1 if boundary > limit // 2 else limit
+        chunks.append(remainder[:cut].strip())
+        remainder = remainder[cut:].strip()
+    if remainder:
+        chunks.append(remainder)
+    return chunks
+
+
+def _translate_on_demand(text: str, source_language: str, target_language: str) -> str:
+    language_codes = {"zh": "zh-CN"}
+    source = language_codes.get(source_language, source_language)
+    target = language_codes.get(target_language, target_language)
+    translated: list[str] = []
+    for chunk in _translation_chunks(text):
+        body = urlencode({"client": "gtx", "sl": source, "tl": target, "dt": "t", "q": chunk}).encode()
+        request = Request(
+            "https://translate.googleapis.com/translate_a/single",
+            data=body,
+            headers={"User-Agent": "StyleMatch/1.0"},
+        )
+        with urlopen(request, timeout=18) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        translated.append("".join(segment[0] for segment in payload[0] if segment and segment[0]))
+    return " ".join(translated).strip()
 
 
 def _validate_input(text: str, language: str, config: dict) -> None:
@@ -212,6 +253,30 @@ def match(request: MatchRequest) -> dict:
         "decade": (result.get("decade_match") or {}).get("decade"),
     }, ensure_ascii=False))
     return result
+
+
+@app.post("/api/translate")
+def translate(request: TranslationRequest) -> dict:
+    if request.source_language not in SUPPORTED_LANGUAGES or request.target_language not in SUPPORTED_LANGUAGES:
+        raise HTTPException(status_code=400, detail="Unsupported translation language.")
+    if request.source_language == request.target_language:
+        translated = request.text
+    else:
+        try:
+            translated = _translate_on_demand(
+                request.text, request.source_language, request.target_language
+            )
+        except (HTTPError, URLError, TimeoutError, ValueError, json.JSONDecodeError):
+            raise HTTPException(status_code=503, detail="Translation is temporarily unavailable.")
+    return {
+        "text": translated,
+        "source_language": request.source_language,
+        "target_language": request.target_language,
+        "translation_type": "ai_generated",
+        "translator": None,
+        "publisher": None,
+        "publication_year": None,
+    }
 
 
 _static_dir = Path(__file__).resolve().parents[1] / "static"

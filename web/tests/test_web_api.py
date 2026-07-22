@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import unittest
+from unittest.mock import patch
 
 os.environ["STYLEMATCH_INDEX_DIR"] = "/nonexistent-force-demo"
 
@@ -172,6 +173,21 @@ class MatchEndpointTests(unittest.TestCase):
                 "/api/match", json={"text": EN_TEXT, "language": "ko"}
             )
             self.assertEqual(response.status_code, 400)
+
+    def test_translation_endpoint_labels_generated_text_honestly(self) -> None:
+        with patch("web.api.main._translate_on_demand", return_value="A translated passage."):
+            with TestClient(app) as client:
+                response = client.post("/api/translate", json={
+                    "text": "一段需要翻译的文字。",
+                    "source_language": "zh",
+                    "target_language": "en",
+                })
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["text"], "A translated passage.")
+        self.assertEqual(payload["translation_type"], "ai_generated")
+        self.assertIsNone(payload["translator"])
+        self.assertIsNone(payload["publication_year"])
 
 
 if __name__ == "__main__":

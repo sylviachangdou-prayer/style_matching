@@ -6,6 +6,7 @@ import http.client
 import json
 import re
 import time
+import unicodedata
 import urllib.parse
 import urllib.request
 from urllib.error import HTTPError, URLError
@@ -107,28 +108,51 @@ def looks_like_rhetorical(book: dict) -> bool:
     return any(word in title or word in subjects for word in keep)
 
 
+def name_tokens(value: str) -> set[str]:
+    folded = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii").lower()
+    return set(re.findall(r"[a-z]+", folded)) - {"de", "del", "la", "von", "van"}
+
+
 def author_match(book: dict, name: str) -> bool:
-    wanted_tokens = set(re.findall(r"[a-z]+", name.lower()))
+    wanted_tokens = name_tokens(name)
     for author in book.get("authors", []):
-        author_tokens = set(re.findall(r"[a-z]+", author.get("name", "").lower()))
+        author_tokens = name_tokens(author.get("name", ""))
         if wanted_tokens and wanted_tokens.issubset(author_tokens):
             return True
     return False
 
 
-def fetch_for_name(name: str, corpus: str, max_works: int, existing_ids: set[str] | None = None) -> list[dict[str, str]]:
+def independent_title_key(title: str) -> str:
+    value = unicodedata.normalize("NFKD", title).encode("ascii", "ignore").decode("ascii").lower()
+    value = re.sub(r"\b(?:volume|vol|part|tome|tom|band|libro|book)\s*[ivxlcdm\d]+\b", "", value)
+    return re.sub(r"[^a-z0-9]+", "_", value).strip("_")
+
+
+def fetch_for_name(
+    name: str,
+    corpus: str,
+    language: str,
+    max_works: int,
+    existing_ids: set[str] | None = None,
+) -> list[dict[str, str]]:
     # Announce before the first API call: gutendex can be slow, and silent
     # minutes-long queries are indistinguishable from a hang in Colab.
     print(f"query: {corpus}: {name}", flush=True)
-    query = urllib.parse.urlencode({"languages": "en", "search": name})
+    query = urllib.parse.urlencode({"languages": language, "search": name})
     url = f"https://gutendex.com/books/?{query}"
     rows = []
+    independent_titles: set[str] = set()
     while url and (max_works <= 0 or len(rows) < max_works):
         page = fetch_json(url)
         for book in page.get("results", []):
             if max_works > 0 and len(rows) >= max_works:
                 break
             if not author_match(book, name):
+                continue
+            if language not in book.get("languages", []):
+                continue
+            title_key = independent_title_key(book.get("title", ""))
+            if not title_key or title_key in independent_titles:
                 continue
             source_id = f"gutenberg_{book['id']}"
             if existing_ids and source_id in existing_ids:
@@ -162,17 +186,17 @@ def fetch_for_name(name: str, corpus: str, max_works: int, existing_ids: set[str
                 "author_or_speaker": name,
                 "title": book.get("title", ""),
                 "source_id": source_id,
-                "independent_source_id": slug(book.get("title", "")) or source_id,
+                "independent_source_id": title_key,
                 "gutenberg_id": str(book["id"]),
                 "source_url": download_url,
                 "source_text_rule": "original-language source text only",
-                "language": "en",
+                "language": language,
                 "year": "",
                 "topic": "",
                 "domain": "literature" if corpus == "literary" else "public_rhetoric",
                 "register": "literary_prose" if corpus == "literary" else "formal_public_address",
                 "source_type": "work" if corpus == "literary" else "speech_or_document",
-                "delivered_language": "en",
+                "delivered_language": language,
                 "license_status": "public_domain",
                 "display_allowed": "true",
                 "canonical_url": f"https://www.gutenberg.org/ebooks/{book['id']}",
@@ -180,6 +204,7 @@ def fetch_for_name(name: str, corpus: str, max_works: int, existing_ids: set[str
             }
             meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
             rows.append(meta)
+            independent_titles.add(title_key)
             if existing_ids is not None:
                 existing_ids.add(source_id)
             time.sleep(0.25)
@@ -236,6 +261,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--language", default="en")
     parser.add_argument("--batch", action="append", help="Registry batch to include; may be repeated.")
     parser.add_argument("--max-works", type=int, default=0, help="Maximum works per author; 0 means all available works.")
+    parser.add_argument("--min-works", type=int, default=1, help="Discard authors below this independent-work count.")
+    parser.add_argument("--max-authors", type=int, default=0, help="Stop after this many qualifying authors; 0 means no cap.")
+    parser.add_argument("--registry", type=Path, help="Candidate registry CSV; defaults to the corpus registry.")
     parser.add_argument(
         "--skip-covered",
         action="store_true",
@@ -250,28 +278,52 @@ def main() -> None:
     literary = []
     rhetorical = []
     if args.corpus in {"literary", "both"}:
-        literary = read_registry_names(REGISTRY_DIR / "literary_authors.csv", "literary", args.language, batches)
+        literary = read_registry_names(
+            args.registry or REGISTRY_DIR / "literary_authors.csv",
+            "literary",
+            args.language,
+            batches,
+        )
     if args.corpus in {"rhetorical", "both"}:
-        rhetorical = read_registry_names(REGISTRY_DIR / "rhetorical_speakers.csv", "rhetorical", args.language, batches)
+        rhetorical = read_registry_names(
+            args.registry or REGISTRY_DIR / "rhetorical_speakers.csv",
+            "rhetorical",
+            args.language,
+            batches,
+        )
 
     literary_rows = []
     literary_sources = read_existing_sources("literary")
     literary_existing = {row.get("source_id", "") for row in literary_sources}
     literary_covered = {row.get("author_or_speaker", "") for row in literary_sources}
     unreachable: list[str] = []
+    qualified_authors = 0
     for name in literary:
+        if args.max_authors and qualified_authors >= args.max_authors:
+            break
         if args.skip_covered and name in literary_covered:
             print(f"skip covered: literary: {name}", flush=True)
             continue
         try:
-            literary_rows.extend(fetch_for_name(name, "literary", max_works=args.max_works, existing_ids=literary_existing))
+            author_rows = fetch_for_name(
+                name,
+                "literary",
+                args.language,
+                max_works=args.max_works,
+                existing_ids=literary_existing,
+            )
         except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
             # A flaky gutendex query must not kill the batch; coverage audits
             # downstream surface any author left without sources.
             unreachable.append(f"literary: {name}")
             print(f"WARNING query failed: literary: {name}: {error}", flush=True)
             continue
-        print(f"literary: {name}: {len([r for r in literary_rows if r['author_or_speaker'] == name])} works", flush=True)
+        if len(author_rows) >= args.min_works:
+            literary_rows.extend(author_rows)
+            qualified_authors += 1
+        else:
+            print(f"discard: literary: {name}: only {len(author_rows)} independent works", flush=True)
+        print(f"literary: {name}: {len(author_rows)} works", flush=True)
 
     rhetorical_rows = []
     rhetorical_sources = read_existing_sources("rhetorical")
@@ -282,12 +334,22 @@ def main() -> None:
             print(f"skip covered: rhetorical: {name}", flush=True)
             continue
         try:
-            rhetorical_rows.extend(fetch_for_name(name, "rhetorical", max_works=args.max_works, existing_ids=rhetorical_existing))
+            author_rows = fetch_for_name(
+                name,
+                "rhetorical",
+                args.language,
+                max_works=args.max_works,
+                existing_ids=rhetorical_existing,
+            )
         except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
             unreachable.append(f"rhetorical: {name}")
             print(f"WARNING query failed: rhetorical: {name}: {error}", flush=True)
             continue
-        print(f"rhetorical: {name}: {len([r for r in rhetorical_rows if r['author_or_speaker'] == name])} works", flush=True)
+        if len(author_rows) >= args.min_works:
+            rhetorical_rows.extend(author_rows)
+        else:
+            print(f"discard: rhetorical: {name}: only {len(author_rows)} independent works", flush=True)
+        print(f"rhetorical: {name}: {len(author_rows)} works", flush=True)
 
     write_metadata("literary", literary_rows)
     write_metadata("rhetorical", rhetorical_rows)

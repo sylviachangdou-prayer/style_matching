@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 
 from scripts.build_chunk_parquet_from_sources import chunk_cjk, chunk_words, normalize_source_text
-from scripts.fetch_multilingual_sources import clean_gutenberg, script_ratio
+from scripts.fetch_multilingual_sources import clean_gutenberg, row_manifest_metadata, script_ratio
 
 
 class ChunkingTests(unittest.TestCase):
@@ -31,6 +31,22 @@ class SourceValidationTests(unittest.TestCase):
         self.assertGreater(script_ratio("这是中文原文。", "zh"), 0.9)
         self.assertGreater(script_ratio("Это русский текст.", "ru"), 0.9)
         self.assertLess(script_ratio("This is English.", "ru"), 0.1)
+
+    def test_approved_remote_text_is_indexable_but_not_displayable(self) -> None:
+        metadata = row_manifest_metadata(
+            {
+                "corpus": "literary",
+                "name": "J. K. Rowling",
+                "original_language": "en",
+                "year": "1997",
+                "title": "Harry Potter and the Sorcerer's Stone",
+                "source_id": "approved_rowling_sorcerers_stone",
+                "source_url": "https://github.com/example/repo/blob/main/book.txt",
+                "source_format": "approved_remote_text",
+            }
+        )
+        self.assertEqual(metadata["license_status"], "rights_cleared_research")
+        self.assertEqual(metadata["display_allowed"], "false")
 
 
 if __name__ == "__main__":

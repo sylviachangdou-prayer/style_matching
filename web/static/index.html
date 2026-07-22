@@ -203,10 +203,38 @@
   <span class="art-strip art-manuscript"></span>
 </aside>
 
+<section class="loading-theatre" id="match-transition" role="status" aria-live="polite" hidden>
+  <div class="transition-gallery" aria-hidden="true">
+    <span class="transition-strip transition-wave"></span>
+    <span class="transition-strip transition-bedroom"></span>
+    <span class="transition-strip transition-lanting"></span>
+    <span class="transition-strip transition-wanderer"></span>
+    <span class="transition-strip transition-impression"></span>
+    <span class="transition-strip transition-autumn"></span>
+    <span class="transition-strip transition-shahnama"></span>
+    <span class="transition-strip transition-score"></span>
+  </div>
+  <article class="typed-manuscript">
+    <p class="typed-passage" id="transition-passage"></p>
+    <footer class="typed-credit"><cite id="transition-work"></cite><span id="transition-author"></span></footer>
+  </article>
+</section>
+
 <main class="home-main">
-  <section class="input-panel" aria-labelledby="home-title">
-  <h1 id="home-title">Pure style.<br><em>Beyond language.</em></h1>
-  <p class="capability-line"><span aria-hidden="true">✦</span> Cross-lingual, multi-style retrieval — fine-tuned from the frontier of academic authorship research.</p>
+  <section class="input-panel" aria-label="StyleMatch passage input">
+  <div class="voice-portraits" aria-label="Voices across languages and forms">
+    <figure class="voice-sticker" title="Barack Obama"><img src="portraits/barack-obama.jpg" alt="Barack Obama" loading="eager"></figure>
+    <figure class="voice-sticker" title="Gabriel García Márquez"><img src="portraits/gabriel-garcia-marquez.jpg" alt="Gabriel García Márquez" loading="eager"></figure>
+    <figure class="voice-sticker" title="Slavoj Žižek"><img src="portraits/slavoj-zizek.jpg" alt="Slavoj Žižek" loading="eager"></figure>
+    <figure class="voice-sticker" title="Sylvia Plath"><img src="portraits/sylvia-plath.jpg" alt="Sylvia Plath" loading="eager"></figure>
+    <figure class="voice-sticker" title="Virginia Woolf"><img src="portraits/virginia-woolf.jpg" alt="Virginia Woolf" loading="eager"></figure>
+    <figure class="voice-sticker" title="Lu Xun"><img src="portraits/lu-xun.jpg" alt="Lu Xun" loading="eager"></figure>
+    <figure class="voice-sticker" title="Bertrand Russell"><img src="portraits/bertrand-russell.jpg" alt="Bertrand Russell" loading="eager"></figure>
+    <figure class="voice-sticker" title="Mahatma Gandhi"><img src="portraits/mahatma-gandhi.jpg" alt="Mahatma Gandhi" loading="eager"></figure>
+    <figure class="voice-sticker" title="Simone de Beauvoir"><img src="portraits/simone-de-beauvoir.jpg" alt="Simone de Beauvoir" loading="eager"></figure>
+    <figure class="voice-sticker" title="Eileen Chang"><img src="portraits/eileen-chang.jpg" alt="Eileen Chang" loading="eager"></figure>
+  </div>
+  <p class="capability-line">Cross-lingual, multi-style retrieval<br><span class="capability-detail">fine-tuned from the frontier of academic authorship research</span></p>
 
   <textarea id="text" placeholder="Paste at least ~80 words (or ~160 characters of Chinese/Japanese) of your own writing…"></textarea>
 
@@ -215,7 +243,6 @@
     <button id="clear" type="button" hidden>Clear</button>
   </div>
   <button id="go"><span aria-hidden="true">❧</span> Find my match</button>
-  <p class="input-note"><span aria-hidden="true">¶</span> Original-language passages only · style and topic remain separate · no match is a valid result</p>
   </section>
 
   <div id="output"></div>
@@ -251,9 +278,69 @@ const H2C_LIB = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas
 
 const $ = (id) => document.getElementById(id);
 const textEl = $("text"), output = $("output"), goBtn = $("go"),
-      clearBtn = $("clear"), sheet = $("export-sheet");
+      clearBtn = $("clear"), sheet = $("export-sheet"),
+      transitionEl = $("match-transition"),
+      transitionPassageEl = $("transition-passage"),
+      transitionWorkEl = $("transition-work"),
+      transitionAuthorEl = $("transition-author");
 
 let lastData = null, lastText = "";
+let lastTransitionIndex = -1;
+
+const TRANSITION_MIN_MS = 10000;
+const TRANSITION_EXCERPT_RATIO = 2 / 3;
+const TRANSITION_PASSAGES = [
+  {
+    author: "Anonymous",
+    work: "Beowulf",
+    text: `Hwæt! We Gardena in geardagum, þeodcyninga þrym gefrunon, hu ða æþlingas ellen fremedon. Oft Scyld Scefing sceaþena þreatum, monegum mægþum, meodosetla ofteah, egsode eorlas. Syððan ærest wearð feasceaft funden, he þæs frofre gebad, weox under wolcnum, weorðmyndum þah, oðþæt him æghwylc þæra ymbsittendra ofer hronrade hyran scolde, gomban gyldan. þæt wæs god cyning!`,
+  },
+  {
+    author: "Su Shi",
+    work: "First Rhapsody on the Red Cliffs",
+    text: `壬戌之秋，七月既望，苏子與客泛舟遊於赤壁之下。清風徐來，水波不興。舉酒屬客，誦明月之詩，歌窈窕之章。少焉，月出於東山之上，徘徊於斗牛之間。白露橫江，水光接天。縱一葦之所如，凌萬頃之茫然。浩浩乎如馮虛御風，而不知其所止；飄飄乎如遺世獨立，羽化而登仙。`,
+  },
+  {
+    author: "Su Shi",
+    work: "Second Rhapsody on the Red Cliffs",
+    text: `是歲十月之望，步自雪堂，將歸於臨皋。二客從予，過黃泥之坂。霜露既降，木葉盡脫，人影在地，仰見明月。顧而樂之，行歌相答。已而嘆曰：有客無酒，有酒無肴，月白風清，如此良夜何！客曰：今者薄暮，舉網得魚，巨口細鱗，狀如松江之鱸。顧安所得酒乎？`,
+  },
+  {
+    author: "Dante Alighieri",
+    work: "Inferno",
+    text: `Nel mezzo del cammin di nostra vita mi ritrovai per una selva oscura, ché la diritta via era smarrita. Ahi quanto a dir qual era è cosa dura esta selva selvaggia e aspra e forte che nel pensier rinova la paura! Tant'è amara che poco è più morte; ma per trattar del ben ch'i' vi trovai, dirò de l'altre cose ch'i' v'ho scorte. Io non so ben ridir com'i' v'intrai, tant'era pien di sonno a quel punto che la verace via abbandonai.`,
+  },
+  {
+    author: "Homer",
+    work: "The Odyssey",
+    text: `Ἄνδρα μοι ἔννεπε, Μοῦσα, πολύτροπον, ὃς μάλα πολλὰ πλάγχθη, ἐπεὶ Τροίης ἱερὸν πτολίεθρον ἔπερσε· πολλῶν δ’ ἀνθρώπων ἴδεν ἄστεα καὶ νόον ἔγνω, πολλὰ δ’ ὅ γ’ ἐν πόντῳ πάθεν ἄλγεα ὃν κατὰ θυμόν, ἀρνύμενος ἥν τε ψυχὴν καὶ νόστον ἑταίρων.`,
+  },
+  {
+    author: "William Shakespeare",
+    work: "The Tempest",
+    text: `Our revels now are ended. These our actors, as I foretold you, were all spirits and are melted into air, into thin air; and, like the baseless fabric of this vision, the cloud-capp'd towers, the gorgeous palaces, the solemn temples, the great globe itself, yea, all which it inherit, shall dissolve, and, like this insubstantial pageant faded, leave not a rack behind. We are such stuff as dreams are made on, and our little life is rounded with a sleep.`,
+  },
+  {
+    author: "Johann Wolfgang von Goethe",
+    work: "Faust I",
+    text: `Habe nun, ach! Philosophie, Juristerei und Medizin, und leider auch Theologie durchaus studiert, mit heißem Bemühn. Da steh ich nun, ich armer Tor! Und bin so klug als wie zuvor; heiße Magister, heiße Doktor gar und ziehe schon an die zehen Jahr herauf, herab und quer und krumm meine Schüler an der Nase herum — und sehe, daß wir nichts wissen können! Das will mir schier das Herz verbrennen.`,
+  },
+  {
+    author: "Alexander Pushkin",
+    work: "Eugene Onegin",
+    text: `«Мой дядя самых честных правил, когда не в шутку занемог, он уважать себя заставил и лучше выдумать не мог. Его пример другим наука; но, боже мой, какая скука с больным сидеть и день и ночь, не отходя ни шагу прочь! Какое низкое коварство полуживого забавлять…»`,
+  },
+  {
+    author: "Matsuo Bashō",
+    work: "The Narrow Road to the Deep North",
+    text: `月日は百代の過客にして、行かふ年も又旅人也。舟の上に生涯をうかべ、馬の口とらへて老をむかふる者は、日々旅にして旅を栖とす。古人も多く旅に死せるあり。予もいづれの年よりか、片雲の風にさそはれて、漂泊の思ひやまず、海濱にさすらへ、去年の秋江上の破屋に蜘の古巣をはらひて、やや年も暮れ。`,
+  },
+  {
+    author: "Charles Baudelaire",
+    work: "Les Fleurs du mal",
+    text: `La Nature est un temple où de vivants piliers laissent parfois sortir de confuses paroles; l'homme y passe à travers des forêts de symboles qui l'observent avec des regards familiers. Comme de longs échos qui de loin se confondent dans une ténébreuse et profonde unité, vaste comme la nuit et comme la clarté, les parfums, les couleurs et les sons se répondent. Il est des parfums frais comme des chairs d'enfants, doux comme les hautbois, verts comme les prairies.`,
+  },
+];
 
 function updateCounter() {
   const t = textEl.value.trim();
@@ -269,6 +356,7 @@ function resetAll() {
   output.innerHTML = "";
   document.body.classList.remove("results-mode", "matching-mode");
   delete document.body.dataset.gallery;
+  hideMatchTransition();
   lastData = null; lastText = "";
   updateCounter();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -281,8 +369,8 @@ goBtn.onclick = async () => {
   if (!text) return;
   const started = performance.now();
   goBtn.disabled = true;
-  document.body.classList.add("matching-mode");
-  output.innerHTML = loadingMarkup();
+  showMatchTransition();
+  output.innerHTML = "";
   try {
     const res = await fetch(`${API}/api/match`, {
       method: "POST",
@@ -291,64 +379,94 @@ goBtn.onclick = async () => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || `Request failed (${res.status})`);
-    const minimumDisplay = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1400;
-    const remaining = minimumDisplay - (performance.now() - started);
+    const remaining = TRANSITION_MIN_MS - (performance.now() - started);
     if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
     lastData = data; lastText = text;
     render(data);
+    await finishMatchTransition();
   } catch (err) {
-    document.body.classList.remove("matching-mode");
+    hideMatchTransition();
     output.innerHTML = `<div class="error">${escapeHtml(err.message)}</div>`;
   } finally {
-    document.body.classList.remove("matching-mode");
     goBtn.disabled = false;
   }
 };
 
-function loadingMarkup() {
-  return `<section class="loading-theatre" role="status" aria-live="polite">
-    <div class="scroll-stage" aria-hidden="true">
-      <span class="scroll-rod rod-left"></span>
-      <div class="parchment">
-        <span class="scroll-flourish">❦</span>
-        <span class="ink-line line-one"></span>
-        <span class="ink-line line-two"></span>
-        <span class="ink-line line-three"></span>
-        <span class="ink-signature">style · rhythm · voice</span>
-      </div>
-      <span class="scroll-rod rod-right"></span>
-    </div>
-    <p class="loading-title">Reading the architecture of your voice…</p>
-    <p class="loading-subtitle">syntax · cadence · lexical habit · register</p>
-  </section>`;
+function showMatchTransition() {
+  transitionEl.hidden = false;
+  transitionEl.classList.remove("is-reading", "is-revealing");
+  let index;
+  do index = Math.floor(Math.random() * TRANSITION_PASSAGES.length);
+  while (TRANSITION_PASSAGES.length > 1 && index === lastTransitionIndex);
+  lastTransitionIndex = index;
+  const passage = TRANSITION_PASSAGES[index];
+  transitionPassageEl.textContent = "";
+  transitionPassageEl.setAttribute("aria-label", passage.text);
+  transitionWorkEl.textContent = passage.work;
+  transitionAuthorEl.textContent = passage.author;
+  void transitionEl.offsetWidth;
+  transitionEl.classList.add("is-reading");
+  document.body.classList.add("matching-mode");
+  transitionPassageEl.textContent = formatTransitionPassage(excerptTransitionPassage(passage.text));
+}
+
+function hideMatchTransition() {
+  transitionEl.hidden = true;
+  transitionEl.classList.remove("is-reading", "is-revealing");
+  document.body.classList.remove("matching-mode");
+}
+
+function excerptTransitionPassage(text) {
+  const glyphs = Array.from(text);
+  const limit = Math.max(1, Math.floor(glyphs.length * TRANSITION_EXCERPT_RATIO));
+  const excerpt = glyphs.slice(0, limit).join("");
+  const boundaries = ["。", "！", "？", ". ", "! ", "? "]
+    .map(mark => excerpt.lastIndexOf(mark));
+  const boundary = Math.max(...boundaries);
+  return boundary > limit * .65 ? excerpt.slice(0, boundary + 1).trim() : excerpt.trim();
+}
+
+function formatTransitionPassage(text) {
+  const cjk = /[぀-ヿ㐀-鿿]/.test(text);
+  const units = cjk ? Array.from(text) : text.trim().split(/\s+/);
+  const target = cjk ? 18 : 42;
+  const lines = [];
+  let line = "";
+  for (const unit of units) {
+    const next = cjk ? line + unit : `${line}${line ? " " : ""}${unit}`;
+    const phraseEnd = /[.!?;:。！？；：·]$/.test(unit);
+    if (line && (next.length > target || (phraseEnd && next.length > target * .58))) {
+      lines.push(next.trim());
+      line = "";
+    } else {
+      line = next;
+    }
+  }
+  if (line.trim()) lines.push(line.trim());
+  return lines.join("\n");
+}
+
+async function finishMatchTransition() {
+  transitionEl.classList.add("is-revealing");
+  await new Promise(resolve => setTimeout(resolve, 900));
+  hideMatchTransition();
 }
 
 function render(data) {
-  document.body.classList.remove("matching-mode");
   document.body.classList.add("results-mode");
   const matches = Object.values(data.results).flat();
   const parts = [];
   parts.push(`<header class="result-intro">
-    <div class="result-kicker"><span aria-hidden="true">❦</span> Your literary constellation</div>
     <h2>${matches.length ? "The voices nearest to yours" : "No strong voice emerged"}</h2>
-    <p>Style leads the ranking. Topic remains visible as a separate contextual signal.</p>
   </header>`);
-  if (data.demo) parts.push(
-    `<div class="banner warn"><strong>Demo data.</strong> The real style index is still training —
-     these authors and scores are placeholder fixtures, not measurements.</div>`);
   if (data.language_detected) parts.push(
     `<div class="banner info">Detected language: <strong>${escapeHtml(data.input_language)}</strong></div>`);
   if (data.decade_match) parts.push(
     `<div class="banner info"><strong>Closest style decade: ${escapeHtml(data.decade_match.decade)}.</strong>
      Based on ${data.decade_match.n_sources} dated sources in ${escapeHtml(data.input_language)};
-     similarity ${data.decade_match.style_similarity.toFixed(2)} and not yet calibrated.</div>`);
-  else if (data.decade_matches && Object.keys(data.decade_matches).length) {
-    const decades = Object.values(data.decade_matches).map(match =>
-      `${escapeHtml(match.corpus)}: <strong>${escapeHtml(match.decade)}</strong>`).join(" · ");
-    parts.push(`<div class="banner info"><strong>Closest style decades (experimental).</strong> ${decades}</div>`);
-  }
+     similarity ${data.decade_match.style_similarity.toFixed(2)}</div>`);
 
-  matches.forEach((m, i) => parts.push(matchRow(m, i + 1)));
+  matches.forEach((m, i) => parts.push(matchRow(m, i + 1, data.input_language)));
   if (!matches.length) parts.push(
     `<div class="empty">No match to show for this passage yet — try a longer or different passage.</div>`);
 
@@ -365,6 +483,12 @@ function render(data) {
   const pdfBtn = $("export-pdf"), pngBtn = $("export-png");
   if (pdfBtn) pdfBtn.onclick = exportPdf;
   if (pngBtn) pngBtn.onclick = () => exportPng(pngBtn);
+  output.querySelectorAll(".translation-toggle").forEach(button => {
+    button.addEventListener("click", event => {
+      event.stopPropagation();
+      togglePassageTranslation(button, matches, data.input_language);
+    });
+  });
   const cards = [...output.querySelectorAll(".match")];
   cards.forEach(card => {
     const select = () => {
@@ -380,9 +504,15 @@ function render(data) {
   }
 }
 
-function matchRow(m, rank) {
+function matchRow(m, rank, inputLanguage) {
   const passages = m.representative_passages.map(p =>
-    `<blockquote>${escapeHtml(p.text)}<cite>${escapeHtml(p.title || p.source_id)}</cite></blockquote>`).join("");
+    `<div class="source-passage">
+      <blockquote>${escapeHtml(p.text)}<cite>${escapeHtml(p.title || p.source_id)}</cite></blockquote>
+      <section class="passage-translation" hidden aria-label="Translation into ${escapeHtml(languageName(inputLanguage))}"></section>
+    </div>`).join("");
+  const translationToggle = m.target_language !== inputLanguage && m.representative_passages.length
+    ? `<button class="translation-toggle" type="button" data-rank="${rank - 1}" data-passage="0" aria-expanded="false">See translated text</button>`
+    : "";
   const why = (m.why || []).map(w => `<li>${escapeHtml(w)}</li>`).join("");
   const traits = m.style_traits ? `<div class="traits">${escapeHtml(m.style_traits)}</div>` : "";
   const profile = m.profile ? `<p>${escapeHtml(m.profile)}</p>` : "";
@@ -397,8 +527,6 @@ function matchRow(m, rank) {
       <div class="match-head">
         <h3>${escapeHtml(m.author_or_speaker)}</h3>
         <span class="chip">${escapeHtml(m.target_language)}</span>
-        ${m.cross_language ? '<span class="chip">cross-language</span>' : ""}
-        <span class="chip">${escapeHtml(m.admission_tier || "exploratory")}</span>
         <span class="affinity" title="Composite affinity (uncalibrated)">${m.affinity_score.toFixed(2)}</span>
       </div>
       ${photo}${profile}${traits}
@@ -408,11 +536,72 @@ function matchRow(m, rank) {
       </div>
       ${why ? `<ul class="why">${why}</ul>` : ""}
       ${passages ? `<section class="passage-match" aria-label="Closest original-language passage">
-        <div class="passage-label"><span aria-hidden="true">“</span> Their passage closest to yours <em>(original language)</em></div>
+        <div class="passage-label"><span aria-hidden="true">“</span> Their passage closest to yours ${translationToggle}</div>
         ${passages}
       </section>` : ""}
     </div>
   </article>`;
+}
+
+function languageName(code) {
+  return ({ de: "German", en: "English", es: "Spanish", fa: "Persian", fr: "French", it: "Italian", ja: "Japanese", pl: "Polish", ru: "Russian", zh: "Chinese" })[code] || code.toUpperCase();
+}
+
+function translationCredit(payload) {
+  if (payload.translation_type === "published") {
+    return [payload.translator, payload.publisher, payload.publication_year].filter(Boolean).join(" · ");
+  }
+  return "AI translation · generated on request · no human translator or published edition";
+}
+
+async function togglePassageTranslation(button, matches, inputLanguage) {
+  const match = matches[Number(button.dataset.rank)];
+  const passage = match.representative_passages[Number(button.dataset.passage)];
+  const source = button.closest(".passage-match").querySelectorAll(".source-passage")[Number(button.dataset.passage)];
+  const panel = source.querySelector(".passage-translation");
+  if (panel.dataset.loaded === "true") {
+    panel.hidden = !panel.hidden;
+    button.setAttribute("aria-expanded", String(!panel.hidden));
+    button.textContent = panel.hidden ? "See translated text" : "Hide translated text";
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Translating…";
+  try {
+    let payload;
+    if (passage.translated_text && passage.translation_language === inputLanguage) {
+      payload = {
+        text: passage.translated_text,
+        translation_type: "published",
+        translator: passage.translator,
+        publisher: passage.translation_publisher,
+        publication_year: passage.translation_year,
+      };
+    } else {
+      const response = await fetch(`${API}/api/translate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: passage.text,
+          source_language: match.target_language,
+          target_language: inputLanguage,
+        }),
+      });
+      payload = await response.json();
+      if (!response.ok) throw new Error(payload.detail || "Translation unavailable");
+    }
+    panel.innerHTML = `<div class="passage-label"><span aria-hidden="true">↳</span> Translation into ${escapeHtml(languageName(inputLanguage))}</div>
+      <blockquote>${escapeHtml(payload.text)}<cite>${escapeHtml(translationCredit(payload))}</cite></blockquote>`;
+    panel.dataset.loaded = "true";
+    panel.hidden = false;
+    button.setAttribute("aria-expanded", "true");
+    button.textContent = "Hide translated text";
+  } catch (error) {
+    button.textContent = error.message || "Translation unavailable";
+  } finally {
+    button.disabled = false;
+  }
 }
 
 function galleryFor(language, rank) {
@@ -459,14 +648,14 @@ async function buildExportSheet() {
   if (lastData.input_language)
     banners.push(`Input language: <strong>${escapeHtml(lastData.input_language)}</strong>`);
   if (lastData.decade_match)
-    banners.push(`Closest style decade: <strong>${escapeHtml(lastData.decade_match.decade)}</strong>
-      (similarity ${lastData.decade_match.style_similarity.toFixed(2)}, uncalibrated)`);
+    banners.push(`<strong>Closest style decade: ${escapeHtml(lastData.decade_match.decade)}.</strong>
+      Based on ${lastData.decade_match.n_sources} dated sources in ${escapeHtml(lastData.input_language)};
+      similarity ${lastData.decade_match.style_similarity.toFixed(2)}`);
   const qr = await qrDataUrl(SHARE_URL);
   const generated = new Date().toISOString().slice(0, 16).replace("T", " ");
   sheet.innerHTML = `
     <h1>StyleMatch</h1>
-    <div class="xsub">Open-set style-profile retrieval · generated ${escapeHtml(generated)}
-      ${lastData.demo ? " · DEMO DATA (placeholder fixtures, not measurements)" : ""}</div>
+    <div class="xsub">Open-set style-profile retrieval · generated ${escapeHtml(generated)}</div>
     <h2>Your passage</h2>
     <div class="xuser">${escapeHtml(lastText)}</div>
     ${banners.map(b => `<div class="xbanner">${b}</div>`).join("")}
@@ -496,8 +685,6 @@ function exportMatch(m, rank) {
       <span class="xrank">${rank}</span>
       <span class="xname">${escapeHtml(m.author_or_speaker)}</span>
       <span class="xchip">${escapeHtml(m.target_language)}</span>
-      ${m.cross_language ? '<span class="xchip">cross-language</span>' : ""}
-      <span class="xchip">${escapeHtml(m.admission_tier || "exploratory")}</span>
       <span class="xaff">${m.affinity_score.toFixed(2)}</span>
     </div>
     <div class="xscores">${scores.join(" &nbsp;·&nbsp; ")}</div>

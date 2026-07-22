@@ -43,6 +43,35 @@ def macro_metrics(scores: np.ndarray, labels: np.ndarray) -> dict[str, float]:
     return {metric: float(np.mean([row[metric] for row in rows])) for metric in rows[0]}
 
 
+def profile_bootstrap_intervals(
+    scores: np.ndarray,
+    labels: np.ndarray,
+    runs: int,
+    seed: int,
+) -> dict[str, dict[str, float]]:
+    """Bootstrap author-language profiles while keeping each profile's sources together."""
+    profiles = np.unique(labels)
+    per_profile = [
+        ranking_metrics(scores[labels == profile], labels[labels == profile])
+        for profile in profiles
+    ]
+    metrics = tuple(per_profile[0])
+    values = np.asarray([[row[metric] for metric in metrics] for row in per_profile])
+    rng = np.random.default_rng(seed)
+    draws = np.empty((runs, len(metrics)), dtype="float64")
+    for run in range(runs):
+        sampled = rng.integers(0, len(profiles), len(profiles))
+        draws[run] = values[sampled].mean(axis=0)
+    return {
+        metric: {
+            "estimate": float(values[:, index].mean()),
+            "ci_low": float(np.quantile(draws[:, index], 0.025)),
+            "ci_high": float(np.quantile(draws[:, index], 0.975)),
+        }
+        for index, metric in enumerate(metrics)
+    }
+
+
 def make_view_features(
     matrices: dict[str, np.ndarray], languages: np.ndarray, profiles: np.ndarray
 ) -> tuple[list[str], dict[str, np.ndarray]]:
@@ -157,9 +186,26 @@ def main() -> None:
         for name, matrix in source_matrices.items()
     }
     best_single = max(dev_metrics, key=lambda name: dev_metrics[name]["mrr"])
-    best_test_scores = source_matrices[best_single][test_rows]
-    best_test = macro_metrics(best_test_scores, labels[test_rows])
+    test_scores = {
+        name: matrix[test_rows]
+        for name, matrix in source_matrices.items()
+    }
+    best_test_scores = test_scores[best_single]
     fusion_test_metrics = macro_metrics(fusion_test, labels[test_rows])
+    test_scores["learned_fusion"] = fusion_test
+    test_metrics = {
+        name: macro_metrics(matrix, labels[test_rows])
+        for name, matrix in test_scores.items()
+    }
+    test_intervals = {
+        name: profile_bootstrap_intervals(
+            matrix,
+            labels[test_rows],
+            args.bootstrap_runs,
+            args.seed + index,
+        )
+        for index, (name, matrix) in enumerate(test_scores.items())
+    }
     bootstrap = paired_bootstrap_mrr(
         best_test_scores, fusion_test, labels[test_rows], args.bootstrap_runs, args.seed
     )
@@ -230,6 +276,9 @@ def main() -> None:
             "ranking_weighting": "macro by author-language profile",
             "training_split": "dev",
             "locked_evaluation_split": "test",
+            "n_dev_sources": int(len(dev_rows)),
+            "n_test_sources": int(len(test_rows)),
+            "n_test_profiles": int(np.unique(labels[test_rows]).size),
             "features": "within-language z-score and candidate percentile for each view",
             "learner": "elastic-net logistic candidate reranker",
             "topic_views_allowed": False,
@@ -237,7 +286,8 @@ def main() -> None:
         "candidate_views": view_names,
         "dev_metrics": dev_metrics,
         "best_single": best_single,
-        "test_metrics": {best_single: best_test, "learned_fusion": fusion_test_metrics},
+        "test_metrics": test_metrics,
+        "test_intervals": test_intervals,
         "calibration": {best_single: best_calibration, "learned_fusion": fusion_calibration},
         "paired_bootstrap": bootstrap,
         "subgroups": subgroup_comparison,

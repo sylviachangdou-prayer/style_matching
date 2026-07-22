@@ -14,7 +14,9 @@ from scripts.evaluate_multiview_fusion import (
     fit_fusion,
     make_view_features,
     predict_fusion,
+    profile_bootstrap_intervals,
 )
+from scripts.fetch_gutendex import author_match, independent_title_key
 from scripts.evaluate_multiview_open_set import confidence_features
 from scripts.finetune_multilingual_style import pcm_mask_examples
 from scripts.score_artifact_utils import (
@@ -44,6 +46,20 @@ def test_source_aggregation_uses_independent_sources() -> None:
     assert source_labels.tolist() == [0, 1]
     np.testing.assert_allclose(source_scores["view"][0], [0.7, 0.3])
     assert independent_source_keys(frame).nunique() == 2
+
+
+def test_profile_bootstrap_reports_exact_point_estimate() -> None:
+    scores = np.eye(4)
+    labels = np.arange(4)
+    intervals = profile_bootstrap_intervals(scores, labels, runs=20, seed=3)
+    assert intervals["mrr"]["estimate"] == 1.0
+    assert intervals["recall_at_3"]["ci_low"] == 1.0
+
+
+def test_multilingual_gutendex_matching_and_work_identity() -> None:
+    book = {"authors": [{"name": "Gautier, Théophile"}]}
+    assert author_match(book, "Theophile Gautier")
+    assert independent_title_key("Example, Volume II") == independent_title_key("Example, Volume I")
 
 
 def test_matched_candidate_metrics_include_theoretical_chance() -> None:
