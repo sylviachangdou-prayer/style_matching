@@ -206,16 +206,6 @@
   model supplies the author ranking. Classical views explain the result, source prototypes
   preserve within-author variation, and semantic similarity remains a separate contextual
   channel.</p>
-  <p class="note"><strong>Expansion-stage challenge.</strong> Part 8 re-tests fusion after
-  the enlarged independent-source artifact is built. It converts the deployed encoder, its
-  pretrained counterpart, and classical style evidence to within-language candidate
-  percentiles before testing non-negative mixtures (Montague &amp; Aslam 2001; Kittler et
-  al. 1998). The deployed view keeps at least half the weight. Dev selection maximizes a
-  lower-tail profile-bootstrap MRR gain subject to language and corpus non-degradation; the
-  locked test is opened once (Cameron, Gelbach &amp; Miller 2008; Cawley &amp; Talbot 2010).
-  A fusion replaces the single model only if its paired interval is wholly positive and its
-  calibration, selective precision, and supported groups do not regress (Guo et al. 2017;
-  Geifman &amp; El-Yaniv 2017). Topic evidence is excluded.</p>
   <section class="model-method-guide" aria-labelledby="model-method-guide-title">
     <h3 id="model-method-guide-title">What each comparison measures</h3>
     <div>
@@ -226,7 +216,6 @@
       <article class="deployed"><h4>Fine-tuned authorship representation</h4><p>The selected encoder, adapted to the corpus protocol and served through normalized centroid retrieval.</p></article>
       <article><h4>Classical style-feature fusion</h4><p>Delexicalized patterns, function words, rhythm, discourse, and compression distance combined without topic features.</p></article>
       <article><h4>Learned multi-view reranker</h4><p>An elastic-net candidate reranker trained on dev-set, within-language standardized scores and percentiles.</p></article>
-      <article><h4>Robust rank fusion · Part 8</h4><p>A base-anchored convex rank mixture selected by profile bootstrap and language/corpus non-degradation gates on expanded evidence.</p></article>
     </div>
   </section>
 

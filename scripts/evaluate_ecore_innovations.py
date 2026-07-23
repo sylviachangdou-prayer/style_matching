@@ -187,25 +187,30 @@ def score_views(
     profile_languages = np.asarray([str(p).split("::", 1)[0] for p in profiles])
 
     for label, profile in enumerate(profiles):
-        if not np.any(profile_languages[label] == query_languages):
+        valid_rows = np.flatnonzero(query_languages == profile_languages[label])
+        if not len(valid_rows):
             continue
         modes = prototypes[prototype_profiles == profile]
         if support_cap is not None:
             modes = modes[:support_cap]
-        absolute = queries @ modes.T
-        centroid[:, label] = queries @ normalize(modes.mean(axis=0, keepdims=True))[0]
-        hard[:, label] = absolute.max(axis=1)
-        soft[:, label] = logmeanexp(absolute, temperature)
-        dispersion[:, label] = absolute.std(axis=1) if len(modes) > 1 else 0.0
-        valid_rows = np.flatnonzero(query_languages == profile_languages[label])
-        for row in valid_rows:
-            env = str(query_envs[row])
-            centre = centres.get(env, centres[f"{query_languages[row]}::__fallback__"])
-            q_resid = normalize((queries[row] - centre).reshape(1, -1))[0]
+        absolute = queries[valid_rows] @ modes.T
+        centroid[valid_rows, label] = (
+            queries[valid_rows] @ normalize(modes.mean(axis=0, keepdims=True))[0]
+        )
+        hard[valid_rows, label] = absolute.max(axis=1)
+        soft[valid_rows, label] = logmeanexp(absolute, temperature)
+        dispersion[valid_rows, label] = (
+            absolute.std(axis=1) if len(modes) > 1 else 0.0
+        )
+        for env in np.unique(query_envs[valid_rows].astype(str)):
+            rows = valid_rows[query_envs[valid_rows].astype(str) == env]
+            centre = centres.get(
+                env,
+                centres[f"{profile_languages[label]}::__fallback__"],
+            )
+            q_resid = normalize(queries[rows] - centre)
             p_resid = normalize(modes - centre)
-            cohort[row, label] = logmeanexp(
-                (q_resid @ p_resid.T).reshape(1, -1), temperature
-            )[0]
+            cohort[rows, label] = logmeanexp(q_resid @ p_resid.T, temperature)
     return {
         "centroid": centroid,
         "hard_prototype": hard,
@@ -279,6 +284,11 @@ def episodic_crossfit(
     profile_languages = np.asarray([str(profile).split("::", 1)[0] for profile in profiles])
 
     for fold, heldout in enumerate(buckets):
+        print(
+            f"episodic fold {fold + 1}/{len(buckets)}: "
+            f"{len(heldout)} wholly held-out profiles",
+            flush=True,
+        )
         train_rows = np.flatnonzero(~np.isin(dev_labels, heldout))
         diffs = []
         for row in train_rows:
@@ -325,6 +335,11 @@ def main() -> None:
     frame["profile_key"] = profile_key(frame)
     train = balanced_train(frame, args.train_cap, args.embedding_seed)
     eval_frame = frame[frame["split"].isin(["dev", "test"])].copy().reset_index(drop=True)
+    print(
+        f"loaded frozen split: {len(train)} balanced train chunks; "
+        f"{len(eval_frame)} dev/test chunks; {frame['profile_key'].nunique()} profiles",
+        flush=True,
+    )
     train_embeddings = np.load(args.embedding_dir / "style_embedding_train_embeddings.npy")
     eval_embeddings = np.load(args.embedding_dir / "style_embedding_eval_embeddings.npy")
     if len(train) != len(train_embeddings) or len(eval_frame) != len(eval_embeddings):
@@ -341,12 +356,18 @@ def main() -> None:
         eval_frame["chunk_id"].astype(str).to_numpy(),
     ):
         raise ValueError("Evaluation embedding order does not match style_embedding_scores.npz")
+    print("Part 7 embedding alignment verified", flush=True)
 
     profiles = np.asarray(sorted(frame["profile_key"].unique()))
     profile_to_label = {profile: index for index, profile in enumerate(profiles)}
     eval_labels = eval_frame["profile_key"].map(profile_to_label).to_numpy()
     prototype_vectors, prototype_profiles, prototype_envs, _ = make_prototypes(
         train, train_embeddings
+    )
+    print(
+        f"built {len(prototype_vectors)} independent-source prototypes; "
+        "scoring centroid, hard, soft, and cohort-relative views",
+        flush=True,
     )
     centres = cohort_centres(
         prototype_vectors,
@@ -366,6 +387,7 @@ def main() -> None:
         )
         for cap in (1, 2)
     }
+    print("fixed geometry and variable-support views scored", flush=True)
     shuffled_envs = shuffled_environments(prototype_envs, args.seed)
     shuffled_centres = cohort_centres(
         prototype_vectors,
@@ -377,6 +399,7 @@ def main() -> None:
         prototype_vectors, prototype_profiles, shuffled_envs,
         args.temperature, shuffled_centres,
     )["cohort_relative"]
+    print("shuffled-environment negative control scored", flush=True)
 
     dev = eval_frame["split"].eq("dev").to_numpy()
     test = eval_frame["split"].eq("test").to_numpy()
@@ -416,6 +439,7 @@ def main() -> None:
     episodic_by_support = {}
     fold_audit = None
     for support_label, variant in (("one_source", support_test[1]), ("two_sources", support_test[2]), ("all_sources", test_views)):
+        print(f"author-heldout episodic transfer: {support_label}", flush=True)
         scores, audit = episodic_crossfit(
             episodic_dev,
             {key: variant[key] for key in episodic_feature_names},
