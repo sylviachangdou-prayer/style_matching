@@ -39,6 +39,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model-name", default="StyleDistance/mstyledistance")
     parser.add_argument("--model-revision", help="Optional immutable Hugging Face commit hash.")
     parser.add_argument("--split", default="train")
+    parser.add_argument(
+        "--use-all-splits",
+        action="store_true",
+        help="Train on every row even when a split column exists. Production-only; never use for held-out evaluation.",
+    )
     parser.add_argument("--pairs-per-author", type=int, default=500)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--epochs", type=int, default=1)
@@ -50,6 +55,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--audit-only", action="store_true")
     parser.add_argument("--language-aware-batches", action="store_true")
     parser.add_argument("--hard-negatives", action="store_true")
+    parser.add_argument(
+        "--min-eligible-profiles-per-language",
+        type=int,
+        default=1,
+        help=(
+            "Exclude a language unless at least this many author-language profiles "
+            "have two independent sources in the selected split. Use 2 or more to "
+            "prevent single-author pseudo-multilingual fine-tuning."
+        ),
+    )
     parser.add_argument(
         "--use-amp",
         action="store_true",
@@ -327,8 +342,29 @@ def main() -> None:
         print(f"skip existing model: {args.output_dir} already has training_config.json", flush=True)
         return
     df = pd.read_parquet(args.input)
-    if "split" in df.columns:
+    if "split" in df.columns and not args.use_all_splits:
         df = df[df["split"].eq(args.split)].copy()
+    prefilter_coverage = training_coverage(df, args.registry)
+    eligible_by_language = Counter(
+        profile["language"]
+        for profile in prefilter_coverage["eligible_for_finetuning"]
+    )
+    admitted_languages = sorted(
+        language
+        for language, count in eligible_by_language.items()
+        if count >= args.min_eligible_profiles_per_language
+    )
+    excluded_languages = {
+        language: int(count)
+        for language, count in sorted(eligible_by_language.items())
+        if language not in admitted_languages
+    }
+    if not admitted_languages:
+        raise ValueError(
+            "No language meets --min-eligible-profiles-per-language="
+            f"{args.min_eligible_profiles_per_language}; observed {dict(eligible_by_language)}"
+        )
+    df = df[df["language"].astype(str).isin(admitted_languages)].copy()
     coverage = training_coverage(df, args.registry)
     if args.audit_only:
         print(json.dumps(coverage, indent=2, ensure_ascii=False))
@@ -432,6 +468,7 @@ def main() -> None:
         "base_model_revision": args.model_revision,
         "output_dir": str(args.output_dir),
         "split": args.split,
+        "use_all_splits": args.use_all_splits,
         "n_rows": int(len(df)),
         "n_pairs": int(len(pairs)),
         "n_author_language_profiles_with_cross_source_pairs": int(
@@ -441,6 +478,10 @@ def main() -> None:
         "n_registry_author_language_profiles": coverage["n_registry_author_language_profiles"],
         "n_profiles_with_chunks": coverage["n_profiles_with_chunks"],
         "n_profiles_with_at_least_3_sources": coverage["n_profiles_with_at_least_3_sources"],
+        "min_eligible_profiles_per_language": args.min_eligible_profiles_per_language,
+        "eligible_profiles_by_language_before_filter": dict(sorted(eligible_by_language.items())),
+        "admitted_training_languages": admitted_languages,
+        "excluded_languages_below_profile_floor": excluded_languages,
         "registry_profiles_without_chunks": coverage["registry_profiles_without_chunks"],
         "profiles_with_one_source": coverage["profiles_with_one_source"],
         "all_eligible_profiles_contributed_pairs": len(pairs) == expected_pairs,
