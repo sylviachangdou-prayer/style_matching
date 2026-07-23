@@ -183,21 +183,19 @@
     <div class="performance-key"><span><i class="key-deployed"></i> Deployed</span><span><i class="key-numerical"></i> Numerical leader</span></div>
   </figure>
   </div>
-  <div class="tablewrap model-comparison-shell">
-  <table class="model-comparison performance-table">
-    <caption>Locked test performance. Brackets show 95% bootstrap intervals.</caption>
-    <thead><tr><th>Method</th><th>MRR [95% CI]</th><th>R@1</th><th>R@3 [95% CI]</th><th>R@5</th><th>Decision</th></tr></thead>
-    <tbody>
-    <tr><td>Learned multi-view reranker</td><td class="num"><strong>.785</strong> [.724, .843]</td><td class="num"><strong>.683</strong></td><td class="num"><strong>.867</strong> [.800, .925]</td><td class="num"><strong>.933</strong></td><td><span class="method-tag diagnostic">Not adopted</span></td></tr>
-    <tr class="selected-method-row"><td>Fine-tuned authorship representation</td><td class="num">.782 [.721, .839]</td><td class="num">.675</td><td class="num">.858 [.792, .917]</td><td class="num">.892</td><td><span class="method-tag selected">Deployed</span></td></tr>
-    <tr><td>Classical style-feature fusion</td><td class="num">.731 [.666, .792]</td><td class="num">.608</td><td class="num">.808 [.733, .875]</td><td class="num">.875</td><td><span class="method-tag compared">Compared</span></td></tr>
-    <tr><td>Pretrained authorship representation</td><td class="num">.609 [.537, .678]</td><td class="num">.467</td><td class="num">.700 [.617, .783]</td><td class="num">.775</td><td><span class="method-tag baseline">Baseline</span></td></tr>
-    <tr><td>Fine-tuned mStyleDistance</td><td class="num">.378 [.311, .447]</td><td class="num">.233</td><td class="num">.433 [.342, .525]</td><td class="num">.525</td><td><span class="method-tag compared">Compared</span></td></tr>
-    <tr><td>Pretrained mStyleDistance</td><td class="num">.334 [.274, .398]</td><td class="num">.183</td><td class="num">.383 [.300, .467]</td><td class="num">.483</td><td><span class="method-tag baseline">Baseline</span></td></tr>
-    <tr><td>mStyleDistance + source prototypes</td><td class="num">.331 [.268, .401]</td><td class="num">.217</td><td class="num">.350 [.267, .434]</td><td class="num">.433</td><td><span class="method-tag compared">Compared</span></td></tr>
-    </tbody>
-  </table>
-  </div>
+  <p><strong>Pretrained mStyleDistance</strong> tested a zero-shot multilingual style
+  space; its fine-tuned version added different-source positives, matched negatives, and
+  language-aware batches. A source-prototype variant tested whether work-level reference
+  vectors improved on one averaged author profile.</p>
+  <p><strong>Pretrained and fine-tuned multilingual authorship representations</strong>
+  supplied the strongest neural comparison. Classical character patterns, function words,
+  rhythm, discourse, and compression distance formed an interpretable non-topic baseline.
+  A learned multi-view reranker then tested whether those views added stable information
+  beyond the strongest representation.</p>
+  <p>On the locked source-heldout test, the reranker reached MRR .785 and the fine-tuned
+  authorship representation .782. Their paired-bootstrap difference included zero, so the
+  smaller numerical lead was not treated as evidence of a better method. The latter remains
+  deployed; topic similarity stays outside the Style Match rank.</p>
   <p class="note"><strong>Pre-declared selection rule.</strong> The reranker led by .003
   MRR, but its paired-bootstrap interval for the difference crossed zero
   [−.052, .060] and the subgroup non-degradation gate was not met. The best dev-selected
@@ -206,18 +204,6 @@
   model supplies the author ranking. Classical views explain the result, source prototypes
   preserve within-author variation, and semantic similarity remains a separate contextual
   channel.</p>
-  <section class="model-method-guide" aria-labelledby="model-method-guide-title">
-    <h3 id="model-method-guide-title">What each comparison measures</h3>
-    <div>
-      <article><h4>Pretrained mStyleDistance</h4><p>A zero-shot multilingual style space, evaluated without project-specific adaptation.</p></article>
-      <article><h4>Fine-tuned mStyleDistance</h4><p>The same encoder adapted with different-source positives, matched negatives, and language-aware batches.</p></article>
-      <article><h4>mStyleDistance + source prototypes</h4><p>Work-level reference vectors replace one averaged centroid to test whether internal variation improves retrieval.</p></article>
-      <article><h4>Pretrained authorship representation</h4><p>A multilingual authorship encoder tested directly as a stronger zero-shot alternative.</p></article>
-      <article class="deployed"><h4>Fine-tuned authorship representation</h4><p>The selected encoder, adapted to the corpus protocol and served through normalized centroid retrieval.</p></article>
-      <article><h4>Classical style-feature fusion</h4><p>Delexicalized patterns, function words, rhythm, discourse, and compression distance combined without topic features.</p></article>
-      <article><h4>Learned multi-view reranker</h4><p>An elastic-net candidate reranker trained on dev-set, within-language standardized scores and percentiles.</p></article>
-    </div>
-  </section>
 
   <h2>5 · Open-set calibration</h2>
   <p>For each language, held-out authors are split into "known" and "unknown"; a logistic

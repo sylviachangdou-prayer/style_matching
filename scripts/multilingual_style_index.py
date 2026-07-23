@@ -4,6 +4,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 import re
 import time
 from pathlib import Path
@@ -478,6 +479,19 @@ class StyleIndex:
             np.load(prototype_centroid_path) if prototype_centroid_path.exists() else None
         )
         self.prototypes = pd.read_parquet(prototype_path) if prototype_path.exists() else None
+        self.ecore_scorer = None
+        self.ecore_cohort_centres = {}
+        scorer_path = index_dir / "ecore_scorer.json"
+        cohort_vectors_path = index_dir / "ecore_cohort_centres.npy"
+        cohort_rows_path = index_dir / "ecore_cohort_centres.parquet"
+        if scorer_path.exists() and cohort_vectors_path.exists() and cohort_rows_path.exists():
+            self.ecore_scorer = json.loads(scorer_path.read_text(encoding="utf-8"))
+            cohort_vectors = np.load(cohort_vectors_path)
+            cohort_rows = pd.read_parquet(cohort_rows_path)
+            self.ecore_cohort_centres = {
+                str(row["environment"]): cohort_vectors[int(row["centre_id"])]
+                for _, row in cohort_rows.iterrows()
+            }
         topic_centroid_path = index_dir / "topic_centroids.npy"
         self.topic_centroids = np.load(topic_centroid_path) if topic_centroid_path.exists() else None
         self.decade_centroids = None
@@ -555,6 +569,52 @@ class StyleIndex:
             for profile_id, indices in self.prototypes.groupby("profile_id").groups.items():
                 values = np.sort(prototype_scores[np.asarray(list(indices), dtype=int)])[::-1][:prototype_top_k]
                 scores[int(profile_id)] = float(values.mean())
+        elif (
+            self.metadata.get("profile_strategy") == "ecore_episodic_linear"
+            and self.ecore_scorer is not None
+            and self.prototype_centroids is not None
+            and self.prototypes is not None
+        ):
+            # The validated first scorer has only a language-fallback cohort.
+            # Cross-language candidates retain centroid scores until ordered-pair
+            # ECoRe calibration exists.
+            temperature = float(self.ecore_scorer["temperature"])
+            weights = np.asarray(self.ecore_scorer["weights"], dtype="float32")
+            prototype_scores = self.prototype_centroids @ query_embedding
+            scores = single_centroid_scores.copy()
+            centre = self.ecore_cohort_centres.get(f"{language}::__fallback__")
+            if centre is not None:
+                query_residual = query_embedding - centre
+                query_residual /= max(np.linalg.norm(query_residual), 1e-12)
+                for profile_id, indices in self.prototypes.groupby("profile_id").groups.items():
+                    profile_id = int(profile_id)
+                    if str(self.profiles.iloc[profile_id]["language"]) != language:
+                        continue
+                    positions = np.asarray(list(indices), dtype=int)
+                    values = prototype_scores[positions]
+                    scaled = values / temperature
+                    soft = temperature * (
+                        float(scaled.max())
+                        + math.log(float(np.exp(scaled - scaled.max()).mean()))
+                    )
+                    residual_prototypes = self.prototype_centroids[positions] - centre
+                    residual_prototypes /= np.maximum(
+                        np.linalg.norm(residual_prototypes, axis=1, keepdims=True), 1e-12
+                    )
+                    residual_values = residual_prototypes @ query_residual
+                    residual_scaled = residual_values / temperature
+                    cohort = temperature * (
+                        float(residual_scaled.max())
+                        + math.log(float(np.exp(residual_scaled - residual_scaled.max()).mean()))
+                    )
+                    features = np.asarray([
+                        single_centroid_scores[profile_id],
+                        values.max(),
+                        soft,
+                        cohort,
+                        values.std() if len(values) > 1 else 0.0,
+                    ], dtype="float32")
+                    scores[profile_id] = float(features @ weights + self.ecore_scorer.get("intercept", 0.0))
         topic_scores = None
         if self.topic_model is not None and self.topic_centroids is not None:
             topic_query = encode_topic(self.topic_model, [text], 1, query=True)[0]

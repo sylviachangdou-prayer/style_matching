@@ -40,8 +40,9 @@ def test_index_exposes_primary_navigation_and_visible_passage() -> None:
     assert "Pure style." not in page and "Beyond language." not in page
     assert "Cross-lingual, multi-style retrieval" in page
     assert '<span aria-hidden="true">✦</span> Cross-lingual' not in page
-    assert page.count('class="voice-sticker"') == 10
+    assert page.count('class="voice-sticker"') == 9
     assert "portraits/jian-zhen.jpg" not in page
+    assert "portraits/simone-de-beauvoir.jpg" not in page
     assert "portraits/eileen-chang.jpg" in page
     assert "retrieval —" not in page
     assert "academic authorship research." not in page
@@ -99,11 +100,15 @@ def test_method_page_and_background_asset_are_packaged() -> None:
     assert '<link rel="stylesheet" href="method-flow.css">' in page
     assert "Read the full method" not in page
     assert "Fine-tuned multilingual authorship representation" in page
-    assert page.count('class="model-comparison"') == 2
+    assert page.count('class="model-comparison') == 1
+    assert "method-brief" in page
+    assert "method-performance-figure" in page
+    assert "performance-table" not in page
+    assert "Selected design:" in page
+    assert "learned multi-view reranker" in page
+    assert "MRR .785" in page and "representation .782" in page
     assert "The academic mechanism behind the match" not in page
     assert "classification F1" in page
-    assert "MRR / Recall@3 · artifact pending" in page
-    assert "Best dev MRR among single models" in page
     assert "Direct original vs translation-mediated retrieval" not in page
     assert "commit 15978e1" not in page
     assert "Two safeguards come from a measured failure" not in page

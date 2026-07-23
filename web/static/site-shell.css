@@ -137,32 +137,28 @@ body.stylematch-atmosphere::after {
 .page-kicker span { margin-right: 6px; font-family: var(--serif); font-size: 1rem; }
 
 .voice-portraits {
-  position: relative;
-  width: min(790px, 94vw);
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 4px;
+  width: min(760px, 94vw);
   max-width: 100%;
-  height: clamp(340px, 42vw, 470px);
-  margin: -18px 0 2px;
+  height: clamp(220px, 27vw, 300px);
+  margin: -10px 0 8px;
+  padding: 8px 0;
+  overflow: hidden;
 }
 
 .voice-sticker {
-  --x: 0%;
-  --y: 0%;
-  --size: clamp(104px, 13vw, 164px);
-  --tilt: 0deg;
-  position: absolute;
-  z-index: 2;
-  top: var(--y);
-  left: var(--x);
-  width: var(--size);
-  aspect-ratio: .79;
+  position: relative;
+  min-width: 0;
+  height: 100%;
   margin: 0;
-  padding: 5px;
   overflow: hidden;
-  border-radius: 47% 53% 45% 55% / 42% 46% 54% 58%;
-  background: var(--wine);
-  box-shadow: 0 12px 25px rgb(22 41 63 / .16);
-  transform: rotate(var(--tilt));
-  transform-origin: 50% 82%;
+  border: 1px solid rgb(31 58 95 / .24);
+  border-radius: 0;
+  background: #ddd8cc;
+  box-shadow: 0 10px 24px rgb(22 41 63 / .12);
   transition: transform .2s ease, filter .2s ease;
 }
 
@@ -170,27 +166,21 @@ body.stylematch-atmosphere::after {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: inherit;
-  filter: grayscale(1) contrast(1.18) brightness(.96);
-  mix-blend-mode: luminosity;
+  border-radius: 0;
+  filter: grayscale(1) contrast(1.12) brightness(.98);
 }
 
 .voice-sticker:hover {
   z-index: 20;
-  filter: contrast(1.05);
-  transform: translateY(-7px) rotate(var(--tilt)) scale(1.045);
+  filter: contrast(1.04);
+  transform: translateY(-4px) scale(1.025);
 }
 
-.voice-sticker:nth-child(1) { --x: 1%; --y: 20%; --size: clamp(116px, 14vw, 172px); --tilt: -10deg; z-index: 6; }
-.voice-sticker:nth-child(2) { --x: 17%; --y: 1%; --size: clamp(106px, 12.5vw, 154px); --tilt: 7deg; z-index: 3; }
-.voice-sticker:nth-child(3) { --x: 34%; --y: 22%; --size: clamp(122px, 14vw, 178px); --tilt: -5deg; z-index: 8; }
-.voice-sticker:nth-child(4) { --x: 51%; --y: 2%; --size: clamp(102px, 12vw, 150px); --tilt: -12deg; z-index: 4; }
-.voice-sticker:nth-child(5) { --x: 67%; --y: 17%; --size: clamp(112px, 13.5vw, 168px); --tilt: 9deg; z-index: 7; }
-.voice-sticker:nth-child(6) { --x: 8%; --y: 52%; --size: clamp(102px, 12vw, 148px); --tilt: 6deg; z-index: 9; }
-.voice-sticker:nth-child(7) { --x: 25%; --y: 55%; --size: clamp(112px, 13vw, 164px); --tilt: -9deg; z-index: 5; }
-.voice-sticker:nth-child(8) { --x: 45%; --y: 57%; --size: clamp(96px, 11.5vw, 142px); --tilt: 8deg; z-index: 10; }
-.voice-sticker:nth-child(9) { --x: 60%; --y: 49%; --size: clamp(108px, 13vw, 160px); --tilt: -7deg; z-index: 6; }
-.voice-sticker:nth-child(10) { --x: 78%; --y: 47%; --size: clamp(108px, 13vw, 160px); --tilt: 11deg; z-index: 11; }
+.voice-sticker:nth-child(2),
+.voice-sticker:nth-child(5),
+.voice-sticker:nth-child(8) { transform: translateY(8px); }
+.voice-sticker:nth-child(3),
+.voice-sticker:nth-child(7) { transform: translateY(-5px); }
 
 .voice-sticker:nth-child(1) img { object-position: 50% 24%; }
 .voice-sticker:nth-child(2) img { object-position: 50% 28%; }
@@ -201,7 +191,6 @@ body.stylematch-atmosphere::after {
 .voice-sticker:nth-child(7) img { object-position: 50% 22%; }
 .voice-sticker:nth-child(8) img { object-position: 50% 28%; }
 .voice-sticker:nth-child(9) img { object-position: 50% 22%; }
-.voice-sticker:nth-child(10) img { object-position: 50% 20%; }
 
 .capability-line {
   max-width: 650px;
@@ -516,8 +505,7 @@ body.matching-mode { overflow: hidden; }
   body.stylematch-atmosphere::after { display: none; }
   .home-main { padding: 42px 18px 68px; }
   .input-panel { min-height: 0; }
-  .voice-portraits { width: 100%; height: 440px; margin-top: -28px; }
-  .voice-sticker { --size: 94px; }
+  .voice-portraits { width: 100%; height: 220px; margin-top: -18px; gap: 2px; }
   .art-ribbon { display: none; }
   body.results-mode .home-main { width: auto; margin: 0; padding: 18px 12px 50px; }
   body.results-mode #output { padding: 24px 15px; }

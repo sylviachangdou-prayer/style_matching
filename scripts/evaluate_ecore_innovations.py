@@ -34,6 +34,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--embedding-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--temperature", type=float, default=0.08)
+    parser.add_argument(
+        "--environment-policy",
+        choices=("language_register", "language_only"),
+        default="language_register",
+    )
     parser.add_argument("--author-folds", type=int, default=5)
     parser.add_argument("--hard-negatives", type=int, default=12)
     parser.add_argument("--bootstrap-runs", type=int, default=5000)
@@ -57,7 +62,9 @@ def source_keys(frame: pd.DataFrame) -> pd.Series:
     return frame["corpus"].astype(str) + "::" + identity.fillna("").astype(str)
 
 
-def environment(frame: pd.DataFrame) -> pd.Series:
+def environment(frame: pd.DataFrame, policy: str = "language_register") -> pd.Series:
+    if policy == "language_only":
+        return frame["language"].astype(str) + "::__fallback__"
     register = (
         frame["register"].fillna("").astype(str)
         if "register" in frame
@@ -129,11 +136,11 @@ def paired_profile_bootstrap(
 
 
 def make_prototypes(
-    train: pd.DataFrame, embeddings: np.ndarray
+    train: pd.DataFrame, embeddings: np.ndarray, environment_policy: str
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     work = train.copy().reset_index(drop=True)
     work["source_key"] = source_keys(work)
-    work["environment"] = environment(work)
+    work["environment"] = environment(work, environment_policy)
     vectors, labels, envs, supports = [], [], [], []
     for (profile, key), positions in work.groupby(
         ["profile_key", "source_key"], sort=True
@@ -328,6 +335,48 @@ def episodic_crossfit(
     return output, audit
 
 
+def fit_production_scorer(
+    views: dict[str, np.ndarray],
+    labels: np.ndarray,
+    profiles: np.ndarray,
+    hard_negatives: int,
+    seed: int,
+) -> tuple[list[str], np.ndarray, int]:
+    """Fit one candidate-identity-free scorer after locked evaluation.
+
+    This scorer is an experimental artifact. Adoption is controlled separately
+    by the author-heldout direct comparison against the centroid.
+    """
+    feature_names = [
+        "centroid", "hard_prototype", "soft_prototype",
+        "cohort_relative", "prototype_dispersion",
+    ]
+    features = np.stack([views[name] for name in feature_names], axis=-1)
+    profile_languages = np.asarray([str(profile).split("::", 1)[0] for profile in profiles])
+    differences = []
+    for row, true in enumerate(labels):
+        language = profile_languages[int(true)]
+        candidates = np.flatnonzero(
+            (profile_languages == language) & (np.arange(len(profiles)) != int(true))
+        )
+        if not len(candidates):
+            continue
+        hardest = candidates[
+            np.argsort(views["soft_prototype"][row, candidates])[::-1][:hard_negatives]
+        ]
+        differences.extend(
+            features[row, int(true)] - features[row, negative]
+            for negative in hardest
+        )
+    positive = np.vstack(differences)
+    pair_x = np.vstack([positive, -positive])
+    pair_y = np.concatenate([np.ones(len(positive)), np.zeros(len(positive))])
+    model = LogisticRegression(
+        fit_intercept=False, C=0.25, max_iter=2000, random_state=seed
+    ).fit(pair_x, pair_y)
+    return feature_names, model.coef_[0], int(len(positive))
+
+
 def main() -> None:
     args = parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -362,7 +411,7 @@ def main() -> None:
     profile_to_label = {profile: index for index, profile in enumerate(profiles)}
     eval_labels = eval_frame["profile_key"].map(profile_to_label).to_numpy()
     prototype_vectors, prototype_profiles, prototype_envs, _ = make_prototypes(
-        train, train_embeddings
+        train, train_embeddings, args.environment_policy
     )
     print(
         f"built {len(prototype_vectors)} independent-source prototypes; "
@@ -375,13 +424,13 @@ def main() -> None:
         np.asarray([profile.split("::", 1)[0] for profile in profiles]),
     )
     views = score_views(
-        eval_embeddings, environment(eval_frame).to_numpy(), profiles,
+        eval_embeddings, environment(eval_frame, args.environment_policy).to_numpy(), profiles,
         prototype_vectors, prototype_profiles, prototype_envs,
         args.temperature, centres,
     )
     support_views = {
         cap: score_views(
-            eval_embeddings, environment(eval_frame).to_numpy(), profiles,
+            eval_embeddings, environment(eval_frame, args.environment_policy).to_numpy(), profiles,
             prototype_vectors, prototype_profiles, prototype_envs,
             args.temperature, centres, support_cap=cap,
         )
@@ -395,7 +444,7 @@ def main() -> None:
         np.asarray([profile.split("::", 1)[0] for profile in profiles]),
     )
     views["shuffled_cohort_control"] = score_views(
-        eval_embeddings, environment(eval_frame).to_numpy(), profiles,
+        eval_embeddings, environment(eval_frame, args.environment_policy).to_numpy(), profiles,
         prototype_vectors, prototype_profiles, shuffled_envs,
         args.temperature, shuffled_centres,
     )["cohort_relative"]
@@ -473,6 +522,13 @@ def main() -> None:
         test_views["cohort_relative"], test_views["episodic_author_heldout"], test_labels,
         args.bootstrap_runs, args.seed + 3,
     )
+    h3_vs_centroid = paired_profile_bootstrap(
+        test_views["centroid"], test_views["episodic_author_heldout"], test_labels,
+        args.bootstrap_runs, args.seed + 4,
+    )
+    production_feature_names, production_weights, n_production_pairs = fit_production_scorer(
+        episodic_dev, episodic_dev_labels, profiles, args.hard_negatives, args.seed
+    )
     report = {
         "status": "research_evaluation_not_calibrated",
         "input": str(args.input),
@@ -483,7 +539,7 @@ def main() -> None:
             "n_train_rows": int(len(train)),
             "n_eval_rows": int(len(eval_frame)),
         },
-        "environment": "language × register with language fallback",
+        "environment": args.environment_policy,
         "candidate_identity_parameters": False,
         "test_metrics": metrics,
         "innovation_1_distributional_profile": {
@@ -500,7 +556,9 @@ def main() -> None:
         "innovation_3_episodic_transfer": {
             "contrast": "whole-author cross-fitted episodic scorer minus fixed cohort energy",
             "paired_profile_bootstrap": h3,
+            "direct_deployment_contrast_vs_centroid": h3_vs_centroid,
             "supported": h3["ci_low"] > 0,
+            "deployment_gate_passed": h3_vs_centroid["ci_low"] > 0,
             "variable_support_test_metrics": {
                 label: macro_metrics(scores, test_labels)
                 for label, scores in episodic_by_support.items()
@@ -516,6 +574,23 @@ def main() -> None:
     }
     (args.output_dir / "ecore_innovation_metrics.json").write_text(
         json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    scorer = {
+        "schema_version": 1,
+        "scorer_version": "ecore_episodic_linear_v1",
+        "feature_names": production_feature_names,
+        "weights": production_weights.tolist(),
+        "intercept": 0.0,
+        "temperature": args.temperature,
+        "environment_policy": args.environment_policy,
+        "n_training_pairwise_differences": n_production_pairs,
+        "validation_metrics": report["test_metrics"]["episodic_author_heldout"],
+        "direct_deployment_contrast_vs_centroid": h3_vs_centroid,
+        "deployment_gate_passed": h3_vs_centroid["ci_low"] > 0,
+        "status": "experimental" if h3_vs_centroid["ci_low"] <= 0 else "eligible_challenger",
+    }
+    (args.output_dir / "ecore_production_scorer.json").write_text(
+        json.dumps(scorer, indent=2, ensure_ascii=False), encoding="utf-8"
     )
     np.savez_compressed(
         args.output_dir / "ecore_innovation_scores.npz",

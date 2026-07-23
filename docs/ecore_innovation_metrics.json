@@ -1,0 +1,324 @@
+{
+  "status": "research_evaluation_not_calibrated",
+  "input": "/content/drive/MyDrive/style_matching/data/all/meta/all_source_heldout_splits.parquet",
+  "embedding_dir": "/content/drive/MyDrive/style_matching/artifacts/source_expansion_v2/expanded_source_heldout_eval",
+  "embedding_alignment": {
+    "train_cap": 300,
+    "embedding_seed": 20260701,
+    "n_train_rows": 38360,
+    "n_eval_rows": 14730
+  },
+  "environment": "language × register with language fallback",
+  "candidate_identity_parameters": false,
+  "test_metrics": {
+    "centroid": {
+      "mrr": 0.7452539386014109,
+      "recall_at_1": 0.6381578947368421,
+      "recall_at_3": 0.8289473684210527,
+      "recall_at_5": 0.8881578947368421
+    },
+    "hard_prototype": {
+      "mrr": 0.7245080114119853,
+      "recall_at_1": 0.5986842105263158,
+      "recall_at_3": 0.8223684210526315,
+      "recall_at_5": 0.8881578947368421
+    },
+    "soft_prototype": {
+      "mrr": 0.7090858303938291,
+      "recall_at_1": 0.5789473684210527,
+      "recall_at_3": 0.7960526315789473,
+      "recall_at_5": 0.8881578947368421
+    },
+    "cohort_relative": {
+      "mrr": 0.7156077869114572,
+      "recall_at_1": 0.5855263157894737,
+      "recall_at_3": 0.8157894736842105,
+      "recall_at_5": 0.868421052631579
+    },
+    "shuffled_cohort_control": {
+      "mrr": 0.7195635322280058,
+      "recall_at_1": 0.5921052631578947,
+      "recall_at_3": 0.8157894736842105,
+      "recall_at_5": 0.868421052631579
+    },
+    "episodic_author_heldout": {
+      "mrr": 0.7233184735487367,
+      "recall_at_1": 0.5986842105263158,
+      "recall_at_3": 0.8092105263157895,
+      "recall_at_5": 0.868421052631579
+    }
+  },
+  "innovation_1_distributional_profile": {
+    "contrast": "source-balanced soft multi-prototype minus centroid",
+    "paired_profile_bootstrap": {
+      "mrr_delta": -0.036168108207581894,
+      "ci_low": -0.06399437870243793,
+      "ci_high": -0.011899635452267064
+    },
+    "supported": false
+  },
+  "innovation_2_cohort_relative_geometry": {
+    "contrast": "environment-centred residual soft prototype minus absolute soft prototype",
+    "paired_profile_bootstrap": {
+      "mrr_delta": 0.00652195651762826,
+      "ci_low": -0.029945948605488076,
+      "ci_high": 0.042810880027271105
+    },
+    "shuffled_environment_control": {
+      "mrr_delta": -0.003955745316548641,
+      "ci_low": -0.0111925874218118,
+      "ci_high": 4.439235741174796e-06
+    },
+    "supported": false
+  },
+  "innovation_3_episodic_transfer": {
+    "contrast": "whole-author cross-fitted episodic scorer minus fixed cohort energy",
+    "paired_profile_bootstrap": {
+      "mrr_delta": 0.007710686637279435,
+      "ci_low": 0.00010199759334108348,
+      "ci_high": 0.017945165563673184
+    },
+    "supported": true,
+    "variable_support_test_metrics": {
+      "one_source": {
+        "mrr": 0.6534257110355344,
+        "recall_at_1": 0.506578947368421,
+        "recall_at_3": 0.7631578947368421,
+        "recall_at_5": 0.8289473684210527
+      },
+      "two_sources": {
+        "mrr": 0.6886918704118452,
+        "recall_at_1": 0.5592105263157895,
+        "recall_at_3": 0.7763157894736842,
+        "recall_at_5": 0.8421052631578947
+      },
+      "all_sources": {
+        "mrr": 0.7233184735487367,
+        "recall_at_1": 0.5986842105263158,
+        "recall_at_3": 0.8092105263157895,
+        "recall_at_5": 0.868421052631579
+      }
+    },
+    "variable_support_training": "dev episodes pooled deterministic 1-source, 2-source, and all-source support conditions",
+    "folds": [
+      {
+        "fold": 0,
+        "heldout_profiles": [
+          "en::Louisa May Alcott",
+          "ja::Natsume Soseki",
+          "de::Heinrich von Kleist",
+          "de::Friedrich Nietzsche",
+          "ja::Arishima Takeo",
+          "fr::Pierre Loti",
+          "en::Woodrow Wilson",
+          "en::E. M. Forster",
+          "en::Joseph Conrad",
+          "ru::Nikolai Gogol",
+          "pl::Eliza Orzeszkowa",
+          "pl::Maria Konopnicka",
+          "en::Grover Cleveland",
+          "fr::Romain Rolland",
+          "en::W. E. B. Du Bois",
+          "en::Wilkie Collins",
+          "en::Thomas Jefferson",
+          "en::James Baldwin",
+          "de::Theodor Storm",
+          "ja::Osamu Dazai",
+          "en::F. Scott Fitzgerald",
+          "en::Frances Hodgson Burnett",
+          "en::Willa Cather",
+          "en::Virginia Woolf",
+          "fr::Gaston Leroux",
+          "en::H. G. Wells",
+          "en::Thomas Hardy",
+          "en::William Morris",
+          "fr::Alexandre Dumas",
+          "fr::Emile Zola",
+          "es::Juan Valera"
+        ],
+        "n_pairwise_differences": 3786,
+        "feature_weights": {
+          "centroid": 1.3936559933825294,
+          "hard_prototype": 0.956207074754172,
+          "soft_prototype": 1.1896075977389196,
+          "cohort_relative": 6.301016853722147,
+          "prototype_dispersion": -0.010339393112301856
+        }
+      },
+      {
+        "fold": 1,
+        "heldout_profiles": [
+          "es::Emilia Pardo Bazan",
+          "ru::Maxim Gorky",
+          "es::Miguel de Cervantes",
+          "ru::Leo Tolstoy",
+          "es::Leopoldo Alas",
+          "es::Pio Baroja",
+          "de::Wilhelm Raabe",
+          "de::Hermann Hesse",
+          "ru::Alexander Kuprin",
+          "de::Friedrich Schiller",
+          "en::Mary Wollstonecraft Shelley",
+          "en::Edith Wharton",
+          "en::Arthur Conan Doyle",
+          "zh::Feng Menglong",
+          "de::Theodor Fontane",
+          "ru::Leonid Andreyev",
+          "de::Franz Kafka",
+          "de::Johann Wolfgang von Goethe",
+          "fr::Paul Bourget",
+          "es::Benito Perez Galdos",
+          "en::George MacDonald",
+          "ja::Kunikida Doppo",
+          "it::Antonio Fogazzaro",
+          "en::Zora Neale Hurston",
+          "en::Ernest Hemingway",
+          "de::Heinrich Heine",
+          "en::G. K. Chesterton",
+          "de::Stefan Zweig",
+          "de::Gerhart Hauptmann",
+          "zh::Li Boyuan",
+          "it::Giuseppe Giacosa"
+        ],
+        "n_pairwise_differences": 3636,
+        "feature_weights": {
+          "centroid": 1.6196935413608473,
+          "hard_prototype": 1.2154924347175087,
+          "soft_prototype": 1.1920049270944226,
+          "cohort_relative": 7.275420529628156,
+          "prototype_dispersion": 0.1551525105382788
+        }
+      },
+      {
+        "fold": 2,
+        "heldout_profiles": [
+          "ru::Ivan Goncharov",
+          "en::Stephen Crane",
+          "en::Benjamin Harrison",
+          "ja::Izumi Kyoka",
+          "de::Paul Heyse",
+          "en::Charles Dickens",
+          "ru::Anton Chekhov",
+          "fr::Stendhal",
+          "es::Jacinto Benavente",
+          "de::Gotthold Ephraim Lessing",
+          "es::Miguel de Unamuno",
+          "en::P. G. Wodehouse",
+          "fr::Gustave Flaubert",
+          "fr::Charles Baudelaire",
+          "en::Frederick Douglass",
+          "it::Gabriele D'Annunzio",
+          "fr::Prosper Merimee",
+          "pl::Stefan Zeromski",
+          "en::Mark Twain",
+          "fr::Denis Diderot",
+          "it::Luigi Pirandello",
+          "ja::Miyazawa Kenji",
+          "en::Anthony Trollope",
+          "ru::Ivan Turgenev",
+          "en::Washington Irving",
+          "it::Vittorio Alfieri",
+          "de::Thomas Mann",
+          "en::Katherine Mansfield",
+          "ru::Alexander Pushkin",
+          "en::James Joyce"
+        ],
+        "n_pairwise_differences": 3636,
+        "feature_weights": {
+          "centroid": 1.727317169582644,
+          "hard_prototype": 1.2316157609913527,
+          "soft_prototype": 1.3822548583169418,
+          "cohort_relative": 7.292628280482478,
+          "prototype_dispersion": -0.08515478880871327
+        }
+      },
+      {
+        "fold": 3,
+        "heldout_profiles": [
+          "fr::Alphonse Daudet",
+          "it::Italo Svevo",
+          "fr::Emile Gaboriau",
+          "en::William McKinley",
+          "en::Herman Melville",
+          "en::Edgar Allan Poe",
+          "fr::Honore de Balzac",
+          "de::Adalbert Stifter",
+          "es::Ruben Dario",
+          "en::Abraham Lincoln",
+          "en::George Eliot",
+          "en::Bram Stoker",
+          "it::Matilde Serao",
+          "fr::Victor Hugo",
+          "it::Alessandro Manzoni",
+          "fr::Marcel Proust",
+          "it::Silvio Pellico",
+          "en::Franklin D. Roosevelt",
+          "en::Henry James",
+          "en::Robert Louis Stevenson",
+          "zh::Wu Jianren",
+          "fr::George Sand",
+          "de::Rainer Maria Rilke",
+          "en::E. Nesbit",
+          "en::John Adams",
+          "en::Nathaniel Hawthorne",
+          "fr::Anatole France",
+          "en::Agatha Christie",
+          "en::Theodore Roosevelt",
+          "de::Ludwig Tieck"
+        ],
+        "n_pairwise_differences": 3804,
+        "feature_weights": {
+          "centroid": 1.4085959249484181,
+          "hard_prototype": 1.0367471008471207,
+          "soft_prototype": 1.2086147453344738,
+          "cohort_relative": 6.433781180100415,
+          "prototype_dispersion": -0.004851488602439777
+        }
+      },
+      {
+        "fold": 4,
+        "heldout_profiles": [
+          "es::Vicente Blasco Ibanez",
+          "fr::Joris-Karl Huysmans",
+          "de::Karl May",
+          "en::Rudyard Kipling",
+          "en::Sinclair Lewis",
+          "de::Arthur Schnitzler",
+          "en::Elizabeth Cleghorn Gaskell",
+          "ja::Okamoto Kido",
+          "it::Edmondo De Amicis",
+          "en::Jack London",
+          "fr::Voltaire",
+          "ru::Nikolai Leskov",
+          "pl::Boleslaw Prus",
+          "en::Barack Obama",
+          "en::Jane Austen",
+          "en::Kate Chopin",
+          "fr::Jules Verne",
+          "ru::Fyodor Dostoevsky",
+          "en::L. M. Montgomery",
+          "en::Lord Dunsany",
+          "it::Giovanni Pascoli",
+          "zh::Lu Xun",
+          "fr::Andre Gide",
+          "ru::Ivan Bunin",
+          "ja::Shimazaki Toson",
+          "fr::Guy de Maupassant",
+          "de::E. T. A. Hoffmann",
+          "de::Gustav Freytag",
+          "fr::Octave Mirbeau",
+          "en::D. H. Lawrence"
+        ],
+        "n_pairwise_differences": 3690,
+        "feature_weights": {
+          "centroid": 1.3006793683997366,
+          "hard_prototype": 1.037314896675865,
+          "soft_prototype": 0.9189139185674219,
+          "cohort_relative": 6.739412628639945,
+          "prototype_dispersion": 0.2783633090787378
+        }
+      }
+    ]
+  },
+  "interpretation_rule": "An innovation is supported only when its paired profile-bootstrap 95% interval is wholly above zero; innovation 2 must also beat the shuffled-environment control."
+}
