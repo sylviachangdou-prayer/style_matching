@@ -40,10 +40,17 @@ def test_index_exposes_primary_navigation_and_visible_passage() -> None:
     assert "Pure style." not in page and "Beyond language." not in page
     assert "Cross-lingual, multi-style retrieval" in page
     assert '<span aria-hidden="true">✦</span> Cross-lingual' not in page
-    assert page.count('class="voice-sticker"') == 9
+    assert page.count('class="voice-sticker"') == 15
     assert "portraits/jian-zhen.jpg" not in page
-    assert "portraits/simone-de-beauvoir.jpg" not in page
-    assert "portraits/eileen-chang.jpg" in page
+    assert "portraits/barack-obama.jpg" not in page
+    assert "portraits/lu-xun.jpg" not in page
+    assert "portraits/mahatma-gandhi.jpg" not in page
+    assert "portraits/eileen-chang.jpg" not in page
+    assert "portraits/simone-de-beauvoir-photo.jpeg" in page
+    assert "portraits/annie-ernaux.jpeg" in page
+    assert "portraits/can-xue.jpeg" in page
+    assert "portraits/evelyn-waugh.jpeg" in page
+    assert "portraits/qiu-miaojin.jpeg" in page
     assert "retrieval —" not in page
     assert "academic authorship research." not in page
     assert "Original-language passages only" not in page
@@ -60,18 +67,22 @@ def test_index_exposes_primary_navigation_and_visible_passage() -> None:
     transition = page.split('class="loading-theatre"', 1)[1].split("</section>", 1)[0].lower()
     assert "<img" not in transition
     assert "hand" not in transition and "person" not in transition and "human" not in transition
-    assert transition.count("transition-strip") == 8
+    assert transition.count('class="transition-artwork"') == 1
     assert 'id="transition-passage"' in transition
     assert "manuscript-sheet" not in transition and "vertical-brushes" not in transition
     css = (STATIC / "site-shell.css").read_text(encoding="utf-8")
     assert "transition-gallery" in css and "typed-manuscript" in css
     assert "manuscript-turn" not in css and "paper-burn" not in css
-    assert 'url("lantingxu.jpg")' in css
-    assert 'url("art/wanderer.jpg")' in css
-    assert 'url("art/impression-sunrise.jpg")' in css
-    assert 'url("art/beethoven-score.jpg")' in css
-    assert (STATIC / "lantingxu.jpg").stat().st_size > 1_000_000
+    assert "transition-artwork" in css
+    assert page.count('"art/transition/') == 9
+    assert "art/transition/lantingxu.jpg" not in page
+    assert "art/transition/luoshenfu.jpeg" not in page
+    assert "VOICE_LINES" in page and "typeVoiceLine" in page
+    assert 'id="voice-line"' in page and 'id="voice-credit"' in page
     assert "TRANSITION_MIN_MS = 10000" in page
+    assert "Array.from(passage.text).length * 34" in page
+    assert "deferVoiceLineHide" in page and "8000" in page
+    assert "}, 112);" in page
     assert "Beowulf" in page and "First Rhapsody on the Red Cliffs" in page
     assert "Second Rhapsody on the Red Cliffs" in page
     assert page.count("author:") == 10
@@ -80,9 +91,10 @@ def test_index_exposes_primary_navigation_and_visible_passage() -> None:
     assert "Demo data." not in page and "DEMO DATA" not in page
     assert "and not yet calibrated" not in page
     assert "formatTransitionPassage" in page and "subtitle-scroll" in css
-    assert "TRANSITION_EXCERPT_RATIO = 2 / 3" in page
+    assert "TRANSITION_EXCERPT_RATIO" not in page
+    assert "excerptTransitionPassage" not in page
     assert "typed-glyph" not in page and "gallery-breathe" not in css
-    assert ".transition-lanting," in css and "background-size: auto 155%" in css
+    assert "grid-template-columns: repeat(8" not in css
     assert "(original language)" not in page
     assert "See translated text" in page and "/api/translate" in page
     result_template = page.split("function matchRow", 1)[1].split("function galleryFor", 1)[0]
@@ -100,13 +112,15 @@ def test_method_page_and_background_asset_are_packaged() -> None:
     assert '<link rel="stylesheet" href="method-flow.css">' in page
     assert "Read the full method" not in page
     assert "Fine-tuned multilingual authorship representation" in page
-    assert page.count('class="model-comparison') == 1
-    assert "method-brief" in page
+    assert page.count('class="model-comparison') == 2
+    assert "method-brief" not in page
     assert "method-performance-figure" in page
     assert "performance-table" not in page
-    assert "Selected design:" in page
-    assert "learned multi-view reranker" in page
-    assert "MRR .785" in page and "representation .782" in page
+    assert "Selected design:" not in page
+    assert "<td>Learned multi-view reranker</td>" in page
+    assert "On the locked source-heldout test" not in page
+    assert "method-descriptions-table" in page
+    assert page.count('<td class="prov">') >= 7
     assert "The academic mechanism behind the match" not in page
     assert "classification F1" in page
     assert "Direct original vs translation-mediated retrieval" not in page
@@ -158,3 +172,6 @@ def test_fyi_page_explains_scores_without_calling_them_probabilities() -> None:
     assert "does not compare the passage with itself" in page
     assert "not a probability of authorship" in page
     assert "Style matching and source identification are different tasks" in page
+    assert "Why do the same writers keep appearing when the Author Library contains 270 names?" in page
+    assert "one centroid" in page
+    assert "hub writers" in page

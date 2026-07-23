@@ -362,6 +362,18 @@ body.method-page .page-hero { max-width: 820px; }
 .method-prose .performance-record-table th:first-child { width: 25%; }
 .method-prose .performance-record-table th:nth-child(2) { width: 29%; }
 .method-prose .performance-record-table th:nth-child(3) { width: 46%; }
+.method-prose .method-descriptions-table { min-width: 760px; table-layout: fixed; }
+.method-prose .method-descriptions-table th:first-child { width: 31%; }
+.method-prose .method-descriptions-table th:nth-child(2) { width: 69%; }
+.method-prose .method-descriptions-table th,
+.method-prose .method-descriptions-table td { padding: 13px 16px; }
+.method-prose .method-descriptions-table td:first-child {
+  color: #223d5f;
+  font: 600 1rem/1.45 var(--serif);
+}
+.method-prose .method-descriptions-table td:nth-child(2) {
+  font: 1rem/1.6 var(--serif);
+}
 .method-tag {
   display: inline-block;
   padding: 3px 7px;

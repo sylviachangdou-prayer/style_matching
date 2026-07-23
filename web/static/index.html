@@ -184,7 +184,7 @@
   }
 </style>
 <link rel="stylesheet" href="method-flow.css">
-<link rel="stylesheet" href="site-shell.css">
+<link rel="stylesheet" href="site-shell.css?v=20260723-4">
 </head>
 <body class="page-home stylematch-atmosphere">
 <header class="site-header">
@@ -197,6 +197,11 @@
   </nav>
 </header>
 
+<div class="voice-line-stage" aria-live="polite">
+  <blockquote id="voice-line"></blockquote>
+  <cite id="voice-credit"></cite>
+</div>
+
 <aside class="art-ribbon" aria-hidden="true">
   <span class="art-strip art-wave"></span>
   <span class="art-strip art-bedroom"></span>
@@ -206,33 +211,32 @@
 
 <section class="loading-theatre" id="match-transition" role="status" aria-live="polite" hidden>
   <div class="transition-gallery" aria-hidden="true">
-    <span class="transition-strip transition-wave"></span>
-    <span class="transition-strip transition-bedroom"></span>
-    <span class="transition-strip transition-lanting"></span>
-    <span class="transition-strip transition-wanderer"></span>
-    <span class="transition-strip transition-impression"></span>
-    <span class="transition-strip transition-autumn"></span>
-    <span class="transition-strip transition-shahnama"></span>
-    <span class="transition-strip transition-score"></span>
+    <span class="transition-artwork" id="transition-artwork"></span>
   </div>
   <article class="typed-manuscript">
     <p class="typed-passage" id="transition-passage"></p>
-    <footer class="typed-credit"><cite id="transition-work"></cite><span id="transition-author"></span></footer>
   </article>
+  <footer class="typed-credit"><cite id="transition-work"></cite><span id="transition-author"></span></footer>
 </section>
 
 <main class="home-main">
   <section class="input-panel" aria-label="StyleMatch passage input">
   <div class="voice-portraits" aria-label="Voices across languages and forms">
-    <figure class="voice-sticker" title="Barack Obama"><img src="portraits/barack-obama.jpg" alt="Barack Obama" loading="eager"></figure>
     <figure class="voice-sticker" title="Gabriel García Márquez"><img src="portraits/gabriel-garcia-marquez.jpg" alt="Gabriel García Márquez" loading="eager"></figure>
     <figure class="voice-sticker" title="Slavoj Žižek"><img src="portraits/slavoj-zizek.jpg" alt="Slavoj Žižek" loading="eager"></figure>
     <figure class="voice-sticker" title="Sylvia Plath"><img src="portraits/sylvia-plath.jpg" alt="Sylvia Plath" loading="eager"></figure>
     <figure class="voice-sticker" title="Virginia Woolf"><img src="portraits/virginia-woolf.jpg" alt="Virginia Woolf" loading="eager"></figure>
-    <figure class="voice-sticker" title="Lu Xun"><img src="portraits/lu-xun.jpg" alt="Lu Xun" loading="eager"></figure>
     <figure class="voice-sticker" title="Bertrand Russell"><img src="portraits/bertrand-russell.jpg" alt="Bertrand Russell" loading="eager"></figure>
-    <figure class="voice-sticker" title="Mahatma Gandhi"><img src="portraits/mahatma-gandhi.jpg" alt="Mahatma Gandhi" loading="eager"></figure>
-    <figure class="voice-sticker" title="Eileen Chang"><img src="portraits/eileen-chang.jpg" alt="Eileen Chang" loading="eager"></figure>
+    <figure class="voice-sticker" title="Winston Churchill"><img src="portraits/winston-churchill.jpeg" alt="Winston Churchill" loading="eager"></figure>
+    <figure class="voice-sticker" title="Albert Camus"><img src="portraits/albert-camus.jpeg" alt="Albert Camus" loading="eager"></figure>
+    <figure class="voice-sticker" title="Annie Ernaux"><img src="portraits/annie-ernaux.jpeg" alt="Annie Ernaux" loading="eager"></figure>
+    <figure class="voice-sticker" title="Milan Kundera"><img src="portraits/milan-kundera.jpeg" alt="Milan Kundera" loading="eager"></figure>
+    <figure class="voice-sticker" title="Can Xue"><img src="portraits/can-xue.jpeg" alt="Can Xue" loading="eager"></figure>
+    <figure class="voice-sticker" title="Simone de Beauvoir"><img src="portraits/simone-de-beauvoir-photo.jpeg" alt="Simone de Beauvoir" loading="eager"></figure>
+    <figure class="voice-sticker" title="Oscar Wilde"><img src="portraits/oscar-wilde.jpeg" alt="Oscar Wilde" loading="eager"></figure>
+    <figure class="voice-sticker" title="F. Scott Fitzgerald"><img src="portraits/f-scott-fitzgerald.jpeg" alt="F. Scott Fitzgerald" loading="eager"></figure>
+    <figure class="voice-sticker" title="Evelyn Waugh"><img src="portraits/evelyn-waugh.jpeg" alt="Evelyn Waugh" loading="eager"></figure>
+    <figure class="voice-sticker" title="Qiu Miaojin"><img src="portraits/qiu-miaojin.jpeg" alt="Qiu Miaojin" loading="eager"></figure>
   </div>
   <p class="capability-line">Cross-lingual, multi-style retrieval<br><span class="capability-detail">fine-tuned from the frontier of academic authorship research</span></p>
 
@@ -280,15 +284,30 @@ const $ = (id) => document.getElementById(id);
 const textEl = $("text"), output = $("output"), goBtn = $("go"),
       clearBtn = $("clear"), sheet = $("export-sheet"),
       transitionEl = $("match-transition"),
+      transitionArtworkEl = $("transition-artwork"),
       transitionPassageEl = $("transition-passage"),
       transitionWorkEl = $("transition-work"),
-      transitionAuthorEl = $("transition-author");
+      transitionAuthorEl = $("transition-author"),
+      voiceLineEl = $("voice-line"),
+      voiceCreditEl = $("voice-credit");
 
 let lastData = null, lastText = "";
 let lastTransitionIndex = -1;
+let lastTransitionArtworkIndex = -1;
+let activeTransitionDurationMs = 21000;
 
 const TRANSITION_MIN_MS = 10000;
-const TRANSITION_EXCERPT_RATIO = 2 / 3;
+const TRANSITION_ARTWORKS = [
+  "art/transition/verrio-sea-triumph.jpg",
+  "art/transition/ljubljana-baroque.jpg",
+  "art/transition/aris-and-mars.jpeg",
+  "art/transition/marc-dalessio.jpeg",
+  "art/transition/monet.jpeg",
+  "art/transition/raphael.webp",
+  "art/transition/rocky.jpg",
+  "art/transition/saint-jerome.jpeg",
+  "art/transition/turner.jpeg",
+];
 const TRANSITION_PASSAGES = [
   {
     author: "Anonymous",
@@ -342,6 +361,69 @@ const TRANSITION_PASSAGES = [
   },
 ];
 
+const VOICE_LINES = {
+  "Evelyn Waugh": ["“Contra mundum.”", "Brideshead Revisited · 1945"],
+  "Winston Churchill": ["“Blood, toil, tears and sweat.”", "House of Commons speech · 13 May 1940"],
+  "F. Scott Fitzgerald": ["“So we beat on, boats against the current, borne back ceaselessly into the past.”", "The Great Gatsby · 1925"],
+  "Virginia Woolf": ["“I am rooted, but I flow.”", "The Waves · 1931"],
+  "Gabriel García Márquez": ["“Entonces se dijo que todo aquello no era más que una vanidad, y cerró la ventana.”", "El amor en los tiempos del cólera · 1985"],
+  "Slavoj Žižek": ["“Reality is the ultimate fetish – we cling to it as a way to avoid the traumatic dimension of the real.”", "The Sublime Object of Ideology · 1989"],
+  "Sylvia Plath": ["“Dying is an art, like everything else. I do it exceptionally well.”", "Lady Lazarus"],
+  "Bertrand Russell": ["“To fear love is to fear life.”", "Marriage and Morals · 1929"],
+  "Albert Camus": ["“J’avais cru que je pourrais me promener sur la plage, mais le soleil était trop fort.”", "L’Étranger · 1942"],
+  "Annie Ernaux": ["“Le temps n’existait plus que par rapport à lui.”", "Passion simple"],
+  "Milan Kundera": ["“Einmal ist keinmal.”", "Die unerträgliche Leichtigkeit des Seins · 1984"],
+  "Can Xue": ["“我总是在黑暗里行走，但我不怕，因为黑暗是我自己的。”", "《苍老的浮云》· 1986"],
+  "Simone de Beauvoir": ["“Je suis seule, mais je suis libre.”", "L’Invitée · 1943"],
+  "Oscar Wilde": ["“The only way to get rid of temptation is to yield to it.”", "The Picture of Dorian Gray · 1890"],
+  "Qiu Miaojin": ["“爱人是地狱，被爱也是地狱，但又不能不往地狱里去。”", "《鳄鱼手记》· 1994"],
+};
+
+let voiceTypingTimer = null;
+let voiceHideTimer = null;
+function typeVoiceLine(name) {
+  const entry = VOICE_LINES[name];
+  if (!entry) return;
+  clearInterval(voiceTypingTimer);
+  clearTimeout(voiceHideTimer);
+  voiceLineEl.textContent = "";
+  voiceCreditEl.textContent = entry[1];
+  const x = Math.random() * 100;
+  const y = Math.random() * 100;
+  const xShift = x < 33 ? "0%" : x > 67 ? "-100%" : "-50%";
+  const yShift = y < 33 ? "0%" : y > 67 ? "-100%" : "-50%";
+  voiceLineEl.parentElement.style.left = `${x}%`;
+  voiceLineEl.parentElement.style.top = `${y}%`;
+  voiceLineEl.parentElement.style.setProperty("--voice-x-shift", xShift);
+  voiceLineEl.parentElement.style.setProperty("--voice-y-shift", yShift);
+  voiceLineEl.parentElement.classList.add("is-visible", "is-typing");
+  const glyphs = Array.from(entry[0]);
+  let position = 0;
+  voiceTypingTimer = setInterval(() => {
+    voiceLineEl.textContent += glyphs[position++];
+    if (position >= glyphs.length) {
+      clearInterval(voiceTypingTimer);
+      voiceLineEl.parentElement.classList.remove("is-typing");
+    }
+  }, 112);
+}
+
+function deferVoiceLineHide() {
+  clearTimeout(voiceHideTimer);
+  voiceHideTimer = setTimeout(() => {
+    clearInterval(voiceTypingTimer);
+    voiceLineEl.parentElement.classList.remove("is-visible", "is-typing");
+  }, 8000);
+}
+
+document.querySelectorAll(".voice-sticker").forEach((portrait) => {
+  portrait.tabIndex = 0;
+  portrait.addEventListener("mouseenter", () => typeVoiceLine(portrait.title));
+  portrait.addEventListener("focus", () => typeVoiceLine(portrait.title));
+  portrait.addEventListener("mouseleave", deferVoiceLineHide);
+  portrait.addEventListener("blur", deferVoiceLineHide);
+});
+
 function updateCounter() {
   const t = textEl.value.trim();
   const cjk = (t.match(/[぀-ヿ一-鿿]/g) || []).length;
@@ -393,37 +475,38 @@ goBtn.onclick = async () => {
 };
 
 function showMatchTransition() {
+  clearTimeout(voiceHideTimer);
+  clearInterval(voiceTypingTimer);
+  voiceLineEl.parentElement.classList.remove("is-visible", "is-typing");
   transitionEl.hidden = false;
   transitionEl.classList.remove("is-reading", "is-revealing");
   let index;
   do index = Math.floor(Math.random() * TRANSITION_PASSAGES.length);
   while (TRANSITION_PASSAGES.length > 1 && index === lastTransitionIndex);
   lastTransitionIndex = index;
+  let artworkIndex;
+  do artworkIndex = Math.floor(Math.random() * TRANSITION_ARTWORKS.length);
+  while (TRANSITION_ARTWORKS.length > 1 && artworkIndex === lastTransitionArtworkIndex);
+  lastTransitionArtworkIndex = artworkIndex;
+  transitionArtworkEl.style.backgroundImage = `url("${TRANSITION_ARTWORKS[artworkIndex]}")`;
   const passage = TRANSITION_PASSAGES[index];
   transitionPassageEl.textContent = "";
   transitionPassageEl.setAttribute("aria-label", passage.text);
   transitionWorkEl.textContent = passage.work;
   transitionAuthorEl.textContent = passage.author;
+  const formattedPassage = formatTransitionPassage(passage.text);
+  activeTransitionDurationMs = Math.max(12900, Array.from(passage.text).length * 34);
+  transitionEl.style.setProperty("--transition-scroll-duration", `${activeTransitionDurationMs}ms`);
   void transitionEl.offsetWidth;
   transitionEl.classList.add("is-reading");
   document.body.classList.add("matching-mode");
-  transitionPassageEl.textContent = formatTransitionPassage(excerptTransitionPassage(passage.text));
+  transitionPassageEl.textContent = formattedPassage;
 }
 
 function hideMatchTransition() {
   transitionEl.hidden = true;
   transitionEl.classList.remove("is-reading", "is-revealing");
   document.body.classList.remove("matching-mode");
-}
-
-function excerptTransitionPassage(text) {
-  const glyphs = Array.from(text);
-  const limit = Math.max(1, Math.floor(glyphs.length * TRANSITION_EXCERPT_RATIO));
-  const excerpt = glyphs.slice(0, limit).join("");
-  const boundaries = ["。", "！", "？", ". ", "! ", "? "]
-    .map(mark => excerpt.lastIndexOf(mark));
-  const boundary = Math.max(...boundaries);
-  return boundary > limit * .65 ? excerpt.slice(0, boundary + 1).trim() : excerpt.trim();
 }
 
 function formatTransitionPassage(text) {

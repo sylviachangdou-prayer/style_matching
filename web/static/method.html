@@ -81,12 +81,6 @@
     </noscript>
   </section>
 
-  <section class="method-brief" aria-label="How to read the method">
-    <article><span aria-hidden="true">I</span><h2>Rank</h2><p>The navy route compares authorship form: source-separated training, exact profile retrieval, then open-set verification. It may return no strong match.</p></article>
-    <article><span aria-hidden="true">II</span><h2>Context</h2><p>Topic similarity is computed by another model. It can inform Affinity, but it cannot enter the Style Match ranking or masquerade as stylistic evidence.</p></article>
-    <article><span aria-hidden="true">III</span><h2>Explain</h2><p>Classical features, source provenance, confidence labels, and the experimental decade view explain or qualify a result; they do not retroactively change it.</p></article>
-  </section>
-
   <div class="method-prose">
 
   <h2>1 · The task: open-set ranking, not classification</h2>
@@ -183,28 +177,45 @@
     <div class="performance-key"><span><i class="key-deployed"></i> Deployed</span><span><i class="key-numerical"></i> Numerical leader</span></div>
   </figure>
   </div>
-  <p><strong>Pretrained mStyleDistance</strong> tested a zero-shot multilingual style
-  space; its fine-tuned version added different-source positives, matched negatives, and
-  language-aware batches. A source-prototype variant tested whether work-level reference
-  vectors improved on one averaged author profile.</p>
-  <p><strong>Pretrained and fine-tuned multilingual authorship representations</strong>
-  supplied the strongest neural comparison. Classical character patterns, function words,
-  rhythm, discourse, and compression distance formed an interpretable non-topic baseline.
-  A learned multi-view reranker then tested whether those views added stable information
-  beyond the strongest representation.</p>
-  <p>On the locked source-heldout test, the reranker reached MRR .785 and the fine-tuned
-  authorship representation .782. Their paired-bootstrap difference included zero, so the
-  smaller numerical lead was not treated as evidence of a better method. The latter remains
-  deployed; topic similarity stays outside the Style Match rank.</p>
+  <div class="tablewrap model-comparison-shell">
+  <table class="model-comparison performance-record-table method-descriptions-table">
+    <thead><tr><th>Method</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Pretrained mStyleDistance</td>
+        <td class="prov">A zero-shot test of how far a general multilingual style geometry transfers without project-specific authors or sources, separating native encoder strength from gains due to corpus adaptation.</td>
+      </tr>
+      <tr>
+        <td>Fine-tuned mStyleDistance</td>
+        <td class="prov">The same architecture adapted with positive pairs from different independent works, language-aware batches, and matched hard negatives that discourage language, topic, register, and source shortcuts.</td>
+      </tr>
+      <tr>
+        <td>mStyleDistance with source prototypes</td>
+        <td class="prov">A work-level representation that retains a prototype for each independent source, testing whether variation across books, speeches, and periods improves retrieval of genuinely unseen material.</td>
+      </tr>
+      <tr>
+        <td>Pretrained multilingual authorship representation</td>
+        <td class="prov">An authorship-oriented multilingual encoder evaluated without StyleMatch adaptation to measure direct transfer into the project’s literary and rhetorical corpus.</td>
+      </tr>
+      <tr>
+        <td>Fine-tuned multilingual authorship representation</td>
+        <td class="prov">The authorship encoder trained under the source-separated protocol, requiring same-author evidence to cross independent works; this representation supplies the deployed author-profile ranking.</td>
+      </tr>
+      <tr>
+        <td>Classical style-feature fusion</td>
+        <td class="prov">An interpretable non-topic baseline combining delexicalized character patterns, function words, punctuation, sentence rhythm, discourse markers, and compression distance.</td>
+      </tr>
+      <tr>
+        <td>Learned multi-view reranker</td>
+        <td class="prov">A candidate reranker trained on within-language normalized neural and classical scores, testing whether disagreement among views adds stable evidence under bootstrap and subgroup non-degradation gates.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
   <p class="note"><strong>Pre-declared selection rule.</strong> The reranker led by .003
   MRR, but its paired-bootstrap interval for the difference crossed zero
   [−.052, .060] and the subgroup non-degradation gate was not met. The best dev-selected
   single model therefore remains deployed.</p>
-  <p><strong>Selected design:</strong> the fine-tuned multilingual authorship-representation
-  model supplies the author ranking. Classical views explain the result, source prototypes
-  preserve within-author variation, and semantic similarity remains a separate contextual
-  channel.</p>
-
   <h2>5 · Open-set calibration</h2>
   <p>For each language, held-out authors are split into "known" and "unknown"; a logistic
   calibrator is fitted on the maximum profile similarity, and the equal-error-rate
