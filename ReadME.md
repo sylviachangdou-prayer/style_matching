@@ -196,25 +196,27 @@ Explored and recorded (post-baseline method-exploration notebook, outputs under
   most frequent subwords, mask at 0.4, one epoch);
 - single-centroid versus source-prototype retrieval — `single_centroid` remains deployed.
 
-### Expanded-corpus top-four retraining (notebook Part 8)
+### Expanded-corpus neural reranking (notebook Part 8)
 
-Part 8 reruns the original four leading method families after the expanded independent-source
-artifact is frozen: learned multi-view reranker, fine-tuned authorship representation,
-classical style-feature fusion, and pretrained authorship representation. The pretrained
-encoder remains a fixed control. The fine-tuned encoder is initialized from the pinned
-multilingual authorship model and refit with different-source positives, matched hard
-negatives, language-aware batches, and the complete expanded training partition. The
-classical views are refit on the same train sources.
+Part 8 evaluates an evidence-gated neural reranker after the expanded independent-source
+artifact is frozen. It reuses finished encoder and score artifacts, so reranker experiments do
+not repeat embedding batches. Candidate evidence remains decomposed: fine-tuned and pretrained
+author centroids, work/source prototypes, delexicalized character patterns, function words,
+rhythm/discourse, compression distance, and candidate-wise score stability across source
+chunks. Topic scores are prohibited.
 
-The source split is binding: encoder and classical fitting use train only; the reranker uses
-dev source-level scores only; test is opened once (Cawley & Talbot 2010). A profile must have
-at least two independent train sources to create valid contrastive positives. Profiles below
-that threshold are retained as zero-shot retrieval candidates and held-out cases rather than
-leaked into training. The reranker converts each non-topic view to within-language z-scores
-and candidate percentiles, fits an elastic-net candidate model, and is adopted only when its
-paired profile-bootstrap MRR interval is wholly positive, calibration and selective precision
-do not regress, and supported language/corpus groups do not worsen (Dror et al. 2018; Guo et
-al. 2017; Geifman & El-Yaniv 2017). Topic scores remain prohibited from every Part 8 view.
+The source split is binding: encoder and classical fitting use train only; reranker selection
+uses author-language-profile-grouped cross-validation within dev; test is opened once (Cawley
+& Talbot 2010). Three deliberately small candidates are compared: a global listwise mixture,
+a gated listwise network, and a gated hybrid with anchor-selected hard-negative pairwise loss.
+Each predicts only a bounded residual around the fine-tuned centroid score. The selected
+configuration is refit on all dev sources for the median cross-validated stopping epoch.
+Out-of-fold dev predictions, rather than fitted dev predictions, calibrate test confidence.
+The reranker is adopted only when its paired profile-bootstrap MRR interval is wholly positive,
+calibration and selective precision do not regress, and supported language/corpus groups do
+not worsen (Dror et al. 2018; Guo et al. 2017; Geifman & El-Yaniv 2017). Reinforcement learning
+is not used: the project has no online interaction reward, and policy-gradient optimization on
+the finite dev set would amplify selection noise rather than add stylistic evidence.
 
 Diachronic output: optional `language × decade` centroids from sources with verified years
 only; never inferred from lifespan or edition dates; uncalibrated until decade-heldout

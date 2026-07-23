@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 
 from scripts.evaluate_matched_difficulty import chance_adjust, evaluate_sample
+from scripts.evaluate_evidence_gated_reranker import grouped_folds
 from scripts.evaluate_multiview_fusion import (
     fit_fusion,
     make_view_features,
@@ -112,6 +113,14 @@ def test_robust_fusion_weights_are_convex_and_base_anchored() -> None:
     assert all(np.isclose(sum(row.values()), 1.0) for row in candidates)
     assert all(row["base"] >= 0.5 for row in candidates)
     assert {"base": 1.0, "classical": 0.0, "pretrained": 0.0} in candidates
+
+
+def test_neural_reranker_folds_keep_profiles_together() -> None:
+    labels = np.asarray([0, 0, 1, 1, 2, 2, 3, 3])
+    folds = grouped_folds(labels, folds=3, seed=4)
+    assert sorted(np.concatenate(folds).tolist()) == list(range(len(labels)))
+    for label in np.unique(labels):
+        assert sum(bool(np.isin(label, labels[fold]).any()) for fold in folds) == 1
 
 
 def test_open_set_features_include_cross_view_agreement() -> None:
@@ -226,8 +235,10 @@ def test_source_level_experiment_clis(tmp_path: Path) -> None:
     labels_array = np.asarray(labels)
     view1 = np.full((len(frame), len(profiles)), 0.1, dtype="float32")
     view2 = np.full_like(view1, 0.2)
+    view3 = np.full_like(view1, 0.15)
     view1[np.arange(len(frame)), labels_array] = 0.9
     view2[np.arange(len(frame)), labels_array] = 0.8
+    view3[np.arange(len(frame)), labels_array] = 0.85
     artifact = tmp_path / "scores.npz"
     np.savez_compressed(
         artifact,
@@ -239,6 +250,7 @@ def test_source_level_experiment_clis(tmp_path: Path) -> None:
         y_true=labels_array,
         view1=view1,
         view2=view2,
+        view3=view3,
     )
     root = Path(__file__).resolve().parents[1]
     difficulty_output = tmp_path / "difficulty.json"
@@ -287,6 +299,45 @@ def test_source_level_experiment_clis(tmp_path: Path) -> None:
         text=True,
     )
     assert (fusion_dir / "multiview_fusion_metrics.json").exists()
+    neural_dir = tmp_path / "neural"
+    subprocess.run(
+        [
+            sys.executable,
+            "scripts/evaluate_evidence_gated_reranker.py",
+            "--input",
+            str(input_path),
+            "--scores",
+            f"anchor={artifact}:view1",
+            "--scores",
+            f"support={artifact}:view2",
+            "--scores",
+            f"prototype={artifact}:view3",
+            "--anchor",
+            "anchor",
+            "--output-dir",
+            str(neural_dir),
+            "--folds",
+            "3",
+            "--epochs",
+            "8",
+            "--patience",
+            "3",
+            "--bootstrap-runs",
+            "20",
+            "--device",
+            "cpu",
+        ],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    neural_report = json.loads(
+        (neural_dir / "evidence_gated_reranker_metrics.json").read_text()
+    )
+    assert neural_report["anchor"] == "anchor"
+    assert neural_report["protocol"]["reinforcement_learning_used"] is False
+    assert (neural_dir / "evidence_gated_reranker.pt").exists()
     robust_dir = tmp_path / "robust"
     subprocess.run(
         [
