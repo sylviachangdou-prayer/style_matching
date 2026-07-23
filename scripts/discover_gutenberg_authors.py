@@ -50,13 +50,18 @@ def main() -> None:
     pages_scanned = 0
     for language in args.language:
         language_pages = 0
+        language_books = 0
+        print(f"scan start: {language}", flush=True)
         url = "https://gutendex.com/books/?" + urllib.parse.urlencode(
             {"languages": language}
         )
         while url and (not args.max_pages or language_pages < args.max_pages):
+            if language_pages == 0:
+                print(f"request: {language}: first page", flush=True)
             page = fetch(url)
             pages_scanned += 1
             language_pages += 1
+            language_books += len(page.get("results", []))
             for book in page.get("results", []):
                 if (
                     book.get("copyright") is True
@@ -81,8 +86,23 @@ def main() -> None:
                     },
                 )
             url = page.get("next")
+            if language_pages == 1 or language_pages % 25 == 0 or not url:
+                qualifying = sum(
+                    len(titles) >= args.min_works
+                    for (candidate_language, _), titles in works.items()
+                    if candidate_language == language
+                )
+                print(
+                    f"scan progress: {language}: pages={language_pages} "
+                    f"books={language_books} qualifying_profiles={qualifying}",
+                    flush=True,
+                )
             if url:
                 time.sleep(args.sleep)
+        print(
+            f"scan complete: {language}: pages={language_pages} books={language_books}",
+            flush=True,
+        )
 
     rows = []
     for (language, author), titles in sorted(works.items()):

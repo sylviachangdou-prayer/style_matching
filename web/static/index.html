@@ -136,6 +136,8 @@
   footer h2 { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
               color: var(--muted); margin: 0 0 8px; }
   footer p { margin: 0; line-height: 1.65; }
+  footer .footer-contact { margin-top: 12px; }
+  footer .footer-contact a { color: inherit; text-underline-offset: 3px; }
   .spinner { text-align: center; padding: 30px; color: var(--muted); }
 
   /* Export sheet: fixed light palette independent of the site theme — white
@@ -253,22 +255,18 @@
 
   <footer>
     <h2>Abstract</h2>
-    <p>StyleMatch is an open-set, multilingual author-style retrieval system: it treats
-    attribution as profile ranking plus verification rather than closed-set classification,
-    and it may return no match. A query passage is encoded once per channel by two physically
-    separate models — a contrastively fine-tuned multilingual authorship-representation
-    encoder for style, selected over an mStyleDistance baseline on identical source-heldout
-    comparisons, and a multilingual E5 encoder for topic — and compared against precomputed
-    author centroids and source prototypes by exact inner product. Style and topic
-    similarities are always reported separately; the composite affinity is a declared product
-    rule, and all scores are uncalibrated cosine values used for ranking, never probabilities.
-    Profiles are built solely from original-language primary texts — translations are
-    excluded because translationese distorts syntax, punctuation, and register — and
-    cross-language retrieval is served as a reduced-confidence mode ranked per target
-    language, since raw multilingual cosines are not comparable across language pairs.
-    Matches are returned with interpretable stylometric evidence and, where licensing
-    permits, representative original-language passages.
-    <a href="method.html">Method &amp; evidence &rarr;</a></p>
+    <p>StyleMatch looks for the authors whose writing moves most like yours. It compares a
+    passage with profiles built from independent works in their original languages, and it
+    can decline to name a strong match. Style and subject are measured separately: one model
+    follows syntax, punctuation, rhythm, and register, while another tracks what the passage
+    is about. The ranking comes from the style model; topic remains supporting context.
+    Cross-language results are grouped by target language because their raw scores cannot be
+    compared directly. The numbers are similarities, not probabilities of authorship.
+    Where the source permits it, each result includes the author's closest original-language
+    passage and the stylistic details behind the match.</p>
+    <p class="footer-contact">Ideas, comments, critiques:
+      <a href="mailto:sylvia.chang.dou@gmail.com">sylvia.chang.dou@gmail.com</a>
+    </p>
   </footer>
 </main>
 
