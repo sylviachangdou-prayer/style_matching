@@ -329,7 +329,13 @@ def main() -> None:
     eval_embeddings = np.load(args.embedding_dir / "style_embedding_eval_embeddings.npy")
     if len(train) != len(train_embeddings) or len(eval_frame) != len(eval_embeddings):
         raise ValueError("Embedding rows do not align with the frozen split; regenerate this embedding artifact")
-    reference = np.load(args.embedding_dir / "style_embedding_scores.npz")
+    # style_embedding_recall historically stored string metadata as object
+    # arrays. This is a trusted, locally generated Part 7 artifact; NumPy 2.x
+    # requires an explicit opt-in to read those arrays.
+    reference = np.load(
+        args.embedding_dir / "style_embedding_scores.npz",
+        allow_pickle=True,
+    )
     if not np.array_equal(
         reference["chunk_ids"].astype(str),
         eval_frame["chunk_id"].astype(str).to_numpy(),

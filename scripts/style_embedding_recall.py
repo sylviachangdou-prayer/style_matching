@@ -316,11 +316,11 @@ def main() -> None:
     np.save(eval_emb_path, eval_emb)
     np.savez_compressed(
         score_path,
-        chunk_ids=eval_df["chunk_id"].astype(str).to_numpy(),
-        splits=eval_df["split"].astype(str).to_numpy(),
-        query_languages=eval_df["language"].astype(str).to_numpy(),
-        query_corpora=eval_df["corpus"].astype(str).to_numpy(),
-        profiles=label_encoder.classes_,
+        chunk_ids=np.asarray(eval_df["chunk_id"].astype(str).tolist(), dtype=str),
+        splits=np.asarray(eval_df["split"].astype(str).tolist(), dtype=str),
+        query_languages=np.asarray(eval_df["language"].astype(str).tolist(), dtype=str),
+        query_corpora=np.asarray(eval_df["corpus"].astype(str).tolist(), dtype=str),
+        profiles=np.asarray(label_encoder.classes_.tolist(), dtype=str),
         y_true=y_eval,
         single_centroid_scores=scores.astype("float32"),
         source_prototype_scores=prototype_scores.astype("float32"),
