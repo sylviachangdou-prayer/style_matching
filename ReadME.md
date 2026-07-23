@@ -218,6 +218,22 @@ not worsen (Dror et al. 2018; Guo et al. 2017; Geifman & El-Yaniv 2017). Reinfor
 is not used: the project has no online interaction reward, and policy-gradient optimization on
 the finite dev set would amplify selection noise rather than add stylistic evidence.
 
+Parts 8.4–8.7 continue from the frozen ECoRe experiment. Gutendex is scanned for
+single-author, plaintext, non-translation public-domain works in all nine supported
+languages; an author-language profile needs at least three independent works. The
+existing encoder embeds only newly admitted chunks, then a fresh source-heldout
+candidate universe is evaluated. False-TopK return-frequency and candidate-local-density
+hubness corrections are selected by source-grouped cross-fitting inside dev,
+standardized within language and source-support tier, and tested once. A correction is
+attached to within-language ranking only when its paired profile-bootstrap MRR interval
+is wholly positive and Recall@3 does not decrease. Otherwise the rebuilt index remains
+uncorrected.
+
+The research registry remains append-only. The public Author Library can be exported
+from a completed `profiles.parquet`, hiding registry-only names that cannot yet be
+matched. Newly indexed Gutenberg names without the required individual biography and
+style-trait metadata are reported rather than filled with generic copy.
+
 Diachronic output: optional `language × decade` centroids from sources with verified years
 only; never inferred from lifespan or edition dates; uncalibrated until decade-heldout
 evaluation exists; unavailable rather than blocking when support is insufficient.

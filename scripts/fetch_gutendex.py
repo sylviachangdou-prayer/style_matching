@@ -221,6 +221,16 @@ def read_existing_sources(corpus: str) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def existing_work_counts(rows: list[dict[str, str]]) -> dict[str, set[str]]:
+    counts: dict[str, set[str]] = {}
+    for row in rows:
+        author = row.get("author_or_speaker", "")
+        work = row.get("independent_source_id") or row.get("source_id", "")
+        if author and work:
+            counts.setdefault(author, set()).add(work)
+    return counts
+
+
 def write_metadata(corpus: str, rows: list[dict[str, str]]) -> None:
     meta_dir = ROOT / "data" / corpus / "meta"
     meta_dir.mkdir(parents=True, exist_ok=True)
@@ -295,13 +305,14 @@ def main() -> None:
     literary_rows = []
     literary_sources = read_existing_sources("literary")
     literary_existing = {row.get("source_id", "") for row in literary_sources}
-    literary_covered = {row.get("author_or_speaker", "") for row in literary_sources}
+    literary_work_counts = existing_work_counts(literary_sources)
     unreachable: list[str] = []
     qualified_authors = 0
     for name in literary:
         if args.max_authors and qualified_authors >= args.max_authors:
             break
-        if args.skip_covered and name in literary_covered:
+        existing_count = len(literary_work_counts.get(name, set()))
+        if args.skip_covered and existing_count >= args.min_works:
             print(f"skip covered: literary: {name}", flush=True)
             continue
         try:
@@ -318,19 +329,24 @@ def main() -> None:
             unreachable.append(f"literary: {name}")
             print(f"WARNING query failed: literary: {name}: {error}", flush=True)
             continue
-        if len(author_rows) >= args.min_works:
+        total_count = existing_count + len({
+            row.get("independent_source_id") or row.get("source_id", "")
+            for row in author_rows
+        })
+        if total_count >= args.min_works:
             literary_rows.extend(author_rows)
             qualified_authors += 1
         else:
-            print(f"discard: literary: {name}: only {len(author_rows)} independent works", flush=True)
-        print(f"literary: {name}: {len(author_rows)} works", flush=True)
+            print(f"discard: literary: {name}: only {total_count} independent works", flush=True)
+        print(f"literary: {name}: {total_count} total works ({len(author_rows)} new)", flush=True)
 
     rhetorical_rows = []
     rhetorical_sources = read_existing_sources("rhetorical")
     rhetorical_existing = {row.get("source_id", "") for row in rhetorical_sources}
-    rhetorical_covered = {row.get("author_or_speaker", "") for row in rhetorical_sources}
+    rhetorical_work_counts = existing_work_counts(rhetorical_sources)
     for name in rhetorical:
-        if args.skip_covered and name in rhetorical_covered:
+        existing_count = len(rhetorical_work_counts.get(name, set()))
+        if args.skip_covered and existing_count >= args.min_works:
             print(f"skip covered: rhetorical: {name}", flush=True)
             continue
         try:
@@ -345,11 +361,15 @@ def main() -> None:
             unreachable.append(f"rhetorical: {name}")
             print(f"WARNING query failed: rhetorical: {name}: {error}", flush=True)
             continue
-        if len(author_rows) >= args.min_works:
+        total_count = existing_count + len({
+            row.get("independent_source_id") or row.get("source_id", "")
+            for row in author_rows
+        })
+        if total_count >= args.min_works:
             rhetorical_rows.extend(author_rows)
         else:
-            print(f"discard: rhetorical: {name}: only {len(author_rows)} independent works", flush=True)
-        print(f"rhetorical: {name}: {len(author_rows)} works", flush=True)
+            print(f"discard: rhetorical: {name}: only {total_count} independent works", flush=True)
+        print(f"rhetorical: {name}: {total_count} total works ({len(author_rows)} new)", flush=True)
 
     write_metadata("literary", literary_rows)
     write_metadata("rhetorical", rhetorical_rows)

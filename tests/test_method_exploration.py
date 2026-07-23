@@ -18,7 +18,8 @@ from scripts.evaluate_multiview_fusion import (
     profile_bootstrap_intervals,
 )
 from scripts.evaluate_robust_rank_fusion import simplex_weights
-from scripts.fetch_gutendex import author_match, independent_title_key
+from scripts.discover_gutenberg_authors import display_name
+from scripts.fetch_gutendex import author_match, existing_work_counts, independent_title_key
 from scripts.evaluate_multiview_open_set import confidence_features
 from scripts.finetune_multilingual_style import pcm_mask_examples
 from scripts.score_artifact_utils import (
@@ -62,6 +63,12 @@ def test_multilingual_gutendex_matching_and_work_identity() -> None:
     book = {"authors": [{"name": "Gautier, Théophile"}]}
     assert author_match(book, "Theophile Gautier")
     assert independent_title_key("Example, Volume II") == independent_title_key("Example, Volume I")
+    assert display_name("Gautier, Théophile") == "Théophile Gautier"
+    assert existing_work_counts([
+        {"author_or_speaker": "A", "independent_source_id": "work-1"},
+        {"author_or_speaker": "A", "independent_source_id": "work-1"},
+        {"author_or_speaker": "A", "source_id": "work-2"},
+    ]) == {"A": {"work-1", "work-2"}}
 
 
 def test_matched_candidate_metrics_include_theoretical_chance() -> None:

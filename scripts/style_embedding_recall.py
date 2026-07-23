@@ -33,6 +33,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--seed", type=int, default=20260701)
     parser.add_argument("--device", default="auto", help="auto, cpu, cuda, or mps")
+    parser.add_argument("--reuse-input", type=Path)
+    parser.add_argument("--reuse-embedding-dir", type=Path)
     parser.add_argument(
         "--skip-existing",
         action="store_true",
@@ -96,6 +98,63 @@ def encode_texts(
         normalize_embeddings=True,
     )
     return embeddings.astype("float32")
+
+
+def reusable_embeddings(
+    input_path: Path | None,
+    artifact_dir: Path | None,
+    model_name: str,
+    train_cap: int,
+    eval_splits: set[str],
+    seed: int,
+) -> dict[str, np.ndarray]:
+    if not input_path or not artifact_dir:
+        return {}
+    metrics_path = artifact_dir / "style_embedding_metrics.json"
+    train_path = artifact_dir / "style_embedding_train_embeddings.npy"
+    eval_path = artifact_dir / "style_embedding_eval_embeddings.npy"
+    if not all(path.exists() for path in (input_path, metrics_path, train_path, eval_path)):
+        return {}
+    metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
+    if str(metrics.get("model_name")) != str(model_name):
+        raise ValueError("Reusable embeddings were produced by a different model")
+    old = pd.read_parquet(input_path)
+    validate(old)
+    old_train = balanced_train(old, train_cap, seed)
+    old_eval = old[old["split"].isin(eval_splits)].copy().reset_index(drop=True)
+    train_embeddings = np.load(train_path)
+    eval_embeddings = np.load(eval_path)
+    if len(old_train) != len(train_embeddings) or len(old_eval) != len(eval_embeddings):
+        raise ValueError("Reusable embedding arrays do not align with their input split")
+    return {
+        str(chunk_id): embedding
+        for chunk_id, embedding in [
+            *zip(old_train["chunk_id"].astype(str), train_embeddings),
+            *zip(old_eval["chunk_id"].astype(str), eval_embeddings),
+        ]
+    }
+
+
+def encode_missing(
+    frame: pd.DataFrame,
+    reusable: dict[str, np.ndarray],
+    model_name: str,
+    batch_size: int,
+    device: str,
+    revision: str | None,
+) -> np.ndarray:
+    ids = frame["chunk_id"].astype(str).tolist()
+    missing = [position for position, chunk_id in enumerate(ids) if chunk_id not in reusable]
+    if missing:
+        encoded = encode_texts(
+            model_name,
+            frame.iloc[missing]["text"].fillna("").tolist(),
+            batch_size,
+            device,
+            revision,
+        )
+        reusable.update({ids[position]: vector for position, vector in zip(missing, encoded)})
+    return np.vstack([reusable[chunk_id] for chunk_id in ids]).astype("float32")
 
 
 def mrr_from_scores(scores: np.ndarray, y_true: np.ndarray) -> float:
@@ -180,11 +239,19 @@ def main() -> None:
     y_eval = label_encoder.transform(eval_df["profile_key"])
 
     device = resolve_device(args.device)
-    train_emb = encode_texts(
-        args.model_name, train["text"].fillna("").tolist(), args.batch_size, device, args.model_revision
+    reusable = reusable_embeddings(
+        args.reuse_input,
+        args.reuse_embedding_dir,
+        args.model_name,
+        args.train_cap,
+        eval_splits,
+        args.seed,
     )
-    eval_emb = encode_texts(
-        args.model_name, eval_df["text"].fillna("").tolist(), args.batch_size, device, args.model_revision
+    train_emb = encode_missing(
+        train, reusable, args.model_name, args.batch_size, device, args.model_revision
+    )
+    eval_emb = encode_missing(
+        eval_df, reusable, args.model_name, args.batch_size, device, args.model_revision
     )
 
     centroids = []
@@ -314,6 +381,14 @@ def main() -> None:
     )
     np.save(train_emb_path, train_emb)
     np.save(eval_emb_path, eval_emb)
+    np.save(
+        args.out_dir / "style_embedding_train_chunk_ids.npy",
+        train["chunk_id"].astype(str).to_numpy(),
+    )
+    np.save(
+        args.out_dir / "style_embedding_eval_chunk_ids.npy",
+        eval_df["chunk_id"].astype(str).to_numpy(),
+    )
     np.savez_compressed(
         score_path,
         chunk_ids=np.asarray(eval_df["chunk_id"].astype(str).tolist(), dtype=str),

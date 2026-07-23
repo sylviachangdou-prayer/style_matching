@@ -8,6 +8,8 @@ import csv
 import json
 from pathlib import Path
 
+import pandas as pd
+
 
 FIELDS = (
     "name",
@@ -24,6 +26,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", default="data/source_registry/all_people.csv")
     parser.add_argument("--output", default="web/static/authors-data.js")
+    parser.add_argument(
+        "--profiles",
+        help="Optional profiles.parquet; when set, export only authors present in the live index.",
+    )
+    parser.add_argument("--coverage-output")
     args = parser.parse_args()
 
     with Path(args.input).open(encoding="utf-8", newline="") as source:
@@ -35,8 +42,15 @@ def main() -> None:
     if any(not row["name"] or not row["profile"] or not row["style_traits"] for row in profiles):
         raise ValueError("Every registry row must have a name, profile, and unique style traits")
 
+    matchable = None
+    if args.profiles:
+        profile_frame = pd.read_parquet(args.profiles)
+        matchable = set(profile_frame["author_or_speaker"].astype(str))
+
     authors: dict[str, dict] = {}
     for profile in profiles:
+        if matchable is not None and profile["name"] not in matchable:
+            continue
         author = authors.setdefault(
             profile["name"],
             {
@@ -64,6 +78,15 @@ def main() -> None:
         f"window.STYLEMATCH_AUTHORS = {payload};\n",
         encoding="utf-8",
     )
+    if args.coverage_output:
+        registry_names = {profile["name"] for profile in profiles}
+        Path(args.coverage_output).write_text(json.dumps({
+            "registry_authors": len(registry_names),
+            "indexed_authors": len(matchable or registry_names),
+            "exported_authors": len(authors),
+            "indexed_missing_registry_metadata": sorted((matchable or set()) - registry_names),
+            "registry_hidden_without_index_profile": sorted(registry_names - (matchable or registry_names)),
+        }, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 if __name__ == "__main__":

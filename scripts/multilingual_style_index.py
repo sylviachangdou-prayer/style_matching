@@ -473,6 +473,8 @@ class StyleIndex:
         self.profiles = pd.read_parquet(index_dir / "profiles.parquet")
         self.passages = pd.read_parquet(index_dir / "representative_passages.parquet")
         self.centroids = np.load(index_dir / "centroids.npy")
+        hubness_path = index_dir / "hubness_bias.npy"
+        self.hubness_bias = np.load(hubness_path) if hubness_path.exists() else None
         prototype_centroid_path = index_dir / "source_prototype_centroids.npy"
         prototype_path = index_dir / "source_prototypes.parquet"
         self.prototype_centroids = (
@@ -615,6 +617,17 @@ class StyleIndex:
                         values.std() if len(values) > 1 else 0.0,
                     ], dtype="float32")
                     scores[profile_id] = float(features @ weights + self.ecore_scorer.get("intercept", 0.0))
+        if (
+            getattr(self, "hubness_bias", None) is not None
+            and self.metadata.get("hubness_gate_passed")
+            and self.metadata.get("hubness_within_language_only")
+        ):
+            same_language = self.profiles["language"].astype(str).eq(language).to_numpy()
+            scores = scores.copy()
+            scores[same_language] -= (
+                float(self.metadata["hubness_lambda"])
+                * self.hubness_bias[same_language]
+            )
         topic_scores = None
         if self.topic_model is not None and self.topic_centroids is not None:
             topic_query = encode_topic(self.topic_model, [text], 1, query=True)[0]
