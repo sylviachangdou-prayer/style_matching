@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import sqlite3
 import time
 import urllib.parse
 import urllib.request
@@ -24,16 +25,16 @@ def fetch(url: str) -> dict:
     request = urllib.request.Request(
         url, headers={"User-Agent": "StyleMatch Gutenberg coverage audit"}
     )
-    for attempt in range(8):
+    for attempt in range(4):
         try:
-            with urllib.request.urlopen(request, timeout=120) as response:
+            with urllib.request.urlopen(request, timeout=25) as response:
                 return json.loads(response.read().decode("utf-8"))
         except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
-            if attempt == 7:
+            if attempt == 3:
                 raise
-            delay = min(2 ** attempt, 30)
+            delay = min(2 ** attempt, 8)
             print(
-                f"request retry {attempt + 1}/7 after {type(error).__name__}; "
+                f"request retry {attempt + 1}/3 after {type(error).__name__}; "
                 f"waiting {delay}s",
                 flush=True,
             )
@@ -65,6 +66,42 @@ def estimated_birth_year(author: dict) -> int | None:
     return int(death) - 70 if death is not None else None
 
 
+def open_checkpoint(path: Path, config: dict) -> sqlite3.Connection:
+    connection = sqlite3.connect(path)
+    connection.execute(
+        "CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+    )
+    connection.execute(
+        "CREATE TABLE IF NOT EXISTS progress "
+        "(language TEXT PRIMARY KEY, next_url TEXT, pages INTEGER NOT NULL, books INTEGER NOT NULL, complete INTEGER NOT NULL)"
+    )
+    connection.execute(
+        "CREATE TABLE IF NOT EXISTS works "
+        "(language TEXT NOT NULL, author TEXT NOT NULL, title_key TEXT NOT NULL, payload TEXT NOT NULL, "
+        "PRIMARY KEY(language, author, title_key))"
+    )
+    stored = connection.execute(
+        "SELECT value FROM metadata WHERE key='config'"
+    ).fetchone()
+    encoded = json.dumps(config, sort_keys=True)
+    if stored and stored[0] != encoded:
+        raise ValueError(f"Checkpoint configuration mismatch: {path}")
+    connection.execute(
+        "INSERT OR REPLACE INTO metadata(key, value) VALUES('config', ?)", (encoded,)
+    )
+    connection.commit()
+    return connection
+
+
+def restore_works(connection: sqlite3.Connection) -> dict[tuple[str, str], dict[str, dict]]:
+    works: dict[tuple[str, str], dict[str, dict]] = defaultdict(dict)
+    for language, author, title_key, payload in connection.execute(
+        "SELECT language, author, title_key, payload FROM works"
+    ):
+        works[(language, author)][title_key] = json.loads(payload)
+    return works
+
+
 def display_name(gutenberg_name: str) -> str:
     parts = [part.strip() for part in gutenberg_name.split(",")]
     if len(parts) >= 2 and parts[0] and parts[1] and not any(char.isdigit() for char in parts[1]):
@@ -74,18 +111,36 @@ def display_name(gutenberg_name: str) -> str:
 
 def main() -> None:
     args = parse_args()
-    works: dict[tuple[str, str], dict[str, dict]] = defaultdict(dict)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    checkpoint_path = args.output.with_suffix(".scan.sqlite3")
+    checkpoint = open_checkpoint(checkpoint_path, {
+        "languages": sorted(args.language),
+        "earliest_author_year": args.earliest_author_year,
+        "min_works": args.min_works,
+        "max_pages": args.max_pages,
+    })
+    works = restore_works(checkpoint)
     pages_scanned = 0
     for language in args.language:
-        language_pages = 0
-        language_books = 0
+        progress = checkpoint.execute(
+            "SELECT next_url, pages, books, complete FROM progress WHERE language=?",
+            (language,),
+        ).fetchone()
+        if progress and progress[3]:
+            print(f"scan reuse: {language}: complete pages={progress[1]}", flush=True)
+            pages_scanned += int(progress[1])
+            continue
+        language_pages = int(progress[1]) if progress else 0
+        language_books = int(progress[2]) if progress else 0
+        pages_scanned += language_pages
         print(f"scan start: {language}", flush=True)
-        url = "https://gutendex.com/books/?" + urllib.parse.urlencode({
+        first_url = "https://gutendex.com/books/?" + urllib.parse.urlencode({
             "languages": language,
             "author_year_start": args.earliest_author_year,
             "copyright": "false",
             "mime_type": "text/plain",
         })
+        url = str(progress[0]) if progress and progress[0] else first_url
         while url and (not args.max_pages or language_pages < args.max_pages):
             if language_pages == 0:
                 print(f"request: {language}: first page", flush=True)
@@ -121,7 +176,23 @@ def main() -> None:
                         "estimated_birth_year": author_year,
                     },
                 )
+                checkpoint.execute(
+                    "INSERT OR IGNORE INTO works(language, author, title_key, payload) VALUES(?, ?, ?, ?)",
+                    (
+                        language,
+                        author,
+                        title_key,
+                        json.dumps(works[(language, author)][title_key], ensure_ascii=False),
+                    ),
+                )
             url = page.get("next")
+            complete = int(not url)
+            checkpoint.execute(
+                "INSERT OR REPLACE INTO progress(language, next_url, pages, books, complete) "
+                "VALUES(?, ?, ?, ?, ?)",
+                (language, url, language_pages, language_books, complete),
+            )
+            checkpoint.commit()
             if language_pages == 1 or language_pages % 25 == 0 or not url:
                 qualifying = sum(
                     len(titles) >= args.min_works
@@ -161,7 +232,6 @@ def main() -> None:
             "eligible": "true",
         })
 
-    args.output.parent.mkdir(parents=True, exist_ok=True)
     fields = [
         "name", "gutenberg_name", "estimated_birth_year", "corpus",
         "original_language", "independent_works",
@@ -178,7 +248,9 @@ def main() -> None:
         "languages": sorted(set(args.language)),
         "min_works": args.min_works,
         "earliest_author_year": args.earliest_author_year,
+        "checkpoint": str(checkpoint_path),
     }, indent=2))
+    checkpoint.close()
 
 
 if __name__ == "__main__":
