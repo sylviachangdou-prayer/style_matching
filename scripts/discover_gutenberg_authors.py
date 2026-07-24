@@ -12,6 +12,7 @@ import urllib.request
 from collections import defaultdict
 from pathlib import Path
 import sys
+from urllib.error import HTTPError, URLError
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -23,8 +24,21 @@ def fetch(url: str) -> dict:
     request = urllib.request.Request(
         url, headers={"User-Agent": "StyleMatch Gutenberg coverage audit"}
     )
-    with urllib.request.urlopen(request, timeout=45) as response:
-        return json.loads(response.read().decode("utf-8"))
+    for attempt in range(8):
+        try:
+            with urllib.request.urlopen(request, timeout=120) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
+            if attempt == 7:
+                raise
+            delay = min(2 ** attempt, 30)
+            print(
+                f"request retry {attempt + 1}/7 after {type(error).__name__}; "
+                f"waiting {delay}s",
+                flush=True,
+            )
+            time.sleep(delay)
+    raise RuntimeError("unreachable Gutendex retry state")
 
 
 def parse_args() -> argparse.Namespace:
