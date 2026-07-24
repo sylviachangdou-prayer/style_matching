@@ -32,9 +32,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--language", action="append", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--min-works", type=int, default=3)
+    parser.add_argument(
+        "--earliest-author-year",
+        type=int,
+        default=1800,
+        help="Exclude authors born before this year; estimate birth as death year minus 70 when needed.",
+    )
     parser.add_argument("--max-pages", type=int, default=0)
     parser.add_argument("--sleep", type=float, default=0.15)
     return parser.parse_args()
+
+
+def estimated_birth_year(author: dict) -> int | None:
+    birth = author.get("birth_year")
+    if birth is not None:
+        return int(birth)
+    death = author.get("death_year")
+    return int(death) - 70 if death is not None else None
 
 
 def display_name(gutenberg_name: str) -> str:
@@ -52,9 +66,12 @@ def main() -> None:
         language_pages = 0
         language_books = 0
         print(f"scan start: {language}", flush=True)
-        url = "https://gutendex.com/books/?" + urllib.parse.urlencode(
-            {"languages": language}
-        )
+        url = "https://gutendex.com/books/?" + urllib.parse.urlencode({
+            "languages": language,
+            "author_year_start": args.earliest_author_year,
+            "copyright": "false",
+            "mime_type": "text/plain",
+        })
         while url and (not args.max_pages or language_pages < args.max_pages):
             if language_pages == 0:
                 print(f"request: {language}: first page", flush=True)
@@ -71,7 +88,11 @@ def main() -> None:
                     continue
                 if not text_url(book) or len(book.get("authors", [])) != 1:
                     continue
-                gutenberg_name = str(book["authors"][0].get("name", "")).strip()
+                author_record = book["authors"][0]
+                author_year = estimated_birth_year(author_record)
+                if author_year is None or author_year < args.earliest_author_year:
+                    continue
+                gutenberg_name = str(author_record.get("name", "")).strip()
                 author = display_name(gutenberg_name)
                 title_key = independent_title_key(str(book.get("title", "")))
                 if not author or not title_key:
@@ -83,6 +104,7 @@ def main() -> None:
                         "title": str(book.get("title", "")),
                         "download_count": int(book.get("download_count", 0)),
                         "gutenberg_name": gutenberg_name,
+                        "estimated_birth_year": author_year,
                     },
                 )
             url = page.get("next")
@@ -114,6 +136,9 @@ def main() -> None:
         rows.append({
             "name": author,
             "gutenberg_name": str(next(iter(titles.values())).get("gutenberg_name", author)),
+            "estimated_birth_year": min(
+                int(row["estimated_birth_year"]) for row in titles.values()
+            ),
             "corpus": "literary",
             "original_language": language,
             "independent_works": len(ranked),
@@ -124,7 +149,8 @@ def main() -> None:
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     fields = [
-        "name", "gutenberg_name", "corpus", "original_language", "independent_works",
+        "name", "gutenberg_name", "estimated_birth_year", "corpus",
+        "original_language", "independent_works",
         "gutenberg_ids", "titles", "eligible",
     ]
     with args.output.open("w", newline="", encoding="utf-8") as handle:
@@ -137,6 +163,7 @@ def main() -> None:
         "eligible_author_language_profiles": len(rows),
         "languages": sorted(set(args.language)),
         "min_works": args.min_works,
+        "earliest_author_year": args.earliest_author_year,
     }, indent=2))
 
 
