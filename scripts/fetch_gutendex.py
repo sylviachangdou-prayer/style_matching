@@ -23,7 +23,12 @@ def slug(value: str) -> str:
     return value.strip("_")
 
 
-def read_registry_names(path: Path, corpus: str, language: str, batches: set[str] | None) -> list[str]:
+def read_registry_names(
+    path: Path,
+    corpus: str,
+    language: str,
+    batches: set[str] | None,
+) -> list[tuple[str, str]]:
     with path.open(encoding="utf-8") as handle:
         names = []
         for row in csv.DictReader(handle):
@@ -33,7 +38,7 @@ def read_registry_names(path: Path, corpus: str, language: str, batches: set[str
                 continue
             if batches and row.get("batch") not in batches:
                 continue
-            names.append(row["name"])
+            names.append((row["name"], row.get("gutendex_query") or row["name"]))
         return names
 
 
@@ -134,11 +139,13 @@ def fetch_for_name(
     language: str,
     max_works: int,
     existing_ids: set[str] | None = None,
+    query_name: str | None = None,
 ) -> list[dict[str, str]]:
     # Announce before the first API call: gutendex can be slow, and silent
     # minutes-long queries are indistinguishable from a hang in Colab.
-    print(f"query: {corpus}: {name}", flush=True)
-    query = urllib.parse.urlencode({"languages": language, "search": name})
+    query_name = query_name or name
+    print(f"query: {corpus}: {name} [{query_name}]", flush=True)
+    query = urllib.parse.urlencode({"languages": language, "search": query_name})
     url = f"https://gutendex.com/books/?{query}"
     rows = []
     independent_titles: set[str] = set()
@@ -147,9 +154,13 @@ def fetch_for_name(
         for book in page.get("results", []):
             if max_works > 0 and len(rows) >= max_works:
                 break
-            if not author_match(book, name):
+            if not author_match(book, query_name):
                 continue
             if language not in book.get("languages", []):
+                continue
+            if book.get("copyright") is True or book.get("translators"):
+                continue
+            if len(book.get("authors", [])) != 1:
                 continue
             title_key = independent_title_key(book.get("title", ""))
             if not title_key or title_key in independent_titles:
@@ -308,7 +319,7 @@ def main() -> None:
     literary_work_counts = existing_work_counts(literary_sources)
     unreachable: list[str] = []
     qualified_authors = 0
-    for name in literary:
+    for name, query_name in literary:
         if args.max_authors and qualified_authors >= args.max_authors:
             break
         existing_count = len(literary_work_counts.get(name, set()))
@@ -322,6 +333,7 @@ def main() -> None:
                 args.language,
                 max_works=args.max_works,
                 existing_ids=literary_existing,
+                query_name=query_name,
             )
         except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
             # A flaky gutendex query must not kill the batch; coverage audits
@@ -344,7 +356,7 @@ def main() -> None:
     rhetorical_sources = read_existing_sources("rhetorical")
     rhetorical_existing = {row.get("source_id", "") for row in rhetorical_sources}
     rhetorical_work_counts = existing_work_counts(rhetorical_sources)
-    for name in rhetorical:
+    for name, query_name in rhetorical:
         existing_count = len(rhetorical_work_counts.get(name, set()))
         if args.skip_covered and existing_count >= args.min_works:
             print(f"skip covered: rhetorical: {name}", flush=True)
@@ -356,6 +368,7 @@ def main() -> None:
                 args.language,
                 max_works=args.max_works,
                 existing_ids=rhetorical_existing,
+                query_name=query_name,
             )
         except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
             unreachable.append(f"rhetorical: {name}")

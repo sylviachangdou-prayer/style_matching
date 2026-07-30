@@ -1,0 +1,4 @@
+interface:
+  display_name: "Methodology Page Builder"
+  short_description: "Build evidence-backed methodology pages"
+  default_prompt: "Use $methodology-page-builder to build or update this product methodology page from verified research and deployed artifacts."

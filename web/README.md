@@ -103,6 +103,10 @@ as the root directory).
 
 ## Frontend extras
 
+The reusable research, writing, architecture, visual, and validation process for
+the methodology page is documented in
+[`docs/methodology_page_workflow.md`](../docs/methodology_page_workflow.md).
+
 - **Permanent navigation**: Home, Method, and the full Author Library are direct
   routes. The library is generated from `data/source_registry/all_people.csv` by
   `scripts/export_author_library.py` and provides search plus language/register filters.

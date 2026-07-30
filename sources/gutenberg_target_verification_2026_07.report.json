@@ -1,0 +1,10 @@
+{
+  "candidate_file": "data/source_registry/gutenberg_target_authors_2026_07.csv",
+  "output": "sources/gutenberg_target_verification_2026_07.csv",
+  "candidates": 94,
+  "eligible": 76,
+  "min_works": 3,
+  "max_pages_per_author": 8,
+  "workers": 6,
+  "failures": []
+}
