@@ -308,6 +308,6 @@ python -m compileall scripts
 python -m pytest -q
 ```
 
-GPU runs belong in Colab (`colab_stylematch_multilingual_training.ipynb` from the repo
+GPU runs belong in Colab (`multilingual_training.ipynb` from the repo
 root) and must record model name, device, corpus commit, coverage JSON, index metadata, and
 warm p50/p95 benchmarks in the notebook output.

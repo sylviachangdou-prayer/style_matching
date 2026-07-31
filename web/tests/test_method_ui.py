@@ -159,7 +159,7 @@ def test_author_library_is_generated_from_complete_registry() -> None:
     assert 'profile.split(";")' in page
     assert "J. K. Rowling" in authors and "morally legible" in authors
     payload = json.loads(authors.split(" = ", 1)[1][:-2])
-    assert len(payload) == 270
+    assert len(payload) == 358
     assert all(author["profile"] and author["style_traits"] for author in payload)
     assert next(author for author in payload if author["name"] == "Hannah Arendt")["original_languages"] == ["de", "en"]
 
@@ -172,6 +172,6 @@ def test_fyi_page_explains_scores_without_calling_them_probabilities() -> None:
     assert "does not compare the passage with itself" in page
     assert "not a probability of authorship" in page
     assert "Style matching and source identification are different tasks" in page
-    assert "Why do the same writers keep appearing when the Author Library contains 270 names?" in page
+    assert "Why do the same writers keep appearing when the Author Library contains 358 names?" in page
     assert "one centroid" in page
     assert "hub writers" in page

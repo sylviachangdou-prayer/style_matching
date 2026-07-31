@@ -49,7 +49,7 @@ def test_targeted_verification_enforces_source_admission(monkeypatch) -> None:
     assert [work["id"] for work in works] == [5, 1]
 
 
-def test_target_list_is_new_bounded_and_multilingual() -> None:
+def test_target_list_is_bounded_multilingual_and_reviewed_additions_are_registered() -> None:
     targets = pd.read_csv(
         ROOT / "data/source_registry/gutenberg_target_authors_2026_07.csv"
     )
@@ -57,17 +57,25 @@ def test_target_list_is_new_bounded_and_multilingual() -> None:
     assert 50 <= len(targets) <= 100
     assert targets["original_language"].nunique() >= 5
     assert not targets.duplicated(["name", "original_language"]).any()
-    overlap = targets.merge(
+    assert targets["min_independent_sources"].eq(3).all()
+    additions = pd.read_csv(
+        ROOT / "data/source_registry/gutenberg_indexed_metadata_2026_07.csv"
+    )
+    assert len(additions) == additions["name"].nunique() == 88
+    registered = additions.merge(
         registry[["name", "original_language"]],
         on=["name", "original_language"],
     )
-    assert overlap.empty
-    assert targets["min_independent_sources"].eq(3).all()
+    assert len(registered) == 88
+    assert additions["profile"].str.count(";").eq(2).all()
+    assert additions["style_traits"].str.split(",").map(len).between(3, 5).all()
+    assert not additions["profile"].duplicated().any()
+    assert not additions["style_traits"].duplicated().any()
 
 
 def test_part8_keeps_targeted_expansion_and_hubness_gate() -> None:
     notebook = json.loads(
-        (ROOT / "colab_stylematch_ecore_pt8.ipynb").read_text(encoding="utf-8")
+        (ROOT / "ecore_pt8.ipynb").read_text(encoding="utf-8")
     )
     source = "\n".join(
         "".join(cell.get("source", [])) for cell in notebook["cells"]
@@ -78,3 +86,7 @@ def test_part8_keeps_targeted_expansion_and_hubness_gate() -> None:
     assert "attach_hubness_correction.py" in source
     assert "source_heldout_splits.parquet" in source
     assert "style_embedding_recall.py" in source
+    assert "merge_author_registry_metadata.py" in source
+    assert "indexed_missing_registry_metadata" in source
+    assert "compare_index_retrieval.py" in source
+    assert "old_vs_new_index_metrics.json" in source
