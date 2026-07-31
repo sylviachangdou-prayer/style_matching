@@ -136,7 +136,10 @@ def main() -> None:
     args = parse_args()
     frame = pd.read_parquet(args.input)
     frame = frame[frame["split"].eq("test")].copy().reset_index(drop=True)
-    chunk_ids = np.load(args.eval_chunk_ids).astype(str)
+    # The evaluation writer stores variable-length chunk IDs as an object array.
+    # This is a trusted, locally generated artifact; numeric arrays remain loaded
+    # with NumPy's default allow_pickle=False.
+    chunk_ids = np.load(args.eval_chunk_ids, allow_pickle=True).astype(str)
     embeddings = np.load(args.eval_embeddings).astype("float64")
     if len(chunk_ids) != len(embeddings):
         raise ValueError("Evaluation chunk IDs and embeddings do not align")
