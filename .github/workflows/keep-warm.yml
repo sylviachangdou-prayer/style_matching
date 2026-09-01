@@ -1,0 +1,71 @@
+# 让 Hugging Face Space 不进入休眠，避免访客等冷启动。
+#
+# 默认不工作：仓库变量 KEEP_WARM 不是 "on" 时，定时任务不会占用 runner，也不会发请求。
+# 日常开关（都在 GitHub 网页上点，不用改代码、不用 push）：
+#
+#   打开  Settings → Secrets and variables → Actions → Variables
+#         把 KEEP_WARM 设成 on
+#   关闭  把 KEEP_WARM 改成 off，或直接删掉这个变量
+#   立刻唤醒一次  Actions → Keep Space warm → Run workflow
+#
+# 还需要一个变量 SPACE_URL，例如 https://your-name-stylematch.hf.space
+
+name: Keep Space warm
+
+on:
+  schedule:
+    # POSIX cron 不能直接表达“每 36 小时”。每 12 小时检查一次，下面只让
+    # 每第三个 UTC 半日时隙真正发送请求，因此实际 ping 周期是 36 小时。
+    - cron: "17 0,12 * * *"
+  workflow_dispatch:          # 手动触发时无视 KEEP_WARM，总是执行
+
+permissions: {}
+
+jobs:
+  ping:
+    if: github.event_name == 'workflow_dispatch' || vars.KEEP_WARM == 'on'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 检查 36 小时时隙
+        id: gate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
+            echo "手动触发，继续。"
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          else
+            half_day_slot=$(( $(date -u +%s) / 43200 ))
+            if [ $(( half_day_slot % 3 )) -eq 0 ]; then
+              echo "到达 36 小时 ping 时隙，继续。"
+              echo "run=yes" >> "$GITHUB_OUTPUT"
+            else
+              echo "本次只是 12 小时检查时隙，不发送请求。"
+              echo "run=no" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: 唤醒 Space
+        if: steps.gate.outputs.run == 'yes'
+        env:
+          SPACE_URL: ${{ vars.SPACE_URL }}
+        run: |
+          if [ -z "${SPACE_URL}" ]; then
+            echo "::error::没有设置仓库变量 SPACE_URL。"
+            exit 1
+          fi
+          # 冷启动可能要一分钟以上，给足超时并重试。
+          for attempt in 1 2 3; do
+            code=$(curl -s -o /tmp/body -w '%{http_code}' --max-time 300 \
+                     "${SPACE_URL%/}/api/health" || echo 000)
+            echo "第 ${attempt} 次：HTTP ${code}"
+            if [ "${code}" = "200" ]; then
+              echo "Space 已就绪。"
+              head -c 400 /tmp/body; echo
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "::warning::三次都没拿到 200，Space 可能正在构建或已出错。"
+          exit 1
