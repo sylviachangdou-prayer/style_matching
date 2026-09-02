@@ -230,6 +230,16 @@ tested once. A correction is attached to within-language ranking only when its p
 profile-bootstrap MRR interval is wholly positive and Recall@3 does not decrease.
 Otherwise the rebuilt index remains uncorrected.
 
+`hubness_reranking.ipynb` is the replacement exploratory ranking audit. It reuses the
+frozen score matrices and compares candidate-specific empirical-null calibration,
+mutual-proximity-style rescaling, centroid/prototype reciprocal-rank fusion, calibrated
+multi-view evidence, and a fine local-density coefficient grid under source-grouped
+cross-fitting. In addition to macro MRR and Recall@1/3/5/20, it reports source-balanced false-Top3 Gini,
+HHI, maximum candidate exposure, and author-level exposure counts. A challenger can be
+selected only if the lower bounds of its paired-profile MRR and Recall@3 differences are
+both at least −0.01; among non-inferior candidates, lower false-Top3 HHI decides. This is
+exploratory evidence, not a replacement for evaluation on newly frozen sources.
+
 The research registry remains append-only. The public Author Library can be exported
 from a completed `profiles.parquet`, hiding registry-only names that cannot yet be
 matched. Newly indexed Gutenberg names without the required individual biography and
@@ -289,6 +299,12 @@ profile.
 - Terreau et al. 2024 — interpretable stylistic features as a complementary channel.
 - Wang et al. 2024 — multilingual E5; basis of the separate topic channel.
 - Qiu et al., Findings ACL 2025 — mStyleDistance, the baseline backbone.
+- Zeng, Sclafani & Rambow 2024 — Gram2Vec; interpretable grammatical style vectors as
+  a separable verification view. [Paper](https://arxiv.org/abs/2406.12131)
+- Campagnano, Mallia & Silvestri, SIGIR 2025 — DIME; query-adaptive dimension
+  denoising and dense reranking. [Paper](https://doi.org/10.1145/3726302.3730318)
+- Habler et al. 2026 — robust, domain-aware hub detection using k-occurrence,
+  cluster spread, and perturbation stability. [Paper](https://arxiv.org/abs/2602.22427)
 - Kim, Zhang & Jurgens, EMNLP 2025 — multilingual authorship representation (content
   masking, language-aware batching); basis of the selected challenger.
 - Alshomary et al., EMNLP 2025 — multi-layer style representations.
