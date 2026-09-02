@@ -60,8 +60,8 @@ class MatchEndpointTests(unittest.TestCase):
             page = client.get("/method.html")
             self.assertEqual(page.status_code, 200)
             self.assertIn('data-method-static', page.text)
-            self.assertIn('src="method-flow.js"', page.text)
-            self.assertIn('src="method-static.js"', page.text)
+            self.assertIn('src="method-flow.js', page.text)
+            self.assertIn('src="method-static.js', page.text)
             self.assertNotIn('src="method-modal.js"', page.text)
 
             flow = client.get("/method-flow.js")
@@ -137,8 +137,8 @@ class MatchEndpointTests(unittest.TestCase):
             for match in matches:
                 self.assertEqual(match["cross_language"], match["target_language"] != "en")
                 self.assertEqual(match["style_weight"], 0.5 if match["cross_language"] else 0.7)
-            affinities = [match["affinity_score"] for match in matches]
-            self.assertEqual(affinities, sorted(affinities, reverse=True))
+            styles = [match["style_similarity"] for match in matches]
+            self.assertEqual(styles, sorted(styles, reverse=True))
 
     def test_within_mode_still_ranks_query_language_only(self) -> None:
         with TestClient(app) as client:

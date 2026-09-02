@@ -709,21 +709,18 @@ class StyleIndex:
         results = {}
         rejection = {}
         if mode == "all":
-            # Single global ranking over every profile. Same-language candidates keep the
-            # within-language style/topic mix; cross-language candidates use the cross mix
-            # and stay flagged: raw cosines are not calibrated across language pairs, and
-            # in practice same-language matches dominate unless a cross-language profile
-            # is genuinely closer.
+            # Style Match is ranked only by the style encoder. Topic remains a separately
+            # reported contextual signal and may contribute to Affinity, never rank.
             profile_languages = self.profiles["language"].astype(str).to_numpy()
             weights = np.where(
                 profile_languages == str(language), style_weight_within, style_weight_cross
             )
-            ranking_scores = weights * scores if topic_scores is None else (
+            affinity_scores = weights * scores if topic_scores is None else (
                 weights * scores + (1.0 - weights) * topic_scores
             )
-            ranked = np.argsort(ranking_scores)[::-1][:top_k]
+            ranked = np.argsort(scores)[::-1][:top_k]
             matches = [
-                build_match(int(index), float(weights[int(index)]), float(ranking_scores[int(index)]))
+                build_match(int(index), float(weights[int(index)]), float(affinity_scores[int(index)]))
                 for index in ranked
             ]
             results["all"] = matches
@@ -747,12 +744,12 @@ class StyleIndex:
                 scope = "per_target_language"
             style_weight = style_weight_within if mode == "within" else style_weight_cross
             for target_language, indices in groups:
-                ranking_scores = scores if topic_scores is None else (
+                affinity_scores = scores if topic_scores is None else (
                     style_weight * scores + (1.0 - style_weight) * topic_scores
                 )
-                ranked = indices[np.argsort(ranking_scores[indices])[::-1][:top_k]]
+                ranked = indices[np.argsort(scores[indices])[::-1][:top_k]]
                 results[target_language] = [
-                    build_match(int(index), float(style_weight), float(ranking_scores[index]))
+                    build_match(int(index), float(style_weight), float(affinity_scores[index]))
                     for index in ranked
                 ]
                 if mode == "within":

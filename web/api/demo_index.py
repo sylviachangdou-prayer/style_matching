@@ -190,7 +190,7 @@ class DemoIndex:
         if mode == "all":
             matches = sorted(
                 (build_match(profile) for profile in _DEMO_PROFILES),
-                key=lambda match: match["affinity_score"],
+                key=lambda match: match["style_similarity"],
                 reverse=True,
             )[:top_k]
             results["all"] = matches
@@ -210,7 +210,7 @@ class DemoIndex:
             for target_language, profiles in groups.items():
                 matches = sorted(
                     (build_match(profile) for profile in profiles),
-                    key=lambda match: match["affinity_score"],
+                    key=lambda match: match["style_similarity"],
                     reverse=True,
                 )
                 results[target_language] = matches[:top_k]

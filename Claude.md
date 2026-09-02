@@ -19,11 +19,12 @@ not a closed-set classifier and must allow "no strong match."
 
 ## Product output
 
-Ranked top three when confidence permits: composite Affinity; separate StyleSim and
-TopicSim; 2–4 plain-language stylometric features; up to three original-language passages
-only when display is explicitly allowed; calibration and reduced-confidence status. Weights
-(product rules, not optima): `0.7*Style + 0.3*Topic` within language, `0.5/0.5` across.
-Tune weights and rejection thresholds on held-out development data.
+Ranked top three when confidence permits: StyleSim determines rank; composite Affinity and
+TopicSim remain separate context; 2–4 plain-language stylometric features; up to three
+original-language passages only when display is explicitly allowed; calibration and
+reduced-confidence status. Affinity weights (product rules, not ranking weights):
+`0.7*Style + 0.3*Topic` within language, `0.5/0.5` across. Tune display weights and rejection
+thresholds on held-out development data.
 
 ## Model and retrieval
 

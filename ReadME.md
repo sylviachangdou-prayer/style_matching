@@ -19,8 +19,9 @@ actual source rows, never from registry membership.
   authorship-representation encoder (`artifacts/multilingual_author_style_v1`, selected
   July 2026); topic/tone: `intfloat/multilingual-e5-base`, used only for the topic
   component. `StyleDistance/mstyledistance` remains the reproducible baseline of record.
-- **Provisional weights** (product defaults, not empirical optima): 0.7 style + 0.3 topic
-  within language; 0.5/0.5 across languages with a visible reduced-confidence label.
+- **Provisional Affinity weights** (display context, never Style Match rank): 0.7 style +
+  0.3 topic within language; 0.5/0.5 across languages with a visible reduced-confidence
+  label. Style Match itself is ordered only by its style score.
 - **Open-set ranking plus verification.** Profiles are normalized author centroids plus
   source/work prototypes; retrieval is exact matrix multiplication over cached embeddings;
   rejection uses per-language calibrated thresholds.
@@ -239,6 +240,14 @@ HHI, maximum candidate exposure, and author-level exposure counts. A challenger 
 selected only if the lower bounds of its paired-profile MRR and Recall@3 differences are
 both at least −0.01; among non-inferior candidates, lower false-Top3 HHI decides. This is
 exploratory evidence, not a replacement for evaluation on newly frozen sources.
+
+`ranking_backends.ipynb` is the locked follow-up. With the encoder frozen, it compares
+cosine against centered/all-but-top/whitened geometry, L1 and rank correlation, CSLS,
+adaptive S-Norm, regularized PLDA, and PLDA + S-Norm. Train fits every transform, dev selects
+each method-family hyperparameter, and test reports profile-bootstrap retrieval intervals
+plus false-Top3 concentration. The experiment may recommend a scoring backend only under
+the predeclared non-inferiority and exposure gate in
+`docs/similarity_backend_experiment_plan_2026.md`; it never edits an index automatically.
 
 The research registry remains append-only. The public Author Library can be exported
 from a completed `profiles.parquet`, hiding registry-only names that cannot yet be
