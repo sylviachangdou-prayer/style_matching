@@ -46,7 +46,7 @@ sdk: docker
 app_port: 7860
 pinned: false
 license: mit
-short_description: Open-set author style retrieval with separate style and topic scores
+short_description: Open-set author style retrieval with style and topic scores
 ---
 
 # StyleMatch
@@ -55,6 +55,9 @@ short_description: Open-set author style retrieval with separate style and topic
 
 源码与研究记录：<https://github.com/sylviachangdou-prayer>
 MD
+
+# HF 对 YAML 头有长度限制，本地先验一遍，别等服务端打回。
+python3 "$project_root/scripts/check_space_readme.py" "$staging/README.md"
 
 cd "$staging"
 git init -q -b main
