@@ -62,5 +62,5 @@
 <text x="80" y="605" font-size="11" font-weight="400" fill="#6f6758"><tspan x="80" dy="0">Style Match, Topic/Tone, Affinity, confidence,</tspan><tspan x="80" dy="16">evidence</tspan></text>
 </g>
 <text x="28" y="28" font-size="16" font-weight="700" fill="#1f3a5f"><tspan x="28" dy="0">StyleMatch inference architecture</tspan></text>
-<text x="218" y="28" font-size="11" font-weight="600" fill="#8d816b"><tspan x="218" dy="0">schema.yaml · v1.0 · 2026-07-20</tspan></text>
+<text x="218" y="28" font-size="11" font-weight="600" fill="#8d816b"><tspan x="218" dy="0">schema.yaml · v1.1 · 2026-09-02</tspan></text>
 </svg>

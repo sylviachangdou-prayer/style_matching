@@ -1,8 +1,8 @@
 meta:
   title: "StyleMatch inference architecture"
   subtitle: "Open-set author-profile ranking with style, topic, and evidence kept distinct"
-  updated: "2026-07-20"
-  version: "1.0"
+  updated: "2026-09-02"
+  version: "1.1"
   direction: left_to_right
   canvas: {width: 1800, height: 1050}
   diagram_edges: primary_only
@@ -91,7 +91,7 @@ nodes:
     detail: "Cached centroids represent each author’s center; source prototypes preserve variation across independent works without using translations to fill gaps."
     status: cached
     shape: cylinder
-    insets: ["167 profiles", "2,084 prototypes", "9 languages"]
+    insets: ["independent sources", "source prototypes", "9 languages"]
     layer: top
     layout: {x: 660, y: 780, w: 480, h: 200}
 

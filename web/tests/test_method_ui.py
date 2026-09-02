@@ -106,8 +106,8 @@ def test_index_exposes_primary_navigation_and_visible_passage() -> None:
 def test_method_page_and_background_asset_are_packaged() -> None:
     page = (STATIC / "method.html").read_text(encoding="utf-8")
     assert 'data-method-static' in page
-    assert '<script src="method-flow.js"></script>' in page
-    assert '<script src="method-static.js"></script>' in page
+    assert '<script src="method-flow.js?v=1.1"></script>' in page
+    assert '<script src="method-static.js?v=1.1"></script>' in page
     assert 'method-modal.js' not in page
     assert '<link rel="stylesheet" href="method-flow.css">' in page
     assert "Read the full method" not in page
@@ -127,6 +127,9 @@ def test_method_page_and_background_asset_are_packaged() -> None:
     assert "commit 15978e1" not in page
     assert "Two safeguards come from a measured failure" not in page
     assert "One non-crossing ranking path" not in page
+    assert "Expanded-candidate stress test" in page
+    assert "HHI .00546" in page and "Gini .240" in page
+    assert "167 profiles" not in page and "269 profiles" not in page
     performance = page.split("<h2>6 · Performance record</h2>", 1)[1].split("</table>", 1)[0]
     assert 'class="num"' not in performance
     method_ui = (STATIC / "method-static.js").read_text(encoding="utf-8")
@@ -135,9 +138,12 @@ def test_method_page_and_background_asset_are_packaged() -> None:
     assert 'document.createElement("br")' in method_ui
     assert "The upper route is the complete author-ranking path" not in method_ui
     assert 'element("div", "primary-flow")' in method_ui
+    assert "data.meta.version" in method_ui
     flow_css = (STATIC / "method-flow.css").read_text(encoding="utf-8")
     assert 'url("head.webp")' not in flow_css
     assert "font: 700 .72rem/1.5 var(--mono)" in flow_css
+    flow = (STATIC / "method-flow.js").read_text(encoding="utf-8")
+    assert "167 profiles" not in flow and "269 profiles" not in flow
     background = STATIC / "head.webp"
     assert background.stat().st_size > 100_000
     header = background.read_bytes()[:16]

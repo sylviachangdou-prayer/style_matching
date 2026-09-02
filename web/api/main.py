@@ -27,9 +27,10 @@ from web.api.explain import cohort_feature_mean, passage_features, shared_style_
 from web.api.language import SUPPORTED_LANGUAGES, detect_language
 
 CJK_LANGUAGES = {"zh", "ja"}
-# Held-out model selection (artifacts/model_comparison_v1.json) picked the fine-tuned
-# challenger; prefer its index and keep the mStyleDistance baseline index as fallback.
+# Held-out model selection picked the fine-tuned challenger. Prefer the expanded
+# coverage-beta index, while retaining the earlier challenger and baseline fallbacks.
 INDEX_DIR_CANDIDATES = (
+    ROOT / "artifacts" / "multilingual_style_index_gutenberg_v3",
     ROOT / "artifacts" / "multilingual_style_index_challenger_v1",
     ROOT / "artifacts" / "multilingual_style_index_v1",
 )

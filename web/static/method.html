@@ -216,6 +216,11 @@
   MRR, but its paired-bootstrap interval for the difference crossed zero
   [−.052, .060] and the subgroup non-degradation gate was not met. The best dev-selected
   single model therefore remains deployed.</p>
+  <p class="note"><strong>Expanded-candidate stress test.</strong> A source-grouped,
+  cross-fitted density penalty reduced false top-three concentration (HHI .00546 →
+  .00522; Gini .240 → .204), while its paired MRR and Recall@3 intervals included no
+  change. It therefore remains an exploratory audit, not a production ranking term
+  (Radovanović et al. 2010; Schnitzer et al. 2012).</p>
   <h2>5 · Open-set calibration</h2>
   <p>For each language, held-out authors are split into "known" and "unknown"; a logistic
   calibrator is fitted on the maximum profile similarity, and the equal-error-rate
@@ -236,7 +241,7 @@
     </tr>
     <tr>
       <td>Evidence memory</td>
-      <td>2,084 source prototypes · 39,756 chunks</td>
+      <td>2,577 source prototypes · 63,576 chunks</td>
       <td class="prov">Independent works preserve variation beyond one averaged voice</td>
     </tr>
     <tr>
@@ -280,8 +285,9 @@
       multilingual cosines are not comparable across language pairs (Icard et al. 2025).</li>
     <li>Source-heldout evaluation is necessary but insufficient — author and topic can stay
       correlated across sources; cross-topic results are tracked separately.</li>
-    <li>Central profiles can be over-returned for texts they did not write; misattribution
-      exposure is part of the evaluation checklist (Alipoormolabashi et al. 2025).</li>
+    <li>Central profiles can be over-returned for texts they did not write. Density-aware
+      reranking reduced aggregate exposure concentration in exploratory cross-fitting but
+      did not establish a ranking gain, so it is not deployed (Alipoormolabashi et al. 2025).</li>
   </ul>
 
   <h2>8 · References</h2>
@@ -294,6 +300,10 @@
       with Clustered Errors. <em>Review of Economics and Statistics</em>.</li>
     <li>Cawley &amp; Talbot (2010). On Over-fitting in Model Selection and Subsequent
       Selection Bias in Performance Evaluation. <em>JMLR</em>.</li>
+    <li>Radovanović, Nanopoulos &amp; Ivanović (2010). Hubs in Space: Popular Nearest
+      Neighbors in High-Dimensional Data. <em>JMLR</em>.</li>
+    <li>Schnitzer et al. (2012). Local and Global Scaling Reduce Hubs in Space.
+      <em>JMLR</em>.</li>
     <li>Guo, Pleiss, Sun &amp; Weinberger (2017). On Calibration of Modern Neural Networks.
       <em>ICML</em>.</li>
     <li>Geifman &amp; El-Yaniv (2017). Selective Classification for Deep Neural Networks.
@@ -332,7 +342,7 @@
   <a href="index.html">Try StyleMatch &rarr;</a></footer>
   </div>
 </main>
-<script src="method-flow.js"></script>
-<script src="method-static.js"></script>
+<script src="method-flow.js?v=1.1"></script>
+<script src="method-static.js?v=1.1"></script>
 </body>
 </html>

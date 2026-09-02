@@ -12,7 +12,7 @@ PYTHONS+=("/opt/anaconda3/bin/python" "python3")
 
 for candidate in "${PYTHONS[@]}"; do
   if [[ -x "$candidate" ]] && "$candidate" -c "import fastapi, uvicorn, yaml" >/dev/null 2>&1; then
-    export STYLEMATCH_INDEX_DIR="${STYLEMATCH_INDEX_DIR:-$ROOT/artifacts/multilingual_style_index_challenger_v1}"
+    export STYLEMATCH_INDEX_DIR="${STYLEMATCH_INDEX_DIR:-$ROOT/artifacts/multilingual_style_index_gutenberg_v3}"
     echo "StyleMatch preview: http://127.0.0.1:8000"
     exec "$candidate" -m uvicorn web.api.main:app --port 8000
   fi

@@ -66,7 +66,7 @@
     const root = element("div", "method-static");
     const heading = element("header", "method-flow-heading");
     heading.append(
-      element("div", "method-flow-kicker", "System map · evidence contracts · v1.0"),
+      element("div", "method-flow-kicker", `System map · evidence contracts · v${data.meta.version}`),
       element("h2", "", "From passage to accountable result"),
     );
 

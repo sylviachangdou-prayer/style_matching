@@ -23,16 +23,16 @@ web/
 # Authors: http://127.0.0.1:8000/authors.html
 ```
 
-The preview script uses the local challenger index and an already working Python
+The preview script uses the local expanded coverage-beta index and an already working Python
 installation; it does not resolve or reinstall the training stack. Set
 `STYLEMATCH_INDEX_DIR` only when testing another index.
 
-The app looks for `artifacts/multilingual_style_index_challenger_v1/` first (the index
-built from the model selected in `artifacts/model_comparison_v1.json`), then falls back
-to the retired `artifacts/multilingual_style_index_v1/` baseline index. When neither is
-present it serves a clearly flagged **demo fixture** (`"demo": true`, banner in the UI)
-so frontend work can proceed while the Colab training run finishes. Set
-`STYLEMATCH_INDEX_DIR` to override the search entirely.
+The app looks for `artifacts/multilingual_style_index_gutenberg_v3/` first, then the
+earlier challenger index, then the retired baseline. The expanded index keeps the
+selected encoder but broadens candidate coverage; its metadata labels it a
+coverage-first beta because shared-candidate ranking did not improve. When no index is
+present the app serves a clearly flagged **demo fixture** (`"demo": true`, banner in
+the UI). Set `STYLEMATCH_INDEX_DIR` to override the search entirely.
 
 Tests: `python -m pytest web/tests -q` (runs in demo mode, no downloads).
 
@@ -45,7 +45,7 @@ Serving needs three things, not the whole `artifacts/` tree:
 
 | Piece | Size | Where it must live |
 | --- | --- | --- |
-| Index `multilingual_style_index_challenger_v1` | 12 MB | HF **dataset** repo, pulled at startup |
+| Index `multilingual_style_index_gutenberg_v3` | 13 MB | HF **dataset** repo, pulled at startup |
 | Fine-tuned encoder `multilingual_author_style_v1` | 2.1 GB | HF **model** repo |
 | `intfloat/multilingual-e5-base` (topic channel) | ~1.1 GB | pulled from the Hub automatically |
 
@@ -53,7 +53,7 @@ Serving needs three things, not the whole `artifacts/` tree:
 
    ```bash
    huggingface-cli upload YOUR-USERNAME/stylematch-index \
-     artifacts/multilingual_style_index_challenger_v1 . --repo-type dataset
+     artifacts/multilingual_style_index_gutenberg_v3 . --repo-type dataset
 
    huggingface-cli upload YOUR-USERNAME/multilingual-author-style-v1 \
      artifacts/multilingual_author_style_v1 . --repo-type model
@@ -177,7 +177,7 @@ as the root directory).
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `STYLEMATCH_INDEX_DIR` | challenger index, then baseline index | Prebuilt index directory (overrides the search order) |
+| `STYLEMATCH_INDEX_DIR` | expanded index, challenger index, then baseline | Prebuilt index directory (overrides the search order) |
 | `STYLEMATCH_HUB_REPO` | unset | HF repo to download the index from when the dir is missing |
 | `STYLEMATCH_HUB_REPO_TYPE` | `dataset` | Repo type for the download |
 | `STYLEMATCH_DEVICE` | `auto` | `cpu`, `cuda`, `mps`, or `auto` |
