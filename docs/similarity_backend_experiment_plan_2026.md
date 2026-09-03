@@ -46,7 +46,7 @@ Normalized Euclidean is not a separate experiment: for unit vectors it is a mono
 
 ## Locked adoption rule
 
-A method may replace cosine only if the MRR paired-profile interval lower bound is at least −0.01, Recall@3 changes by at least −0.01, and both false-top3 HHI and Gini fall. If no method passes, retain cosine. This is a non-inferiority rule, not a claim that equal exposure is intrinsically correct.
+Select one method family by dev macro MRR before reading test. It may replace cosine only if the MRR paired-profile interval lower bound is at least −0.01, Recall@3 changes by at least −0.01, both false-top3 HHI and Gini fall, and no supported language or corpus loses more than 0.02 MRR or Recall@3. Test supplies pass/fail evidence; it never chooses among method families. If the dev-selected method fails, retain cosine. This is a non-inferiority rule, not a claim that equal exposure is intrinsically correct.
 
 ## Literature basis
 

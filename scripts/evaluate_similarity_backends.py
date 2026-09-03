@@ -101,6 +101,42 @@ def whitening_fit(train: np.ndarray, shrinkage: float) -> tuple[np.ndarray, np.n
     return mean, transform
 
 
+def cached_whitening(
+    train: np.ndarray,
+    labels: np.ndarray,
+    shrinkage: float,
+    cache: dict,
+    author_balanced: bool = False,
+) -> tuple[np.ndarray, np.ndarray]:
+    suffix = "author_balanced" if author_balanced else "chunk_balanced"
+    mean_key = f"whitening_mean_{suffix}"
+    covariance_key = f"whitening_eigh_{suffix}"
+    if mean_key not in cache:
+        if author_balanced:
+            counts = np.bincount(labels)
+            weights = 1.0 / np.maximum(counts[labels], 1)
+            weights /= weights.sum()
+            mean = (train * weights[:, None]).sum(axis=0)
+            centered = train - mean
+            covariance = centered.T @ (centered * weights[:, None])
+        else:
+            mean = train.mean(axis=0)
+            covariance = np.cov(train - mean, rowvar=False)
+        cache[mean_key] = mean
+        cache[covariance_key] = np.linalg.eigh(covariance)
+    mean = cache[mean_key]
+    values, vectors = cache[covariance_key]
+    shrunk = (1.0 - shrinkage) * values + shrinkage * values.mean()
+    transform = vectors @ np.diag(1.0 / np.sqrt(np.maximum(shrunk, 1e-7))) @ vectors.T
+    return mean, transform
+
+
+def standardize_rows(scores: np.ndarray) -> np.ndarray:
+    return (scores - scores.mean(axis=1, keepdims=True)) / np.maximum(
+        scores.std(axis=1, keepdims=True), 1e-6
+    )
+
+
 def csls(
     query_scores: np.ndarray,
     fit_scores: np.ndarray,
@@ -232,14 +268,43 @@ def language_scores(
             remove_components(query, mean, pcs), remove_components(enroll, mean, pcs)
         )
     if method == "whitened_cosine":
-        mean = cache.setdefault("mean", train.mean(axis=0))
-        if "covariance_eigh" not in cache:
-            cache["covariance_eigh"] = np.linalg.eigh(np.cov(train - mean, rowvar=False))
-        values, vectors = cache["covariance_eigh"]
-        shrinkage = float(parameter)
-        shrunk = (1.0 - shrinkage) * values + shrinkage * values.mean()
-        transform = vectors @ np.diag(1.0 / np.sqrt(np.maximum(shrunk, 1e-7))) @ vectors.T
+        mean, transform = cached_whitening(
+            train, train_labels, float(parameter), cache, author_balanced=False
+        )
         return cosine_scores((query - mean) @ transform, (enroll - mean) @ transform)
+    if method in {
+        "author_balanced_whitened_cosine",
+        "whitened_csls",
+        "author_balanced_whitened_csls",
+        "cosine_whitened_blend",
+    }:
+        if method == "cosine_whitened_blend":
+            shrinkage, alpha = parameter
+            author_balanced = False
+        elif method in {"whitened_csls", "author_balanced_whitened_csls"}:
+            shrinkage, _ = parameter
+            author_balanced = method.startswith("author_balanced")
+        else:
+            shrinkage = parameter
+            author_balanced = True
+        score_key = ("whitened_scores", author_balanced, float(shrinkage))
+        if score_key not in cache:
+            mean, transform = cached_whitening(
+                train, train_labels, float(shrinkage), cache, author_balanced=author_balanced
+            )
+            transformed_train = (train - mean) @ transform
+            transformed_enroll = (enroll - mean) @ transform
+            transformed_query = (query - mean) @ transform
+            cache[score_key] = (
+                cosine_scores(transformed_train, transformed_enroll),
+                cosine_scores(transformed_query, transformed_enroll),
+            )
+        fit, whitened = cache[score_key]
+        if method.endswith("_csls"):
+            return csls(whitened, fit, train_labels, int(parameter[1]))
+        if method == "cosine_whitened_blend":
+            return (1.0 - float(alpha)) * standardize_rows(raw_query) + float(alpha) * standardize_rows(whitened)
+        return whitened
     if method == "l1":
         result = np.empty((len(query), len(enroll)), dtype="float64")
         for start in range(0, len(query), 256):
@@ -445,22 +510,45 @@ def main() -> None:
                 })
 
     result_frame = pd.DataFrame(results)
+    subgroup_frame = pd.DataFrame(subgroup_rows)
     baseline_row = result_frame[result_frame["method"].eq("cosine")].iloc[0]
-    result_frame["adoption_gate"] = (
+    result_frame["aggregate_gate"] = (
         (result_frame["mrr_delta_ci_low"] >= -0.01)
         & (result_frame["recall_at_3_delta_vs_cosine"] >= -0.01)
         & (result_frame["false_top3_hhi"] < baseline_row["false_top3_hhi"])
         & (result_frame["false_top3_gini"] < baseline_row["false_top3_gini"])
     )
-    eligible = result_frame[result_frame["adoption_gate"]]
-    recommendation = None if eligible.empty else str(
-        eligible.sort_values(["mrr", "false_top3_hhi"], ascending=[False, True]).iloc[0]["method"]
+    baseline_subgroups = subgroup_frame[subgroup_frame["method"].eq("cosine")].set_index(
+        ["group_type", "group"]
     )
+    subgroup_pass = {}
+    for method, method_rows in subgroup_frame.groupby("method"):
+        method_rows = method_rows.set_index(["group_type", "group"])
+        shared = method_rows.index.intersection(baseline_subgroups.index)
+        supported = [
+            key for key in shared
+            if int(method_rows.loc[key, "n_true_profiles"]) >= 10
+        ]
+        subgroup_pass[method] = bool(supported) and all(
+            float(method_rows.loc[key, "mrr"] - baseline_subgroups.loc[key, "mrr"]) >= -0.02
+            and float(method_rows.loc[key, "recall_at_3"] - baseline_subgroups.loc[key, "recall_at_3"]) >= -0.02
+            for key in supported
+        )
+    result_frame["subgroup_non_degradation"] = result_frame["method"].map(subgroup_pass)
+    result_frame["adoption_gate"] = (
+        result_frame["aggregate_gate"] & result_frame["subgroup_non_degradation"]
+    )
+    dev_selected_family = str(
+        result_frame.sort_values("dev_macro_mrr", ascending=False).iloc[0]["method"]
+    )
+    selected_row = result_frame[result_frame["method"].eq(dev_selected_family)].iloc[0]
+    recommendation = dev_selected_family if bool(selected_row["adoption_gate"]) else None
     report = {
         "design": "train-fitted transforms; dev-selected hyperparameters; locked source-heldout test",
         "seed": args.seed,
         "baseline": "cosine",
-        "adoption_rule": "MRR paired-profile CI lower bound >= -0.01; Recall@3 delta >= -0.01; both false-top3 HHI and Gini improve",
+        "adoption_rule": "select one family by dev macro MRR; on test require MRR paired-profile CI lower bound >= -0.01, Recall@3 delta >= -0.01, lower false-top3 HHI and Gini, and no supported language/corpus MRR or Recall@3 loss beyond 0.02",
+        "dev_selected_family": dev_selected_family,
         "recommended_backend": recommendation,
         "production_change_authorized": recommendation is not None,
         "open_set": "not tested here; requires author-heldout unknown queries",
@@ -471,7 +559,7 @@ def main() -> None:
     pd.concat(exposure_tables, ignore_index=True).to_csv(
         args.output_dir / "backend_author_exposure.csv", index=False
     )
-    pd.DataFrame(subgroup_rows).to_csv(
+    subgroup_frame.to_csv(
         args.output_dir / "backend_subgroup_metrics.csv", index=False
     )
     geometry(train.reset_index(drop=True), train_embeddings).to_csv(
@@ -481,9 +569,10 @@ def main() -> None:
         json.dumps(report, indent=2), encoding="utf-8"
     )
     print(json.dumps({
+        "dev_selected_family": dev_selected_family,
         "recommended_backend": recommendation,
         "production_change_authorized": recommendation is not None,
-        "results": result_frame[["method", "mrr", "recall_at_3", "false_top3_hhi", "false_top3_gini", "adoption_gate"]].to_dict("records"),
+        "results": result_frame[["method", "mrr", "recall_at_3", "false_top3_hhi", "false_top3_gini", "subgroup_non_degradation", "adoption_gate"]].to_dict("records"),
     }, indent=2))
     print(f"RETURN: {args.output_dir / 'backend_metrics.json'}")
 

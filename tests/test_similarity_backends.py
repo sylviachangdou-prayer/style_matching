@@ -33,6 +33,10 @@ def test_every_backend_returns_finite_candidate_scores() -> None:
         ("adaptive_snorm", 5),
         ("plda", (4, 0.3)),
         ("plda_snorm", (4, 0.3)),
+        ("author_balanced_whitened_cosine", 0.1),
+        ("whitened_csls", (0.1, 5)),
+        ("author_balanced_whitened_csls", (0.1, 5)),
+        ("cosine_whitened_blend", (0.1, 0.5)),
     ]
     for method, parameter in specifications:
         scores = language_scores(train, labels, query, method, parameter)
