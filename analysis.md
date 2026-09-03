@@ -71,3 +71,18 @@ raw/whitened interpolation, author-balanced covariance whitening, whitening + CS
 author-balanced whitening + CSLS. Named authors are monitored but never enter the scoring
 formula. Because the existing test set has already been opened, its output is diagnostic;
 the selected candidate still requires new-source confirmation and new open-set calibration.
+
+### Result
+
+Dev selected ordinary shrinkage whitening at 0.30. Relative to cosine on dev, MRR increased
+by 0.076, Recall@3 by 0.093, worst-decile Recall@3 by 0.060, and the composite concentration
+index fell to 0.873. Author-balanced covariance never improved on ordinary whitening, and
+no whitening + CSLS configuration satisfied the dev eligibility constraints.
+
+On the reused test split, whitening 0.30 increased MRR by 0.057 (95% paired-profile CI
+[0.040, 0.073]) and Recall@3 by 0.077 while lowering HHI, Gini, and maximum exposure share.
+It nevertheless failed the subgroup gate: rhetorical MRR fell by 0.052 and Recall@3 by
+0.010. The watched-profile result also remained asymmetric: source-balanced false-top3
+share increased for Joyce and Mansfield and decreased only modestly for Lawrence. The
+aggregate hubness mechanism therefore survives; global concentration and specific
+production-visible hubs are not interchangeable outcomes.
