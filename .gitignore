@@ -1,20 +1,32 @@
-# Python
+# Python caches and test output
 __pycache__/
-*.pyc
-.ipynb_checkpoints/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
 
-# Local env
+# Local environments and credentials
 .env
+.env.*
+!.env.example
 .venv/
 venv/
+.python-version
+.huggingface/
+.cache/
 
-# Large corpus outputs
-data/*/raw/
-data/*/chunks/
-data/*/clean/
-data/*/processed/
+# Raw/local corpora and derived datasets
+data/**/raw/
+data/**/chunks/
+data/**/clean/
+data/**/processed/
+data/source_registry/raw_inputs/
 
-# Large ML artifacts
+# Model and index artifacts; reviewed metadata JSON may still be committed
 models/
 embeddings/
 checkpoints/
@@ -28,6 +40,24 @@ checkpoints/
 *.npz
 *.parquet
 
-# OS/editor
+# Experiment services and logs
+wandb/
+mlruns/
+runs/
+logs/
+*.log
+*.pid
+
+# Local exports and backups
+*.zip
+*.tar
+*.tar.gz
+*_backup_*/
+*pull_backup*/
+
+# OS and editor files
 .DS_Store
+*.icloud
+.idea/
 .vscode/
+.claude/settings.local.json

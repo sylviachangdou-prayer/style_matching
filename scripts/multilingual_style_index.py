@@ -48,11 +48,18 @@ def resolve_device(device: str) -> str:
         return "cpu"
 
 
-def load_model(model_name: str, backend: str | None = None, device: str = "auto"):
+def load_model(
+    model_name: str,
+    backend: str | None = None,
+    device: str = "auto",
+    revision: str | None = None,
+):
     from sentence_transformers import SentenceTransformer
 
     kwargs = {"backend": backend} if backend else {}
     kwargs["device"] = resolve_device(device)
+    if revision:
+        kwargs["revision"] = revision
     return SentenceTransformer(model_name, **kwargs)
 
 
@@ -525,6 +532,7 @@ class StyleIndex:
             self.metadata["model_name"],
             backend or self.metadata.get("backend"),
             device,
+            revision=self.metadata.get("model_revision"),
         )
         self.topic_model = None
         if self.topic_centroids is not None and self.metadata.get("topic_model_name"):

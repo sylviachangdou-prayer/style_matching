@@ -1,5 +1,6 @@
 {
-  "model_name": "sylviachangdou-prayer/stylematch-authorship-v1",
+  "model_name": "sylviachangdou-prayer/stylematch-authorship",
+  "model_revision": "v2",
   "backend": null,
   "input": "/content/drive/MyDrive/style_matching/data/all/meta/all_sources_chunks.parquet",
   "split": "train",

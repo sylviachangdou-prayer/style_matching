@@ -26,11 +26,12 @@ ENV HOME=/home/user \
 #
 # 用 SentenceTransformer 而不是 snapshot_download，是为了只下运行时真正会用到的
 # 文件（e5-base 仓库里还有 onnx / openvino 变体，全下会多几个 GB）。
-ARG STYLEMATCH_MODEL_REPO=sylviachangdou-prayer/stylematch-authorship-v1
+ARG STYLEMATCH_MODEL_REPO=sylviachangdou-prayer/stylematch-authorship
+ARG STYLEMATCH_MODEL_REVISION=v2
 ARG STYLEMATCH_TOPIC_MODEL=intfloat/multilingual-e5-base
-RUN STYLE_REPO="$STYLEMATCH_MODEL_REPO" TOPIC_REPO="$STYLEMATCH_TOPIC_MODEL" \
+RUN STYLE_REPO="$STYLEMATCH_MODEL_REPO" STYLE_REVISION="$STYLEMATCH_MODEL_REVISION" TOPIC_REPO="$STYLEMATCH_TOPIC_MODEL" \
     python -c "import os; from sentence_transformers import SentenceTransformer; \
-SentenceTransformer(os.environ['STYLE_REPO']); \
+SentenceTransformer(os.environ['STYLE_REPO'], revision=os.environ['STYLE_REVISION']); \
 SentenceTransformer(os.environ['TOPIC_REPO'])"
 
 # 代码放在权重之后，改代码不会让上面那个大层失效。

@@ -1,0 +1,7 @@
+method,profile,top3_count,false_top3_count,source_balanced_false_top3_mass,source_balanced_false_top3_share
+whitened_cosine:0.3,en::James Joyce,260,210,5.860437569676671,0.011146831517786913
+whitened_cosine:0.3,en::Katherine Mansfield,229,195,5.501796862557718,0.010464679802979807
+whitened_cosine:0.3,en::D. H. Lawrence,161,144,3.5824430641821947,0.006813977417851134
+exposure_prior[penalty=0.01],en::James Joyce,255,205,5.695019509476002,0.010825368529423725
+exposure_prior[penalty=0.01],en::Katherine Mansfield,220,187,5.319296862557723,0.010111176749927054
+exposure_prior[penalty=0.01],en::D. H. Lawrence,156,139,3.4824430641821946,0.0066195962085433685

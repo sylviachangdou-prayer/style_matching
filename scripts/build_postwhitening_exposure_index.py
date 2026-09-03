@@ -69,6 +69,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--shrinkage", type=float, default=0.3)
     parser.add_argument("--penalty", type=float, default=0.01)
     parser.add_argument("--model-name")
+    parser.add_argument("--model-revision")
     return parser.parse_args()
 
 
@@ -167,6 +168,8 @@ def main() -> None:
                     for key in cached.files
                 },
             )
+    if args.model_revision:
+        metadata["model_revision"] = args.model_revision
     metadata.update({
         "score_status": "per-language_postwhitening_exposure_beta",
         "score_version": "stylematch_v2",
