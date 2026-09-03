@@ -99,6 +99,47 @@ def test_query_result_is_json_serializable_when_parquet_returns_array() -> None:
     json.dumps(result)
 
 
+def test_postwhitening_exposure_calibration_changes_ranking() -> None:
+    class FakeModel:
+        def encode(self, *args, **kwargs):
+            return np.asarray([[1.0, 0.0]], dtype="float32")
+
+    index = StyleIndex.__new__(StyleIndex)
+    index.metadata = {
+        "style_weight_within": 1.0,
+        "score_status": "per-language_postwhitening_exposure_beta",
+    }
+    index.profiles = pd.DataFrame([
+        {"profile_id": 0, "language": "en", "author_or_speaker": "Hub", "source_corpora": ["literary"], "n_sources": 3},
+        {"profile_id": 1, "language": "en", "author_or_speaker": "Specific", "source_corpora": ["literary"], "n_sources": 3},
+    ])
+    index.passages = pd.DataFrame(columns=["profile_id", "title", "source_id", "text"])
+    index.centroids = np.asarray([[1.0, 0.0], [0.999, 0.001]], dtype="float32")
+    index.ranking_calibration = {
+        "languages": np.asarray(["en"]),
+        "means": np.zeros((1, 2), dtype="float32"),
+        "transforms": np.asarray([np.eye(2)], dtype="float32"),
+        "centroids": np.asarray([[1.0, 0.0], [0.999, 0.001]], dtype="float32"),
+        "exposure_bias": np.asarray([0.95, 0.05], dtype="float32"),
+        "penalty": 0.01,
+    }
+    index.hubness_bias = None
+    index.prototype_centroids = None
+    index.prototypes = None
+    index.ecore_scorer = None
+    index.topic_centroids = None
+    index.topic_model = None
+    index.decade_centroids = None
+    index.decades = None
+    index.model = FakeModel()
+    index.passage_style_embeddings = None
+
+    result = index.query("test text", "en", "within", 2)
+
+    assert result["results"]["en"][0]["author_or_speaker"] == "Specific"
+    assert result["score_status"] == "per-language_postwhitening_exposure_beta"
+
+
 def test_display_passage_rejects_editorial_artifacts() -> None:
     passage = (
         "[Picture: Sketch of tree-lined path] * * * * * "

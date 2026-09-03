@@ -30,6 +30,7 @@ CJK_LANGUAGES = {"zh", "ja"}
 # Held-out model selection picked the fine-tuned challenger. Prefer the expanded
 # coverage-beta index, while retaining the earlier challenger and baseline fallbacks.
 INDEX_DIR_CANDIDATES = (
+    ROOT / "artifacts" / "multilingual_style_index_v2",
     ROOT / "artifacts" / "multilingual_style_index_gutenberg_v3",
     ROOT / "artifacts" / "multilingual_style_index_challenger_v1",
     ROOT / "artifacts" / "multilingual_style_index_v1",
@@ -69,6 +70,7 @@ def load_index() -> tuple[object, bool]:
         snapshot_download(
             repo_id=hub_repo,
             repo_type=os.environ.get("STYLEMATCH_HUB_REPO_TYPE", "dataset"),
+            revision=os.environ.get("STYLEMATCH_HUB_REVISION") or None,
             local_dir=index_dir,
         )
     if (index_dir / "metadata.json").exists():

@@ -473,6 +473,26 @@ class StyleIndex:
         self.profiles = pd.read_parquet(index_dir / "profiles.parquet")
         self.passages = pd.read_parquet(index_dir / "representative_passages.parquet")
         self.centroids = np.load(index_dir / "centroids.npy")
+        self.ranking_calibration = None
+        calibration_file = self.metadata.get("ranking_calibration_file")
+        if calibration_file and self.metadata.get("ranking_calibration_enabled"):
+            calibration_path = index_dir / str(calibration_file)
+            payload = np.load(calibration_path, allow_pickle=False)
+            profile_keys = (
+                self.profiles["language"].astype(str)
+                + "::"
+                + self.profiles["author_or_speaker"].astype(str)
+            ).to_numpy()
+            if not np.array_equal(payload["profile_keys"].astype(str), profile_keys):
+                raise ValueError("Ranking calibration profile order does not match the index")
+            self.ranking_calibration = {
+                "languages": payload["languages"].astype(str),
+                "means": payload["means"].astype("float32"),
+                "transforms": payload["transforms"].astype("float32"),
+                "centroids": payload["centroids"].astype("float32"),
+                "exposure_bias": payload["exposure_bias"].astype("float32"),
+                "penalty": float(payload["penalty"]),
+            }
         hubness_path = index_dir / "hubness_bias.npy"
         self.hubness_bias = np.load(hubness_path) if hubness_path.exists() else None
         prototype_centroid_path = index_dir / "source_prototype_centroids.npy"
@@ -560,6 +580,22 @@ class StyleIndex:
         )[0].astype("float32")
         single_centroid_scores = self.centroids @ query_embedding
         scores = single_centroid_scores
+        if getattr(self, "ranking_calibration", None) is not None:
+            scores = np.full(len(self.profiles), -np.inf, dtype="float32")
+            profile_languages = self.profiles["language"].astype(str).to_numpy()
+            for position, target_language in enumerate(self.ranking_calibration["languages"]):
+                indices = np.flatnonzero(profile_languages == target_language)
+                if not len(indices):
+                    continue
+                transformed_query = (
+                    query_embedding - self.ranking_calibration["means"][position]
+                ) @ self.ranking_calibration["transforms"][position]
+                transformed_query /= max(float(np.linalg.norm(transformed_query)), 1e-12)
+                scores[indices] = (
+                    self.ranking_calibration["centroids"][indices] @ transformed_query
+                    - self.ranking_calibration["penalty"]
+                    * self.ranking_calibration["exposure_bias"][indices]
+                )
         if (
             self.metadata.get("profile_strategy") == "source_prototype_topk_mean"
             and self.prototype_centroids is not None
@@ -784,7 +820,7 @@ class StyleIndex:
             "input_language": language,
             "confidence": confidence,
             "ranking_scope": scope,
-            "score_status": "uncalibrated_cosine",
+            "score_status": self.metadata.get("score_status", "uncalibrated_cosine"),
             "score_version": self.metadata.get("score_version", "stylematch_v1"),
             "artifact_version": self.metadata.get("artifact_version", "unversioned"),
             "profile_strategy": self.metadata.get("profile_strategy", "single_centroid"),
