@@ -40,7 +40,7 @@ def test_index_exposes_primary_navigation_and_visible_passage() -> None:
     assert "Pure style." not in page and "Beyond language." not in page
     assert "Cross-lingual, multi-style retrieval" in page
     assert '<span aria-hidden="true">✦</span> Cross-lingual' not in page
-    assert page.count('class="voice-sticker"') == 15
+    assert page.count('class="voice-sticker"') == 18
     assert "portraits/jian-zhen.jpg" not in page
     assert "portraits/barack-obama.jpg" not in page
     assert "portraits/lu-xun.jpg" not in page
@@ -51,8 +51,12 @@ def test_index_exposes_primary_navigation_and_visible_passage() -> None:
     assert "portraits/can-xue.jpeg" in page
     assert "portraits/evelyn-waugh.jpeg" in page
     assert "portraits/qiu-miaojin.jpeg" in page
+    assert "portraits/jorge-luis-borges.jpeg" in page
+    assert "portraits/martin-luther-king-jr.jpg" in page
+    assert "portraits/toni-morrison.jpeg" in page
     assert "retrieval —" not in page
     assert "academic authorship research." not in page
+    assert "StyleMatch looks for the authors whose writing moves most like yours" in page
     assert "Original-language passages only" not in page
     assert "A multilingual cabinet of voices" not in page
     assert "Paste a passage you wrote — we compare" not in page
@@ -78,6 +82,7 @@ def test_index_exposes_primary_navigation_and_visible_passage() -> None:
     assert "art/transition/lantingxu.jpg" not in page
     assert "art/transition/luoshenfu.jpeg" not in page
     assert "VOICE_LINES" in page and "typeVoiceLine" in page
+    assert "Ese disperso amor es nuestro desanimado secreto." in page
     assert 'id="voice-line"' in page and 'id="voice-credit"' in page
     assert "TRANSITION_MIN_MS = 10000" in page
     assert "Array.from(passage.text).length * 34" in page

@@ -186,7 +186,7 @@
   }
 </style>
 <link rel="stylesheet" href="method-flow.css">
-<link rel="stylesheet" href="site-shell.css?v=20260723-4">
+<link rel="stylesheet" href="site-shell.css?v=20260904-2">
 </head>
 <body class="page-home stylematch-atmosphere">
 <header class="site-header">
@@ -239,8 +239,11 @@
     <figure class="voice-sticker" title="F. Scott Fitzgerald"><img src="portraits/f-scott-fitzgerald.jpeg" alt="F. Scott Fitzgerald" loading="eager"></figure>
     <figure class="voice-sticker" title="Evelyn Waugh"><img src="portraits/evelyn-waugh.jpeg" alt="Evelyn Waugh" loading="eager"></figure>
     <figure class="voice-sticker" title="Qiu Miaojin"><img src="portraits/qiu-miaojin.jpeg" alt="Qiu Miaojin" loading="eager"></figure>
+    <figure class="voice-sticker" title="Jorge Luis Borges"><img src="portraits/jorge-luis-borges.jpeg" alt="Jorge Luis Borges" loading="eager"></figure>
+    <figure class="voice-sticker" title="Martin Luther King Jr."><img src="portraits/martin-luther-king-jr.jpg" alt="Martin Luther King Jr." loading="eager"></figure>
+    <figure class="voice-sticker" title="Toni Morrison"><img src="portraits/toni-morrison.jpeg" alt="Toni Morrison" loading="eager"></figure>
   </div>
-  <p class="capability-line">Cross-lingual, multi-style retrieval<br><span class="capability-detail">fine-tuned from the frontier of academic authorship research</span></p>
+  <p class="capability-line">Cross-lingual, multi-style retrieval<br><span class="capability-detail">StyleMatch looks for the authors whose writing moves most like yours</span></p>
 
   <textarea id="text" placeholder="Paste at least ~80 words (or ~160 characters of Chinese/Japanese) of your own writing…"></textarea>
 
@@ -375,6 +378,9 @@ const VOICE_LINES = {
   "Simone de Beauvoir": ["“Je suis seule, mais je suis libre.”", "L’Invitée · 1943"],
   "Oscar Wilde": ["“The only way to get rid of temptation is to yield to it.”", "The Picture of Dorian Gray · 1890"],
   "Qiu Miaojin": ["“爱人是地狱，被爱也是地狱，但又不能不往地狱里去。”", "《鳄鱼手记》· 1994"],
+  "Jorge Luis Borges": ["“Ese disperso amor es nuestro desanimado secreto.”", "Barrio Norte · Cuaderno San Martín · 1929"],
+  "Martin Luther King Jr.": ["“We cannot walk alone.”", "I Have a Dream · 1963"],
+  "Toni Morrison": ["“Narrative is radical, creating us at the very moment it is being created.”", "Nobel Lecture · 1993"],
 };
 
 let voiceTypingTimer = null;

@@ -120,7 +120,7 @@ body.stylematch-atmosphere::after {
   width: auto;
   max-width: 860px;
   margin: 0 auto 0 max(4vw, calc((100vw - 1230px) / 2));
-  padding: clamp(50px, 8vh, 96px) 28px 80px;
+  padding: 0 28px 80px;
 }
 
 .input-panel { position: relative; min-height: 560px; }
@@ -140,14 +140,14 @@ body.stylematch-atmosphere::after {
   --home-content-offset: calc(max(4vw, calc((100vw - 1230px) / 2)) + 28px);
   display: grid;
   position: relative;
-  grid-template-columns: repeat(15, minmax(0, 1fr));
+  grid-template-columns: repeat(18, minmax(0, 1fr));
   align-items: stretch;
   gap: 0;
-  width: min(calc(1114px + var(--home-content-offset)), 100vw);
+  width: 100vw;
   max-width: none;
   height: clamp(260px, 31vw, 340px);
-  margin: -10px 0 8px calc(-1 * var(--home-content-offset));
-  padding: 8px 0;
+  margin: 0 0 8px calc(-1 * var(--home-content-offset));
+  padding: 0;
   overflow: hidden;
 }
 
@@ -178,12 +178,6 @@ body.stylematch-atmosphere::after {
   transform: translateY(-4px) scale(1.025);
 }
 
-.voice-sticker:nth-child(2),
-.voice-sticker:nth-child(5),
-.voice-sticker:nth-child(8) { transform: translateY(8px); }
-.voice-sticker:nth-child(3),
-.voice-sticker:nth-child(7) { transform: translateY(-5px); }
-
 .voice-sticker:nth-child(1) img { object-position: 50% 24%; }
 .voice-sticker:nth-child(2) img { object-position: 50% 28%; }
 .voice-sticker:nth-child(3) img { object-position: 42% 25%; }
@@ -198,6 +192,9 @@ body.stylematch-atmosphere::after {
 .voice-sticker:nth-child(13) img { object-position: 50% 20%; }
 .voice-sticker:nth-child(14) img { object-position: 50% 23%; }
 .voice-sticker:nth-child(15) img { object-position: 50% 28%; }
+.voice-sticker:nth-child(16) img { object-position: 58% 34%; }
+.voice-sticker:nth-child(17) img { object-position: 50% 28%; }
+.voice-sticker:nth-child(18) img { object-position: 48% 24%; }
 
 .voice-line-stage {
   position: fixed;
@@ -543,14 +540,14 @@ body.matching-mode { overflow: hidden; }
   .site-mark { padding-bottom: 10px; }
   .site-nav { gap: 19px; overflow-x: auto; }
   .site-nav a { min-height: 44px; white-space: nowrap; font-size: .61rem; }
-  body.stylematch-atmosphere::after { display: none; }
-  .home-main { padding: 42px 18px 68px; }
+  body.stylematch-atmosphere::after { display: block; }
+  .home-main { padding: 0 18px 68px; }
   .input-panel { min-height: 0; }
   .voice-portraits {
     --home-content-offset: 18px;
-    width: calc(100% + var(--home-content-offset) + 60px);
+    width: 100vw;
     height: 260px;
-    margin-top: -18px;
+    margin-top: 0;
     gap: 0;
   }
   .voice-line-stage { width: max-content; max-width: min(88vw, 560px); padding: 0; }
