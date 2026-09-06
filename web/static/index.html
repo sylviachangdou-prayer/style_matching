@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pure Style, Beyond Language — sylviadou</title>
+<script src="analytics.js"></script>
 <script src="config.js"></script>
 <style>
   /* Design decisions (owner-approved): navy + khaki/warm-white palette following
@@ -281,6 +282,14 @@ const SHARE_URL = window.STYLEMATCH_SHARE_URL || location.href;
 const QR_LIB = "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js";
 const H2C_LIB = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
 
+function lengthBucket(text) {
+  const length = Array.from(text).length;
+  if (length < 250) return "under_250";
+  if (length < 500) return "250_499";
+  if (length < 1000) return "500_999";
+  return "1000_plus";
+}
+
 const $ = (id) => document.getElementById(id);
 const textEl = $("text"), output = $("output"), goBtn = $("go"),
       clearBtn = $("clear"), sheet = $("export-sheet"),
@@ -454,6 +463,9 @@ goBtn.onclick = async () => {
   const text = textEl.value.trim();
   if (!text) return;
   const started = performance.now();
+  const inputLengthBucket = lengthBucket(text);
+  let httpStatus = 0;
+  window.styleMatchTrack("match_started", { input_length_bucket: inputLengthBucket });
   goBtn.disabled = true;
   showMatchTransition();
   output.innerHTML = "";
@@ -463,14 +475,24 @@ goBtn.onclick = async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
     });
+    httpStatus = res.status;
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || `Request failed (${res.status})`);
     const remaining = TRANSITION_MIN_MS - (performance.now() - started);
     if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
     lastData = data; lastText = text;
     render(data);
+    const matches = Object.values(data.results || {}).flat();
+    window.styleMatchTrack("match_completed", {
+      input_language: data.input_language || "unknown",
+      input_length_bucket: inputLengthBucket,
+      result_count: matches.length,
+      low_confidence: matches.length > 0 && matches.every(match => match.low_confidence),
+      elapsed_ms: Math.round(data.elapsed_ms || performance.now() - started),
+    });
     await finishMatchTransition();
   } catch (err) {
+    window.styleMatchTrack("match_failed", { http_status: httpStatus });
     hideMatchTransition();
     output.innerHTML = `<div class="error">${escapeHtml(err.message)}</div>`;
   } finally {
@@ -676,7 +698,14 @@ async function togglePassageTranslation(button, matches, inputLanguage) {
         }),
       });
       payload = await response.json();
-      if (!response.ok) throw new Error(payload.detail || "Translation unavailable");
+      if (!response.ok) {
+        window.styleMatchTrack("translation_failed", {
+          source_language: match.target_language,
+          target_language: inputLanguage,
+          http_status: response.status,
+        });
+        throw new Error(payload.detail || "Translation unavailable");
+      }
     }
     panel.innerHTML = `<div class="passage-label"><span aria-hidden="true">↳</span> Translation into ${escapeHtml(languageName(inputLanguage))}</div>
       <blockquote>${escapeHtml(payload.text)}<cite>${escapeHtml(translationCredit(payload))}</cite></blockquote>`;
@@ -684,6 +713,11 @@ async function togglePassageTranslation(button, matches, inputLanguage) {
     panel.hidden = false;
     button.setAttribute("aria-expanded", "true");
     button.textContent = "Hide translated text";
+    window.styleMatchTrack("translation_completed", {
+      source_language: match.target_language,
+      target_language: inputLanguage,
+      translation_type: payload.translation_type || "machine",
+    });
   } catch (error) {
     button.textContent = error.message || "Translation unavailable";
   } finally {
@@ -784,6 +818,7 @@ function exportMatch(m, rank) {
 
 async function exportPdf() {
   if (!(await buildExportSheet())) return;
+  window.styleMatchTrack("export_pdf");
   document.body.classList.add("printing");
   const cleanup = () => document.body.classList.remove("printing");
   window.addEventListener("afterprint", cleanup, { once: true });
@@ -804,6 +839,7 @@ async function exportPng(button) {
     link.download = `stylematch-${new Date().toISOString().slice(0, 10)}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
+    window.styleMatchTrack("export_png");
   } catch {
     alert("Could not render the image (the renderer failed to load). Please use “Export as PDF” instead.");
   } finally {
