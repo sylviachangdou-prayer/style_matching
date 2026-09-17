@@ -86,3 +86,69 @@ It nevertheless failed the subgroup gate: rhetorical MRR fell by 0.052 and Recal
 share increased for Joyce and Mansfield and decreased only modestly for Lawrence. The
 aggregate hubness mechanism therefore survives; global concentration and specific
 production-visible hubs are not interchangeable outcomes.
+
+## 2026-09-16 — ancient-text translation paths and main-readiness diagnostic
+
+### Current mechanism diagnosis
+
+The reported Shu Dao Nan → John Adams / George Washington / Zachary Taylor ranking is a
+single user-observed example without the exact query, translation route, candidate pool,
+scores, or margins. It does not validate cross-lingual style matching. The leading failure
+classes are historical-language/domain shift, translation-model fingerprints, semantic or
+rhetorical-content leakage, and candidate hubness. Their relative contribution is unknown.
+
+### Literature boundary
+
+Multilingual style embeddings already include Chinese (mStyleDistance, Findings ACL 2025),
+and classical-poetry style judgments / poet profiling predate this proposal. Old-Chinese
+stylometry has recent workshop work. Translation stylometry shows both translator signal
+and same-original clustering across different translators (PROPOR 2024), so translation
+cannot be treated as a neutral view of the source author's style. A Tang/Song poem corpus
+with 32,399 expert-segmented poems exists, but whole-poem segmentation agreement is limited.
+See notes/translation_path_style_strategy_20260916.md for sources and the exact novelty
+boundary.
+
+### Candidate pathway
+
+The most defensible research question is whether variation across independent translation
+paths predicts errors in human-perceived cross-lingual style similarity. The proposed
+Translation-Path Consensus with Abstention (TPCA) uses pairwise-language/genre calibrated
+scores, their median, translation-path MAD, and an OOD term; it abstains when agreement or
+domain support is inadequate. This is a hypothesis, not yet a novel or validated method.
+The source-language structural branch should remain separate from translated English
+scores. Same-author attribution, translator attribution, and perceived-style similarity
+must not be conflated.
+
+### Falsifiers and next empirical steps
+
+1. Reproduce the exact Shu Dao Nan run and record source text, detected language,
+   translation text/engine, candidate index version, full ranked scores, and margins.
+2. Compare original, title-masked, literal gloss, multiple independent translations,
+   prose paraphrase, and topic-matched classical-poem controls. If the same presidents
+   remain top matches under content-preserving prose or unrelated poems, treat the result
+   as content/candidate bias.
+3. Build a crossed poem × poet × translator evaluation with complete-work holdout; collect
+   independent human pairwise style judgments. A single poem with many translations can
+   diagnose translator-path effects but cannot support author-style retrieval.
+4. Compare raw multilingual embeddings, mStyleDistance, classical stylometry,
+   translation-only, and TPCA. Select thresholds on dev; report pairwise human agreement,
+   risk–coverage, and source/author-clustered intervals.
+5. Keep this ancient-text line separate from the ECoRe ranking claim until it has its own
+   construct-validity evidence and open-set test.
+
+### Evidence status
+
+- **Confirmed:** the current repository separates translated-text comparison from original
+  author profiles; relevant multilingual and Classical Chinese style methods already
+  exist.
+- **Inference:** the president matches are more likely an OOD/content/hubness warning than
+  evidence of recovered Li Bai style. This cannot be resolved without the rank trace.
+- **Unverified:** the input's translation path, exact cause of the matches, a sufficiently
+  crossed public translation corpus, and TPCA novelty.
+
+The new main_readiness_ecore_test.ipynb is explicitly a diagnostic on the Part 8.5 V3
+source-heldout set, which Part 8.8 may already have exposed. It reports ECoRe versus
+centroid retrieval, source-balanced MAUI@3, false-return Gini/max share, and subgroup
+intervals. It does not establish human construct validity, two public benchmarks, or
+calibrated ECoRe open-set rejection; its final readiness gate therefore cannot return
+MAIN-READY.
